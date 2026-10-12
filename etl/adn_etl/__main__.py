@@ -69,6 +69,10 @@ def main(argv=None):
     c = sub.add_parser("comparar")
     c.add_argument("--a", required=True)
     c.add_argument("--b", required=True)
+    st = sub.add_parser("stage-mongo", help="copia una colección de mongo-lab a stg.* (solo lectura en MongoDB)")
+    st.add_argument("--coleccion", required=True)
+    st.add_argument("--desde")
+    st.add_argument("--hasta")
     m = sub.add_parser("muestreo")
     m.add_argument("--n", type=int, default=10)
     a = ap.parse_args(argv)
@@ -125,6 +129,9 @@ def main(argv=None):
             conn.close()
     elif a.cmd == "instantanea":
         verificar.instantanea(cfg, a.nombre)
+    elif a.cmd == "stage-mongo":
+        from . import mongo_stage
+        mongo_stage.copiar(cfg, a.coleccion, a.desde, a.hasta)
     elif a.cmd == "muestreo":
         verificar.muestreo(cfg, a.n)
 

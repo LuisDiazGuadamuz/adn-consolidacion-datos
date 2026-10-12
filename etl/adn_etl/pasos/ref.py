@@ -49,22 +49,30 @@ LEFT JOIN ref.Canton c ON c.FuenteSistema = 'ADNPayV2' AND c.FuenteTabla = N'Add
     Paso(
         nombre="ref_TipoCambio", orden=130, destino="ref.TipoCambio",
         fuente=("AppDataCR", "SQLServer", "ADNApp", "Telephony_usdexchange"), llave_origen="id",
-        descripcion="Tipo de cambio del dólar por día (copia SQL Server de app.data.cr). Si un día tiene varios registros se conserva el último.",
-        reglas=["ES-02", "ES-04", "DD-04", "D5", "IN-05"],
-        clave=["Fecha"], dedup_orden="TRY_CAST(s.FuenteLlave AS bigint) DESC",
-        dedup_motivo="Varios tipos de cambio para el mismo día; se conserva el último registrado",
+        descripcion="Tipo de cambio del dólar por día. Une la copia MongoDB (vigente, requiere stage-mongo) y la copia SQL Server. "
+                    "Si un día aparece varias veces se conserva MongoDB y, dentro de la misma fuente, el último registro.",
+        reglas=["ES-02", "ES-03", "ES-04", "DD-04", "D1", "D5", "IN-05"],
+        clave=["Fecha"],
+        dedup_orden="CASE s.FuenteBase WHEN N'developer_adn_app_db' THEN 0 ELSE 1 END, s.o_Orden DESC, s.FuenteLlave",
+        dedup_motivo="Varios tipos de cambio para el mismo día; se conserva MongoDB y el último registrado",
         columnas=["Fecha", "Compra", "Venta"],
-        auxiliares=["o_Fecha"],
+        auxiliares=["o_Fecha", "o_Orden"],
         anomalias=[Anomalia("ES-03", "Fecha", "s.o_Fecha", "s.Fecha > CAST(SYSDATETIMEOFFSET() AS date)",
                             "Fecha posterior a la carga")],
         select="""
-SELECT 'AppDataCR' AS FuenteSistema, N'ADNApp' AS FuenteBase, N'Telephony_usdexchange' AS FuenteTabla,
-       CAST(u.id AS nvarchar(200)) AS FuenteLlave,
-       TODATETIMEOFFSET(CAST(ctl.fn_FechaDia(CONVERT(nvarchar(30), u.ExchangeDate, 23)) AS datetime2(0)), '-06:00') AS FechaDato,
-       ctl.fn_FechaDia(CONVERT(nvarchar(30), u.ExchangeDate, 23)) AS Fecha,
-       CAST(u.Purchase AS decimal(19,6)) AS Compra,
-       CAST(u.Sale AS decimal(19,6)) AS Venta,
-       CONVERT(nvarchar(30), u.ExchangeDate, 23) AS o_Fecha
+SELECT 'AppDataCR' AS FuenteSistema, N'developer_adn_app_db' AS FuenteBase, N'Telephony_usdexchange' AS FuenteTabla,
+       CAST(m._id AS nvarchar(200)) AS FuenteLlave,
+       TODATETIMEOFFSET(CAST(ctl.fn_FechaDia(CONVERT(nvarchar(30), m.ExchangeDate, 23)) AS datetime2(0)), '-06:00') AS FechaDato,
+       ctl.fn_FechaDia(CONVERT(nvarchar(30), m.ExchangeDate, 23)) AS Fecha,
+       CAST(m.Purchase AS decimal(19,6)) AS Compra, CAST(m.Sale AS decimal(19,6)) AS Venta,
+       CONVERT(nvarchar(30), m.ExchangeDate, 23) AS o_Fecha, m.id AS o_Orden
+FROM stg.mongo_Telephony_usdexchange m
+UNION ALL
+SELECT 'AppDataCR', N'ADNApp', N'Telephony_usdexchange', CAST(u.id AS nvarchar(200)),
+       TODATETIMEOFFSET(CAST(ctl.fn_FechaDia(CONVERT(nvarchar(30), u.ExchangeDate, 23)) AS datetime2(0)), '-06:00'),
+       ctl.fn_FechaDia(CONVERT(nvarchar(30), u.ExchangeDate, 23)),
+       CAST(u.Purchase AS decimal(19,6)), CAST(u.Sale AS decimal(19,6)),
+       CONVERT(nvarchar(30), u.ExchangeDate, 23), u.id
 FROM ADNApp.dbo.Telephony_usdexchange u
 """),
     Paso(

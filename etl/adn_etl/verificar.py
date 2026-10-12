@@ -67,8 +67,8 @@ def muestreo(cfg, n=10):
                 continue
             base, tabla = p.fuente[2], p.fuente[3]
             cur.execute(f"""SELECT TOP ({int(n)}) FuenteBase, FuenteTabla, FuenteLlave, PeriodoDato
-                            FROM {p.destino} WHERE FuenteTabla = %s
-                            ORDER BY CHECKSUM(FuenteLlave), FuenteLlave""", (tabla,))
+                            FROM {p.destino} WHERE FuenteBase = %s AND FuenteTabla = %s
+                            ORDER BY CHECKSUM(FuenteLlave), FuenteLlave""", (base, tabla))
             muestra = cur.fetchall()
             ok = 0
             for fb, ft, fl, per in muestra:
