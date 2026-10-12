@@ -12,13 +12,13 @@ BEGIN
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
-    SELECT CAST(q.[Codigo] AS varchar(50)) AS [Codigo],
-           CAST(q.[Categoria] AS varchar(50)) AS [Categoria],
+    SELECT CAST(q.[Codigo] AS varchar(50)) COLLATE DATABASE_DEFAULT AS [Codigo],
+           CAST(q.[Categoria] AS varchar(50)) COLLATE DATABASE_DEFAULT AS [Categoria],
            q.[Activo],
-           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
-           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
-           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
-           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Codigo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Categoria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activo]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            CONCAT_WS(N',', CASE WHEN LEN(q.[Codigo]) > 50 THEN N'Codigo' END, CASE WHEN LEN(q.[Categoria]) > 50 THEN N'Categoria' END, CAST(NULL AS nvarchar(1))) AS _Recortadas

@@ -13,10 +13,10 @@ BEGIN
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
     SELECT q.[CuentaPadreId],
-           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
-           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
-           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
-           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            q.[o_Modificada],
            CAST(N'' AS nvarchar(1)) AS _Recortadas

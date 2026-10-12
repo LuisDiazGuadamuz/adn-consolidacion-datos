@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 212 · core_ClusterFTTH → core.ClusterFTTH
-   Clústeres FTTH. El nodo viene como nombre: se vincula solo si el nombre corresponde a un único nodo.
+   Clústeres FTTH. El nodo se vincula por id del CRM o por nombre, solo si corresponde a un único nodo.
    Reglas: ES-01, ES-05, DD-02, DD-06, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_ClusterFTTH @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -12,24 +12,24 @@ BEGIN
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
-    SELECT CAST(q.[ClusterCrmId] AS nvarchar(30)) AS [ClusterCrmId],
-           CAST(q.[Nombre] AS nvarchar(200)) AS [Nombre],
-           CAST(q.[CodigoCluster] AS nvarchar(50)) AS [CodigoCluster],
+    SELECT CAST(q.[ClusterCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [ClusterCrmId],
+           CAST(q.[Nombre] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [Nombre],
+           CAST(q.[CodigoCluster] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [CodigoCluster],
            q.[NodoId],
-           CAST(q.[Fase] AS nvarchar(50)) AS [Fase],
+           CAST(q.[Fase] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [Fase],
            q.[CapacidadRed],
            q.[CantidadClientes],
-           CAST(q.[Provincia] AS nvarchar(60)) AS [Provincia],
-           CAST(q.[Canton] AS nvarchar(80)) AS [Canton],
-           CAST(q.[Distrito] AS nvarchar(80)) AS [Distrito],
+           CAST(q.[Provincia] AS nvarchar(60)) COLLATE DATABASE_DEFAULT AS [Provincia],
+           CAST(q.[Canton] AS nvarchar(80)) COLLATE DATABASE_DEFAULT AS [Canton],
+           CAST(q.[Distrito] AS nvarchar(80)) COLLATE DATABASE_DEFAULT AS [Distrito],
            q.[FechaInstalacion],
-           q.[AtributosExtendidos],
+           q.[AtributosExtendidos] COLLATE DATABASE_DEFAULT AS [AtributosExtendidos],
            q.[FechaCreacionOrigen],
            q.[FechaModificacionOrigen],
-           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
-           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
-           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
-           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ClusterCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CodigoCluster]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[NodoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Fase]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CapacidadRed]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CantidadClientes]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Provincia]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Canton]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Distrito]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaInstalacion], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Eliminado],
@@ -48,7 +48,8 @@ BEGIN
                ctl.fn_FechaCR(f.Created_Time) AS FechaCreacionOrigen, ctl.fn_FechaCR(f.Modified_Time) AS FechaModificacionOrigen,
                CAST(ISNULL(f.deleted, 0) AS int) AS o_Eliminado, ctl.fn_Texto(f.Nodo) AS o_Nodo
         FROM Zoho_Mirror.dbo.FTTHs f
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(n.NodoId) END AS NodoId FROM core.Nodo n WHERE n.Nombre = ctl.fn_Texto(f.Nodo)) nd
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(n.NodoId) END AS NodoId FROM core.Nodo n
+                     WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo) OR n.Nombre = ctl.fn_Texto(f.Nodo)) nd
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

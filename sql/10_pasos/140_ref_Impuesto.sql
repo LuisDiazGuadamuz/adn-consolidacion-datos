@@ -12,16 +12,16 @@ BEGIN
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
-    SELECT CAST(q.[ImpuestoBooksId] AS nvarchar(30)) AS [ImpuestoBooksId],
-           CAST(q.[Nombre] AS nvarchar(100)) AS [Nombre],
+    SELECT CAST(q.[ImpuestoBooksId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [ImpuestoBooksId],
+           CAST(q.[Nombre] AS nvarchar(100)) COLLATE DATABASE_DEFAULT AS [Nombre],
            q.[Porcentaje],
-           CAST(q.[Tipo] AS nvarchar(50)) AS [Tipo],
+           CAST(q.[Tipo] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [Tipo],
            q.[EsPredeterminado],
-           q.[AtributosExtendidos],
-           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
-           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
-           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
-           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           q.[AtributosExtendidos] COLLATE DATABASE_DEFAULT AS [AtributosExtendidos],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ImpuestoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Porcentaje]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsPredeterminado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            CONCAT_WS(N',', CASE WHEN LEN(q.[ImpuestoBooksId]) > 30 THEN N'ImpuestoBooksId' END, CASE WHEN LEN(q.[Nombre]) > 100 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END, CAST(NULL AS nvarchar(1))) AS _Recortadas

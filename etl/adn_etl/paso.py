@@ -157,11 +157,15 @@ class Paso:
         trunc = []
         for c in src_cols:
             tipo = d[c]["type"]
+            # Las bases de origen usan otra intercalación (SQL_Latin1_General_CP1_CI_AS); todo texto se lleva a la
+            # del modelo (DATABASE_DEFAULT = Modern_Spanish_CI_AS) para comparar con las tablas del modelo sin conflicto
             if tipo.startswith(("nvarchar(", "varchar(", "char(", "nchar(")) and "max" not in tipo:
                 n = int(tipo.split("(")[1].rstrip(")"))
-                sel.append(f"CAST(q.[{c}] AS {tipo}) AS [{c}]")
+                sel.append(f"CAST(q.[{c}] AS {tipo}) COLLATE DATABASE_DEFAULT AS [{c}]")
                 if c not in LINAJE_COLS:
                     trunc.append(f"CASE WHEN LEN(q.[{c}]) > {n} THEN N'{c}' END")
+            elif tipo.startswith(("nvarchar(", "varchar(")):
+                sel.append(f"q.[{c}] COLLATE DATABASE_DEFAULT AS [{c}]")
             else:
                 sel.append(f"q.[{c}]")
         if not self.solo_actualizar:

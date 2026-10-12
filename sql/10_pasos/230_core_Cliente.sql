@@ -14,7 +14,7 @@ BEGIN
     /* Cuentas del CRM: _Extended (principal) + base completa solo para cuentas ausentes (D2); sin eliminadas */
     DROP TABLE IF EXISTS #crm;
     SELECT x.* INTO #crm FROM (
-        SELECT N'Accounts_Extended' AS Tab, a.id AS Llave, a.Cedula_Jurida_Persona AS CedO, ctl.fn_Cedula(a.Cedula_Jurida_Persona) AS Ced,
+        SELECT N'Accounts_Extended' AS Tab, a.id COLLATE DATABASE_DEFAULT AS Llave, a.Cedula_Jurida_Persona AS CedO, ctl.fn_Cedula(a.Cedula_Jurida_Persona) AS Ced,
                a.N_mero_Circuito AS CircO, ctl.fn_Circuito(a.N_mero_Circuito) AS Circ, ctl.fn_Texto(a.Estado) AS Estado,
                ctl.fn_Texto(a.Account_Name) AS Nombre, ctl.fn_Texto(a.Raz_n_Social) AS Razon, ctl.fn_Texto(a.Tipo_Fiscal) AS TipoFis,
                CAST(NULL AS bit) AS Exon, ctl.fn_Texto(a.Segmento_Cuenta) AS Segmento, ctl.fn_Texto(a.Industry) AS Industria,
@@ -23,7 +23,7 @@ BEGIN
                ROW_NUMBER() OVER (PARTITION BY a.id ORDER BY a.Modified_Time DESC) AS rn
         FROM Zoho_Mirror.dbo.Accounts_Extended a
         UNION ALL
-        SELECT N'Accounts', b.id, b.Cedula_Jurida_Persona, ctl.fn_Cedula(b.Cedula_Jurida_Persona),
+        SELECT N'Accounts', b.id COLLATE DATABASE_DEFAULT, b.Cedula_Jurida_Persona, ctl.fn_Cedula(b.Cedula_Jurida_Persona),
                b.N_mero_Circuito, ctl.fn_Circuito(b.N_mero_Circuito), ctl.fn_Texto(b.Estado),
                ctl.fn_Texto(b.Account_Name), ctl.fn_Texto(b.Raz_n_Social), ctl.fn_Texto(b.Tipo_Fiscal),
                ctl.fn_Bit(b.Exonerado), ctl.fn_Texto(b.Segmento_Cuenta), ctl.fn_Texto(b.Industry),
@@ -46,14 +46,14 @@ BEGIN
     
     /* Todas las fuentes de cliente con su llave de identidad (ID-05: circuito > cédula > sin correspondencia) */
     DROP TABLE IF EXISTS #f;
-    CREATE TABLE #f (Sis varchar(20) NOT NULL, Base nvarchar(128) NOT NULL, Tab nvarchar(128) NOT NULL, Llave nvarchar(200) NOT NULL,
-                     CedO nvarchar(255) NULL, Ced varchar(12) NULL, CircO nvarchar(255) NULL, Circ varchar(12) NULL,
-                     CuentaCircuito nvarchar(200) NULL, CuentasDelCircuito int NULL,
-                     Nombre nvarchar(255) NULL, Razon nvarchar(255) NULL, TipoFis nvarchar(120) NULL, Exon bit NULL,
-                     Correo nvarchar(255) NULL, Tel nvarchar(60) NULL, Segmento nvarchar(120) NULL, Industria nvarchar(120) NULL,
+    CREATE TABLE #f (Sis varchar(20) COLLATE DATABASE_DEFAULT NOT NULL, Base nvarchar(128) COLLATE DATABASE_DEFAULT NOT NULL, Tab nvarchar(128) COLLATE DATABASE_DEFAULT NOT NULL, Llave nvarchar(200) COLLATE DATABASE_DEFAULT NOT NULL,
+                     CedO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Ced varchar(12) COLLATE DATABASE_DEFAULT NULL, CircO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Circ varchar(12) COLLATE DATABASE_DEFAULT NULL,
+                     CuentaCircuito nvarchar(200) COLLATE DATABASE_DEFAULT NULL, CuentasDelCircuito int NULL,
+                     Nombre nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Razon nvarchar(255) COLLATE DATABASE_DEFAULT NULL, TipoFis nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Exon bit NULL,
+                     Correo nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Tel nvarchar(60) COLLATE DATABASE_DEFAULT NULL, Segmento nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Industria nvarchar(120) COLLATE DATABASE_DEFAULT NULL,
                      Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
-                     RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) NULL, Metodo varchar(20) NULL,
-                     KSis varchar(20) NULL, KBase nvarchar(128) NULL, KTab nvarchar(128) NULL, KLlave nvarchar(200) NULL);
+                     RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
+                     KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
     INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
     SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
            CASE WHEN Ced IS NOT NULL THEN N'C:' + Ced ELSE N'A:' + Tab + N':' + Llave END, 'LLAVE_DIRECTA'
@@ -101,21 +101,21 @@ BEGIN
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
-    SELECT CAST(q.[Cedula] AS varchar(12)) AS [Cedula],
-           CAST(q.[TipoIdentificacion] AS varchar(10)) AS [TipoIdentificacion],
-           CAST(q.[Nombre] AS nvarchar(200)) AS [Nombre],
-           CAST(q.[RazonSocial] AS nvarchar(200)) AS [RazonSocial],
-           CAST(q.[TipoFiscal] AS nvarchar(50)) AS [TipoFiscal],
+    SELECT CAST(q.[Cedula] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Cedula],
+           CAST(q.[TipoIdentificacion] AS varchar(10)) COLLATE DATABASE_DEFAULT AS [TipoIdentificacion],
+           CAST(q.[Nombre] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [Nombre],
+           CAST(q.[RazonSocial] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [RazonSocial],
+           CAST(q.[TipoFiscal] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [TipoFiscal],
            q.[Exonerado],
-           CAST(q.[Correo] AS nvarchar(200)) AS [Correo],
-           CAST(q.[Telefono] AS nvarchar(30)) AS [Telefono],
-           CAST(q.[Segmento] AS nvarchar(50)) AS [Segmento],
-           CAST(q.[Industria] AS nvarchar(100)) AS [Industria],
-           CAST(q.[EstadoCorrespondencia] AS varchar(20)) AS [EstadoCorrespondencia],
-           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
-           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
-           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
-           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           CAST(q.[Correo] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [Correo],
+           CAST(q.[Telefono] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [Telefono],
+           CAST(q.[Segmento] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [Segmento],
+           CAST(q.[Industria] AS nvarchar(100)) COLLATE DATABASE_DEFAULT AS [Industria],
+           CAST(q.[EstadoCorrespondencia] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [EstadoCorrespondencia],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cedula]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoIdentificacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RazonSocial]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoFiscal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Exonerado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Correo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Telefono]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Segmento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Industria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoCorrespondencia]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Cedula],
