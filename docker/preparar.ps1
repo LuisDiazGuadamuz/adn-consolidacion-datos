@@ -16,4 +16,4 @@ foreach ($c in @("sandbox-sql", "mongo-lab")) {
 }
 docker build -t adn-etl ./docker
 Write-Host "`nEvidencia de aislamiento (Internal debe ser true):"
-docker network inspect etl-red --format "Red {{.Name}} · Internal={{.Internal}} · Contenedores: {{range .Containers}}{{.Name}} {{end}}"
+docker network inspect etl-red --format "Red {{.Name}} - Internal={{.Internal}} - Contenedores: {{range .Containers}}{{.Name}} {{end}}"

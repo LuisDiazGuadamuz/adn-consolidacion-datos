@@ -5,6 +5,16 @@ from dataclasses import dataclass, field
 from urllib.parse import urlparse
 
 
+def _limpio(v):
+    """Quita espacios, comillas envolventes y los < > de la plantilla, que Docker --env-file deja tal cual."""
+    v = (v or "").strip().lstrip("\ufeff")
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "'\"":
+        v = v[1:-1]
+    if v.startswith("<") and v.endswith(">"):
+        raise SystemExit("config/entorno.env todavía tiene un valor de ejemplo entre < >. Reemplácelo por el valor real.")
+    return v
+
+
 def _lista(v, defecto):
     return {x.strip() for x in (v or defecto).split(",") if x.strip()}
 
@@ -31,13 +41,13 @@ def cargar():
     if faltan:
         raise SystemExit(f"Faltan variables de entorno: {faltan}. Copie config/entorno.ejemplo.env a config/entorno.env.")
     return Config(
-        entorno=os.environ["ETL_ENTORNO"].strip().upper(),
-        sql_host=os.environ["ETL_SQL_HOST"].strip(),
-        sql_port=int(os.environ.get("ETL_SQL_PUERTO", "1433")),
-        sql_usuario=os.environ["ETL_SQL_USUARIO"],
-        sql_clave=os.environ["ETL_SQL_CLAVE"],
-        mongo_uri=os.environ.get("ETL_MONGO_URI", ""),
-        usuario=os.environ.get("ETL_USUARIO", "etl"),
+        entorno=_limpio(os.environ["ETL_ENTORNO"]).upper(),
+        sql_host=_limpio(os.environ["ETL_SQL_HOST"]),
+        sql_port=int(_limpio(os.environ.get("ETL_SQL_PUERTO", "1433"))),
+        sql_usuario=_limpio(os.environ["ETL_SQL_USUARIO"]),
+        sql_clave=_limpio(os.environ["ETL_SQL_CLAVE"]),
+        mongo_uri=_limpio(os.environ.get("ETL_MONGO_URI", "")),
+        usuario=_limpio(os.environ.get("ETL_USUARIO", "etl")),
         sql_hosts_permitidos=_lista(os.environ.get("ETL_SQL_HOSTS_PERMITIDOS"), "sandbox-sql"),
         mongo_hosts_permitidos=_lista(os.environ.get("ETL_MONGO_HOSTS_PERMITIDOS"), "mongo-lab"),
     )
