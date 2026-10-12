@@ -53,17 +53,17 @@ WHERE a.TablaModelo IN (N'core.Servicio', N'core.Cliente', N'core.ClienteOrigen'
 GROUP BY a.TablaModelo, a.ReglaId, a.Columna, LEFT(a.Detalle, 90) ORDER BY a.TablaModelo, Anomalias DESC;
 
 PRINT '== 10. Nodo de los clústeres FTTH: forma del valor y con qué coincide (datos de infraestructura, no de clientes)';
-SELECT CASE WHEN ctl.fn_Texto(f.Nodo) IS NULL THEN 'vacío'
-            WHEN ctl.fn_Texto(f.Nodo) NOT LIKE '%[^0-9]%' THEN 'solo dígitos (' + CAST(LEN(ctl.fn_Texto(f.Nodo)) AS varchar(3)) + ')'
-            ELSE 'texto' END AS Forma,
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo)) THEN 1 ELSE 0 END) AS PorId,
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.Nombre = ctl.fn_Texto(f.Nodo)) THEN 1 ELSE 0 END) AS PorNombre,
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.Nomenclatura = ctl.fn_Texto(f.Nodo)) THEN 1 ELSE 0 END) AS PorNomenclatura,
-       COUNT(*) AS Clusteres
-FROM Zoho_Mirror.dbo.FTTHs f WHERE ISNULL(f.deleted, 0) = 0
-GROUP BY CASE WHEN ctl.fn_Texto(f.Nodo) IS NULL THEN 'vacío'
-              WHEN ctl.fn_Texto(f.Nodo) NOT LIKE '%[^0-9]%' THEN 'solo dígitos (' + CAST(LEN(ctl.fn_Texto(f.Nodo)) AS varchar(3)) + ')'
-              ELSE 'texto' END;
+SELECT Forma, SUM(PorId) AS PorId, SUM(PorNombre) AS PorNombre, SUM(PorNomenclatura) AS PorNomenclatura, COUNT(*) AS Clusteres
+FROM (
+    SELECT CASE WHEN v.Nodo IS NULL THEN 'vacío'
+                WHEN v.Nodo NOT LIKE '%[^0-9]%' THEN 'solo dígitos (' + CAST(LEN(v.Nodo) AS varchar(3)) + ')'
+                ELSE 'texto' END AS Forma,
+           CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.NodoCrmId = v.Nodo) THEN 1 ELSE 0 END AS PorId,
+           CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.Nombre = v.Nodo) THEN 1 ELSE 0 END AS PorNombre,
+           CASE WHEN EXISTS (SELECT 1 FROM core.Nodo n WHERE n.Nomenclatura = v.Nodo) THEN 1 ELSE 0 END AS PorNomenclatura
+    FROM Zoho_Mirror.dbo.FTTHs f CROSS APPLY (SELECT ctl.fn_Texto(f.Nodo) AS Nodo) v
+    WHERE ISNULL(f.deleted, 0) = 0) x
+GROUP BY Forma;
 SELECT TOP 10 ctl.fn_Texto(f.Nodo) AS NodoEnCluster, COUNT(*) AS Clusteres
 FROM Zoho_Mirror.dbo.FTTHs f
 WHERE ISNULL(f.deleted, 0) = 0 AND ctl.fn_Texto(f.Nodo) IS NOT NULL
