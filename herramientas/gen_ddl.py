@@ -79,7 +79,7 @@ def build():
     w("   Ejecutar SOLO en el sandbox (SQL Server 2022). No contiene datos de clientes.")
     w(f"   Tablas: {len(T)} · Esquemas: core, ref, ctl")
     w("   ===================================================================== */")
-    w("SET NOCOUNT ON;")
+    w("SET NOCOUNT ON; SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;")
     w("IF DB_ID(N'ADN_Unificado') IS NULL CREATE DATABASE ADN_Unificado COLLATE Modern_Spanish_CI_AS;")
     w("GO")
     w("USE ADN_Unificado;")

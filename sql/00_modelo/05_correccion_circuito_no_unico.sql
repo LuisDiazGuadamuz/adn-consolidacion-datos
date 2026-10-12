@@ -3,6 +3,7 @@
    cuenta del CRM (282 cuentas), p. ej. por cambio de razón social. Cada cuenta sigue siendo un servicio
    (llave CuentaCrmId); el circuito queda indexado para el emparejamiento (ID-01) pero sin restricción de unicidad.
    Idempotente. Ejecutar en el sandbox. */
+SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;
 USE ADN_Unificado;
 IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Servicio_Circuito' AND object_id = OBJECT_ID(N'core.Servicio'))
     DROP INDEX UX_Servicio_Circuito ON core.Servicio;

@@ -7,10 +7,18 @@ import pymssql
 _GO = re.compile(r"^\s*GO\s*;?\s*$", re.IGNORECASE | re.MULTILINE)
 
 
+OPCIONES_SESION = ("SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; "
+                   "SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON; SET NUMERIC_ROUNDABORT OFF;")
+
+
 def conectar(cfg, autocommit=False):
-    return pymssql.connect(server=cfg.sql_host, port=cfg.sql_port, user=cfg.sql_usuario, password=cfg.sql_clave,
-                           database="ADN_Unificado", autocommit=autocommit, login_timeout=15, timeout=0,
+    """Conexión con las opciones de sesión que exigen los índices filtrados y las columnas calculadas del modelo."""
+    conn = pymssql.connect(server=cfg.sql_host, port=cfg.sql_port, user=cfg.sql_usuario, password=cfg.sql_clave,
+                           database="ADN_Unificado", autocommit=True, login_timeout=15, timeout=0,
                            charset="UTF-8", appname="adn_etl")
+    conn.cursor().execute(OPCIONES_SESION)
+    conn.autocommit(autocommit)
+    return conn
 
 
 def lotes_sql(texto):

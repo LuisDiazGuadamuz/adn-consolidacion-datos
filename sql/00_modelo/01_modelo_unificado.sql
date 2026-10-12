@@ -5,7 +5,7 @@
    Ejecutar SOLO en el sandbox (SQL Server 2022). No contiene datos de clientes.
    Tablas: 75 · Esquemas: core, ref, ctl
    ===================================================================== */
-SET NOCOUNT ON;
+SET NOCOUNT ON; SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;
 IF DB_ID(N'ADN_Unificado') IS NULL CREATE DATABASE ADN_Unificado COLLATE Modern_Spanish_CI_AS;
 GO
 USE ADN_Unificado;

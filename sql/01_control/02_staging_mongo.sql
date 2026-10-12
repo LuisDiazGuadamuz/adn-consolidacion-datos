@@ -5,6 +5,7 @@
    Las tablas stg no son parte del modelo: se recargan por período y no llevan bitácora.
    Idempotente. SOLO sandbox.
    ===================================================================== */
+SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;
 USE ADN_Unificado;
 GO
 IF OBJECT_ID(N'stg.mongo_Telephony_cdr', N'U') IS NULL

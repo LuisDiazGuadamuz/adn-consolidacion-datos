@@ -3,6 +3,7 @@
    contiene el ID del contacto de Zoho Books (5.350 de 5.350 coinciden), no un nombre.
    El evento se vincula al cliente por esa llave (ID-04) y no al servicio.
    La tabla está vacía (aún no hay cargas), por lo que el cambio es seguro. Ejecutar una vez en el sandbox. */
+SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;
 USE ADN_Unificado;
 IF COL_LENGTH(N'core.EventoConexion', N'NombreCliente') IS NOT NULL
 BEGIN

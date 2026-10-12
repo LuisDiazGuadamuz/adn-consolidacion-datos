@@ -3,6 +3,7 @@
    - Registra en ctl.Regla las decisiones D10 (moneda de llamadas según destino), D11 y D12 (fuentes históricas).
    Se puede ejecutar más de una vez: si los objetos ya existen, no hace nada. Ejecutar en el sandbox.
    Resultado esperado: core 55, ctl 6, ref 14 tablas; 170 llaves foráneas; 42 reglas. */
+SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_PADDING ON; SET ANSI_WARNINGS ON; SET ARITHABORT ON; SET CONCAT_NULL_YIELDS_NULL ON;
 USE ADN_Unificado;
 GO
 IF OBJECT_ID(N'core.MinutosContratadosHistorico', N'U') IS NULL
