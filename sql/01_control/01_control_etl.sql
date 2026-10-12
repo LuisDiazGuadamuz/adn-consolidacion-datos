@@ -52,6 +52,10 @@ IF NOT EXISTS (SELECT 1 FROM ctl.Entorno WHERE Nombre = 'SANDBOX')
 GO
 
 /* ---------------- Funciones de normalización ---------------- */
+/* Las funciones que dependen de otras (WITH SCHEMABINDING) se eliminan primero para que la instalación se pueda repetir */
+DROP FUNCTION IF EXISTS ctl.fn_TipoIdentificacion;
+DROP FUNCTION IF EXISTS ctl.fn_EsFechaFicticia;
+GO
 
 /* ES-05: recorta espacios; vacío pasa a NULL */
 CREATE OR ALTER FUNCTION ctl.fn_Texto (@v nvarchar(max))
