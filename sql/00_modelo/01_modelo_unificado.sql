@@ -110,7 +110,7 @@ CREATE TABLE ctl.LinajeCampo (
     [FechaDato] datetimeoffset(0) NULL,
     [LoteId] int NOT NULL,
     CONSTRAINT [PK_ctl_LinajeCampo] PRIMARY KEY CLUSTERED ([LinajeCampoId]),
-    CONSTRAINT [UQ_LinajeCampo_TablaModelo_RegistroId_Columna] UNIQUE ([TablaModelo], [RegistroId], [Columna])
+    CONSTRAINT [UQ_LinajeCampo_TablaModelo_RegistroId_Columna_LoteId] UNIQUE ([TablaModelo], [RegistroId], [Columna], [LoteId])
 );
 GO
 

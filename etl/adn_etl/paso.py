@@ -52,6 +52,10 @@ class Paso:
     dedup_motivo: str = "Registro repetido por la llave del paso; se conserva uno según el orden definido"
     anomalias: List[Anomalia] = field(default_factory=list)
     solo_actualizar: bool = False            # actualiza columnas de filas existentes (no inserta)
+    preparacion: str = ""                    # T-SQL que se ejecuta antes del SELECT (tablas temporales intermedias)
+    filtros: List[Tuple[str, str, str]] = field(default_factory=list)  # (condición sobre s, regla, motivo) → ctl.Descarte
+    linaje_campos: List[str] = field(default_factory=list)
+    hash_excluir: List[str] = field(default_factory=list)  # columnas que no cuentan como cambio (p. ej. fecha de emparejamiento)  # columnas con linaje por campo (aux lf_<col>_sis/_tab/_llave/_fecha)
     depende: List[str] = field(default_factory=list)
 
     # ------------------------------------------------------------------ utilidades
@@ -100,7 +104,7 @@ class Paso:
     def _hash(self):
         d = self.cols_modelo()
         partes = []
-        for c in self.columnas:
+        for c in [x for x in self.columnas if x not in self.hash_excluir]:
             tipo = d[c]["type"]
             estilo = ", 126" if tipo.startswith(("date", "datetime", "time", "float")) else ""
             partes.append(f"ISNULL(CONVERT(nvarchar(max), q.[{c}]{estilo}), N'~')")
@@ -141,6 +145,11 @@ class Paso:
         w("    SET NOCOUNT ON; SET XACT_ABORT ON;")
         w("    DECLARE @Ahora datetimeoffset(0) = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00');")
         w("")
+        if self.preparacion.strip():
+            w("    /* 0. Preparación */")
+            for line in self.preparacion.strip("\n").splitlines():
+                w("    " + line)
+            w("")
         w("    /* 1. Origen normalizado */")
         w("    DROP TABLE IF EXISTS #src;")
         sel = []
@@ -156,7 +165,10 @@ class Paso:
                 sel.append(f"q.[{c}]")
         if not self.solo_actualizar:
             sel.append(f"{self._hash()} AS HashContenido")
-        sel += [f"q.[{a}]" for a in self.auxiliares]
+        aux = list(self.auxiliares)
+        for c in self.linaje_campos:
+            aux += [f"lf_{c}_sis", f"lf_{c}_tab", f"lf_{c}_llave", f"lf_{c}_fecha"]
+        sel += [f"q.[{a}]" for a in aux]
         sel.append(("CONCAT_WS(N',', " + ", ".join(trunc) + ")") if trunc else "CAST(N'' AS nvarchar(1))")
         w("    SELECT " + ",\n           ".join(sel) + " AS _Recortadas")
         w("    INTO #src")
@@ -170,6 +182,14 @@ class Paso:
         oblig = [c for c in src_cols if c in d and not d[c]["null"] and c != pk
                  and c not in ("FuenteSistema", "FuenteBase", "FuenteTabla")
                  and not (self.solo_actualizar and c in LINAJE_COLS)]
+        if self.filtros:
+            w("    /* 2. Filtros de carga: filas excluidas con la regla que las excluye (DD-06) */")
+            for cond, regla, motivo in self.filtros:
+                w("    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)")
+                w(f"    SELECT @LoteId, '{regla}', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'{motivo}', @Ahora FROM #src s WHERE {cond}")
+                w(f"      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'")
+                w(f"                      WHERE x.ReglaId = '{regla}' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);")
+                w(f"    DELETE s FROM #src s WHERE {cond};")
         w("    /* 2a. Filas sin datos obligatorios (IN-01 si es una referencia, ES-05 si es un dato) */")
         if oblig:
             for c in oblig:
@@ -241,6 +261,14 @@ class Paso:
         w(f"    SELECT @LoteId, N'{destino}', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json")
         w("    FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';")
         w("")
+        if self.linaje_campos:
+            w("    /* 5b. Linaje por campo (D9): qué sistema aportó cada valor de las filas afectadas */")
+            for c in self.linaje_campos:
+                w("    INSERT ctl.LinajeCampo (TablaModelo, RegistroId, Columna, FuenteSistema, FuenteTabla, FuenteLlave, FechaDato, LoteId)")
+                w(f"    SELECT N'{destino}', c.RegistroId, N'{c}', s.lf_{c}_sis, s.lf_{c}_tab, s.lf_{c}_llave, s.lf_{c}_fecha, @LoteId")
+                w(f"    FROM #cambios c JOIN {destino} t ON t.[{pk}] = c.RegistroId JOIN #src s ON {self._match()}")
+                w(f"    WHERE s.lf_{c}_sis IS NOT NULL AND s.lf_{c}_tab IS NOT NULL AND s.lf_{c}_llave IS NOT NULL;")
+            w("")
         w("    /* 6. Anomalías de las filas afectadas */")
         w("    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)")
         w(f"    SELECT @LoteId, 'ES-05', N'{destino}', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'")

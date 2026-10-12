@@ -85,7 +85,7 @@ tabla("ctl", "LinajeCampo", "Control", "Origen de cada campo en las tablas que c
        c("Columna", N(128), False, "Columna del modelo"), c("FuenteSistema", V(20), False, "Sistema que aportó el valor", "D9"),
        c("FuenteTabla", N(128), False, "Tabla de origen", "IN-05"), c("FuenteLlave", N(200), False, "Llave de origen", "IN-05"),
        c("FechaDato", DT, True, "Fecha del dato en el origen", "IN-05"), fk("LoteId", "ctl.Lote", False, "Lote", "")],
-      uniques=[["TablaModelo", "RegistroId", "Columna"]], linaje=False)
+      uniques=[["TablaModelo", "RegistroId", "Columna", "LoteId"]], linaje=False)
 
 # ---------------------------------------------------------------- REFERENCIA (ref)
 tabla("ref", "TipoCambio", "Referencia", "Tipo de cambio del dólar por día", "Una fila por fecha",
