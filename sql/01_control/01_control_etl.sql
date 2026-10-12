@@ -146,11 +146,87 @@ AS BEGIN
 END;
 GO
 
-/* ES-04: monto en texto o número a decimal(19,4) */
+/* ES-04: monto en texto o número a decimal(19,4).
+   Acepta números simples y la forma de Books 'CRC 25,000.00' / 'USD 1,234.50' (coma = miles, punto = decimales). */
 CREATE OR ALTER FUNCTION ctl.fn_Monto (@v nvarchar(60))
 RETURNS decimal(19,4) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
 AS BEGIN
-    RETURN TRY_CONVERT(decimal(19,4), TRY_CONVERT(float, REPLACE(REPLACE(LTRIM(RTRIM(@v)), N',', N''), N'$', N'')));
+    DECLARE @t nvarchar(60) = UPPER(LTRIM(RTRIM(@v)));
+    IF @t LIKE N'[A-Z][A-Z][A-Z] %' SET @t = SUBSTRING(@t, 5, 60);
+    SET @t = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@t, N',', N''), N'$', N''), N'₡', N''), N'¢', N''), N' ', N'');
+    RETURN TRY_CONVERT(decimal(19,4), TRY_CONVERT(float, @t));
+END;
+GO
+
+/* ES-04: monto escrito a mano (p. ej. la mensualidad del CRM: '$45', '₡25000', '45.50 dólares').
+   Solo devuelve el monto si la forma no es ambigua; '25.000 colones' o '25 000' (separador de miles dudoso) → NULL. */
+CREATE OR ALTER FUNCTION ctl.fn_MontoLibre (@v nvarchar(255))
+RETURNS decimal(19,4) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
+AS BEGIN
+    DECLARE @t nvarchar(255) = LOWER(LTRIM(RTRIM(@v)));
+    SET @t = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@t,
+             N'colones', N''), N'colón', N''), N'dólares', N''), N'dolares', N''), N'crc', N''), N'usd', N''), N'$', N''), N'₡', N''), N'¢', N'');
+    SET @t = LTRIM(RTRIM(@t));
+    IF @t = N'' OR @t LIKE N'%[^0-9.,]%' RETURN NULL;                 -- quedan letras o espacios internos: ambiguo
+    IF @t LIKE N'%.[0-9][0-9][0-9]' OR @t LIKE N'%,[0-9][0-9]' RETURN NULL;   -- '25.000' o '45,50': separador dudoso
+    RETURN TRY_CONVERT(decimal(19,4), TRY_CONVERT(float, REPLACE(@t, N',', N'')));
+END;
+GO
+
+/* Moneda indicada en un monto escrito a mano */
+CREATE OR ALTER FUNCTION ctl.fn_MonedaTexto (@v nvarchar(255))
+RETURNS char(3) WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @t nvarchar(255) = LOWER(@v);
+    RETURN CASE WHEN @t LIKE N'%$%' OR @t LIKE N'%usd%' OR @t LIKE N'%dólar%' OR @t LIKE N'%dolar%' THEN 'USD'
+                WHEN @t LIKE N'%₡%' OR @t LIKE N'%¢%' OR @t LIKE N'%crc%' OR @t LIKE N'%colon%' OR @t LIKE N'%colón%' THEN 'CRC' END;
+END;
+GO
+
+/* ES-04: código de moneda admitido por el modelo (CRC, USD, EUR); otro valor → NULL */
+CREATE OR ALTER FUNCTION ctl.fn_Moneda (@v nvarchar(20))
+RETURNS char(3) WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @t nvarchar(20) = UPPER(LTRIM(RTRIM(@v)));
+    RETURN CASE WHEN @t IN (N'CRC', N'USD', N'EUR') THEN CAST(@t AS char(3)) END;
+END;
+GO
+
+/* Coordenadas 'lat,lon' (con o sin espacio). @Parte = 1 latitud, 2 longitud.
+   Solo acepta valores dentro de Costa Rica (lat 5 a 12, lon -88 a -82); fuera de rango o '0,0' → NULL. */
+CREATE OR ALTER FUNCTION ctl.fn_Coordenada (@v nvarchar(255), @Parte tinyint)
+RETURNS decimal(10,7) WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @t nvarchar(255) = REPLACE(LTRIM(RTRIM(@v)), N' ', N''), @p int, @lat float, @lon float;
+    SET @p = CHARINDEX(N',', @t);
+    IF @p = 0 RETURN NULL;
+    SET @lat = TRY_CONVERT(float, LEFT(@t, @p - 1));
+    SET @lon = TRY_CONVERT(float, SUBSTRING(@t, @p + 1, 255));
+    IF @lat IS NULL OR @lon IS NULL OR @lat NOT BETWEEN 5 AND 12 OR @lon NOT BETWEEN -88 AND -82 RETURN NULL;
+    RETURN CAST(CASE @Parte WHEN 1 THEN @lat ELSE @lon END AS decimal(10,7));
+END;
+GO
+
+/* Coordenada suelta (latitud o longitud por separado) con validación de rango de Costa Rica */
+CREATE OR ALTER FUNCTION ctl.fn_CoordenadaSola (@v nvarchar(60), @Parte tinyint)
+RETURNS decimal(10,7) WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @x float = TRY_CONVERT(float, REPLACE(LTRIM(RTRIM(@v)), N',', N'.'));
+    IF @x IS NULL OR (@Parte = 1 AND @x NOT BETWEEN 5 AND 12) OR (@Parte = 2 AND @x NOT BETWEEN -88 AND -82) RETURN NULL;
+    RETURN CAST(@x AS decimal(10,7));
+END;
+GO
+
+/* Primer número de un texto (p. ej. capacidad '100/100', '50 Mbps') */
+CREATE OR ALTER FUNCTION ctl.fn_PrimerNumero (@v nvarchar(255))
+RETURNS decimal(19,4) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
+AS BEGIN
+    DECLARE @i int = PATINDEX(N'%[0-9]%', @v);
+    IF @i = 0 RETURN NULL;
+    DECLARE @r nvarchar(255) = SUBSTRING(@v, @i, 255);
+    DECLARE @j int = PATINDEX(N'%[^0-9.]%', @r);
+    IF @j > 0 SET @r = LEFT(@r, @j - 1);
+    RETURN TRY_CONVERT(decimal(19,4), @r);
 END;
 GO
 
