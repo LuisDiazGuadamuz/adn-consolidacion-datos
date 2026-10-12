@@ -1,0 +1,11 @@
+config/entorno.env
+*.env
+!config/entorno.ejemplo.env
+__pycache__/
+*.pyc
+reportes/*
+!reportes/.gitkeep
+rollback/*
+!rollback/.gitkeep
+*.bak
+*.zip

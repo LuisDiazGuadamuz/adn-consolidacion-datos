@@ -1,0 +1,104 @@
+USE ADN_Unificado;
+GO
+/* Paso 140 · ref_Impuesto → ref.Impuesto
+   Impuestos de Zoho Books. El espejo repite filas del mismo tax_id; se carga una por impuesto.
+   Reglas: ES-05, ES-07, DD-02, DD-03, IN-05
+   GENERADO por adn_etl.generador: no editar a mano. */
+CREATE OR ALTER PROCEDURE etl.usp_ref_Impuesto @LoteId int, @Desde date = NULL, @Hasta date = NULL
+AS
+BEGIN
+    SET NOCOUNT ON; SET XACT_ABORT ON;
+    DECLARE @Ahora datetimeoffset(0) = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00');
+
+    /* 1. Origen normalizado */
+    DROP TABLE IF EXISTS #src;
+    SELECT CAST(q.[ImpuestoBooksId] AS nvarchar(30)) AS [ImpuestoBooksId],
+           CAST(q.[Nombre] AS nvarchar(100)) AS [Nombre],
+           q.[Porcentaje],
+           CAST(q.[Tipo] AS nvarchar(50)) AS [Tipo],
+           q.[EsPredeterminado],
+           q.[AtributosExtendidos],
+           CAST(q.[FuenteSistema] AS varchar(20)) AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
+           q.[FechaDato],
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ImpuestoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Porcentaje]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsPredeterminado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'))) AS HashContenido,
+           CONCAT_WS(N',', CASE WHEN LEN(q.[ImpuestoBooksId]) > 30 THEN N'ImpuestoBooksId' END, CASE WHEN LEN(q.[Nombre]) > 100 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END) AS _Recortadas
+    INTO #src
+    FROM (
+        SELECT 'ZohoBooks' AS FuenteSistema, N'ZBooks_Mirror' AS FuenteBase, N'taxes' AS FuenteTabla,
+               ctl.fn_Texto(x.tax_id) AS FuenteLlave, CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_Texto(x.tax_id) AS ImpuestoBooksId,
+               ctl.fn_Texto(x.tax_name) AS Nombre,
+               TRY_CONVERT(decimal(9,4), ctl.fn_Monto(x.tax_percentage)) AS Porcentaje,
+               ctl.fn_Texto(x.tax_type) AS Tipo,
+               ctl.fn_Bit(x.is_default_tax) AS EsPredeterminado,
+               NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), x.[tax_specific_type])) AS [tax_specific_type], ctl.fn_Texto(CONVERT(nvarchar(max), x.[is_value_added])) AS [is_value_added], ctl.fn_Texto(CONVERT(nvarchar(max), x.[is_editable])) AS [is_editable] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS AtributosExtendidos
+        FROM ZBooks_Mirror.dbo.taxes x
+    ) AS q;
+    DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
+
+    /* 2a. Filas sin datos obligatorios (IN-01 si es una referencia, ES-05 si es un dato) */
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'ES-05', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'ImpuestoBooksId obligatorio vacío o sin correspondencia', @Ahora
+    FROM #src s WHERE s.[ImpuestoBooksId] IS NULL
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'ES-05' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'ES-05', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'FuenteLlave obligatorio vacío o sin correspondencia', @Ahora
+    FROM #src s WHERE s.[FuenteLlave] IS NULL
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'ES-05' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    DELETE FROM #src WHERE [ImpuestoBooksId] IS NULL OR [FuenteLlave] IS NULL;
+
+    /* 2b. Duplicados por la llave del paso (DD-03); el orden es determinista */
+    ;WITH r AS (
+        SELECT s.FuenteSistema, s.FuenteTabla, s.FuenteLlave,
+               ROW_NUMBER() OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave) AS rn,
+               FIRST_VALUE(s.FuenteLlave) OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave ROWS UNBOUNDED PRECEDING) AS Conservada
+        FROM #src s)
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, LlaveConservada, Motivo, FechaDescarte)
+    SELECT @LoteId, 'DD-03', r.FuenteSistema, r.FuenteTabla, r.FuenteLlave, r.Conservada, N'Fila repetida del espejo de Books para el mismo tax_id', @Ahora
+    FROM r WHERE r.rn > 1
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'DD-03' AND x.FuenteTabla = r.FuenteTabla AND x.FuenteLlave = r.FuenteLlave);
+    ;WITH r AS (
+        SELECT ROW_NUMBER() OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave) AS rn FROM #src s)
+    DELETE FROM r WHERE rn > 1;
+    DECLARE @Validas bigint = (SELECT COUNT_BIG(*) FROM #src);
+
+    /* 3. Imagen previa de las filas que van a cambiar (para el rollback) */
+    DROP TABLE IF EXISTS #antes;
+    SELECT t.[ImpuestoId] AS RegistroId, t.FuenteLlave, (SELECT t.[ImpuestoBooksId], t.[Nombre], t.[Porcentaje], t.[Tipo], t.[EsPredeterminado], t.[AtributosExtendidos], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
+    INTO #antes FROM ref.Impuesto t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+
+    /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
+    DROP TABLE IF EXISTS #cambios;
+    CREATE TABLE #cambios (Accion nvarchar(10) NOT NULL, RegistroId bigint NOT NULL, FuenteLlave nvarchar(200) NULL);
+    MERGE ref.Impuesto WITH (HOLDLOCK) AS t
+    USING #src AS s
+       ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+        UPDATE SET t.[ImpuestoBooksId] = s.[ImpuestoBooksId], t.[Nombre] = s.[Nombre], t.[Porcentaje] = s.[Porcentaje], t.[Tipo] = s.[Tipo], t.[EsPredeterminado] = s.[EsPredeterminado], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT ([ImpuestoBooksId], [Nombre], [Porcentaje], [Tipo], [EsPredeterminado], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
+        VALUES (s.[ImpuestoBooksId], s.[Nombre], s.[Porcentaje], s.[Tipo], s.[EsPredeterminado], s.[AtributosExtendidos], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
+    OUTPUT $action, inserted.[ImpuestoId], inserted.FuenteLlave INTO #cambios;
+
+    /* 5. Bitácora por registro */
+    INSERT ctl.Bitacora (LoteId, TablaModelo, RegistroId, Accion, FuenteLlave, ValoresAnteriores)
+    SELECT @LoteId, N'ref.Impuesto', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
+    FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
+
+    /* 6. Anomalías de las filas afectadas */
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'ES-05', N'ref.Impuesto', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #cambios c JOIN ref.Impuesto t ON t.[ImpuestoId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s._Recortadas <> N'';
+    -- sin reglas de anomalía en este paso
+
+    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
+END;
+GO
