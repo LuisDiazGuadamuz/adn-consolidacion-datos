@@ -111,6 +111,8 @@ RETURNS datetimeoffset(0) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
 AS BEGIN
     DECLARE @t nvarchar(60) = LTRIM(RTRIM(@v)), @r datetimeoffset(0);
     IF @t = N'' RETURN NULL;
+    /* Zona sin dos puntos, como la usa Zoho Books: ...T10:22:33-0600 → ...T10:22:33-06:00 */
+    IF @t LIKE N'%T%[+-][0-9][0-9][0-9][0-9]' SET @t = STUFF(@t, LEN(@t) - 1, 0, N':');
     IF @t LIKE N'%[+-][0-9][0-9]:[0-9][0-9]' OR @t LIKE N'%Z'
         SET @r = SWITCHOFFSET(TRY_CONVERT(datetimeoffset(0), REPLACE(@t, N'Z', N'+00:00')), '-06:00');
     ELSE

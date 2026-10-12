@@ -36,10 +36,12 @@ def _valor(campo, v):
         return None
     if hasattr(v, "to_decimal"):          # Decimal128
         v = float(v.to_decimal())
-    if campo in FECHAS_SIN_HORA and isinstance(v, dt.datetime):
-        return v.date()
+    # La copia masiva (BCP) solo acepta datetime; SQL Server lo convierte a date en las columnas sin hora
     if isinstance(v, dt.datetime):
-        return v.replace(tzinfo=None)
+        v = v.replace(tzinfo=None)
+        return dt.datetime(v.year, v.month, v.day) if campo in FECHAS_SIN_HORA else v
+    if isinstance(v, dt.date):
+        return dt.datetime(v.year, v.month, v.day)
     if isinstance(v, (dict, list)):
         return str(v)
     return v
