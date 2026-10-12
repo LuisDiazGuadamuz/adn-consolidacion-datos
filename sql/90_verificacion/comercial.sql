@@ -3,33 +3,19 @@
 SET NOCOUNT ON; SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
 USE ADN_Unificado;
 
-PRINT '== 1. Anomalías vigentes de los pasos 300-339 por columna';
-SELECT a.Paso, a.ReglaId, a.Columna, COUNT(*) AS Anomalias
-FROM ctl.vw_AnomaliaVigente a
-WHERE a.Paso LIKE 'core[_]Producto%' OR a.Paso IN ('core_Direccion', 'core_Prospecto_CRM', 'core_Prospecto_ADNPay', 'core_Oportunidad',
-      'core_Cotizacion', 'core_OrdenVenta', 'core_OrdenVenta_Complemento', 'core_OrdenVentaLinea', 'core_OrdenTrabajo',
-      'core_OrdenServicioVoIP', 'core_Caso', 'core_Caso_Complemento', 'core_Nota_Servicio', 'core_Nota_Caso', 'core_Nota_Cliente',
-      'core_Tarea', 'core_Adjunto', 'core_Proveedor')
-GROUP BY a.Paso, a.ReglaId, a.Columna ORDER BY a.Paso, Anomalias DESC;
-
-PRINT '== 2. Filas en las fuentes que dieron 0';
-SELECT 'ADNPayV2.OnvoProduct' AS Fuente, COUNT(*) AS Filas FROM ADNPayV2.dbo.OnvoProduct
-UNION ALL SELECT 'ADNPayV2.OnvoPrice', COUNT(*) FROM ADNPayV2.dbo.OnvoPrice
-UNION ALL SELECT 'Zoho_Mirror.Zoho_Attachments', COUNT(*) FROM Zoho_Mirror.dbo.Zoho_Attachments;
-
 /* Llaves normalizadas UNA vez, en tablas temporales con índice (comparar ctl.fn_Texto(columna) fila por fila
    impide usar índices y hace la consulta cuadrática) */
 DROP TABLE IF EXISTS #so, #soe, #ld, #lin, #ot, #tk;
-SELECT DISTINCT ctl.fn_Texto(id) AS Id, CAST(MAX(CAST(ISNULL(deleted, 0) AS int)) AS int) AS Eliminada INTO #so
-FROM Zoho_Mirror.dbo.Sales_Orders GROUP BY ctl.fn_Texto(id);
-SELECT DISTINCT ctl.fn_Texto(id) AS Id INTO #soe FROM Zoho_Mirror.dbo.Sales_Orders_Extended;
-SELECT DISTINCT ctl.fn_Texto(id) AS Id INTO #ld FROM Zoho_Mirror.dbo.Leads;
+SELECT CAST(ctl.fn_Texto(id) AS nvarchar(200)) AS Id, MAX(CAST(ISNULL(deleted, 0) AS int)) AS Eliminada INTO #so
+FROM Zoho_Mirror.dbo.Sales_Orders GROUP BY CAST(ctl.fn_Texto(id) AS nvarchar(200));
+SELECT DISTINCT CAST(ctl.fn_Texto(id) AS nvarchar(200)) AS Id INTO #soe FROM Zoho_Mirror.dbo.Sales_Orders_Extended;
+SELECT DISTINCT CAST(ctl.fn_Texto(id) AS nvarchar(200)) AS Id INTO #ld FROM Zoho_Mirror.dbo.Leads;
 CREATE INDEX i ON #so (Id); CREATE INDEX i ON #soe (Id); CREATE INDEX i ON #ld (Id);
-SELECT ctl.fn_Texto(sales_order) AS Orden, CAST(ISNULL(deleted, 0) AS int) AS Eliminada INTO #lin FROM Zoho_Mirror.dbo.Sales_Orders_Products;
-SELECT ctl.fn_Circuito(N_mero_de_circuito_contrato) AS Circ, ctl.fn_Texto(N_mero_de_circuito_contrato) AS CircTexto,
-       ctl.fn_Texto(Asignado_a) AS Asignado INTO #ot
+SELECT CAST(ctl.fn_Texto(sales_order) AS nvarchar(200)) AS Orden, CAST(ISNULL(deleted, 0) AS int) AS Eliminada INTO #lin FROM Zoho_Mirror.dbo.Sales_Orders_Products;
+SELECT ctl.fn_Circuito(N_mero_de_circuito_contrato) AS Circ, CAST(ctl.fn_Texto(N_mero_de_circuito_contrato) AS nvarchar(250)) AS CircTexto,
+       CAST(ctl.fn_Texto(Asignado_a) AS nvarchar(200)) AS Asignado INTO #ot
 FROM Zoho_Mirror.dbo.Ordenes_de_Trabajo WHERE ISNULL(deleted, 0) = 0;
-SELECT ctl.fn_Texto(What_Id) AS Que, ctl.fn_Texto(Who_Id) AS Quien INTO #tk FROM Zoho_Mirror.dbo.Tasks WHERE ISNULL(deleted, 0) = 0;
+SELECT CAST(ctl.fn_Texto(What_Id) AS nvarchar(200)) AS Que, CAST(ctl.fn_Texto(Who_Id) AS nvarchar(200)) AS Quien INTO #tk FROM Zoho_Mirror.dbo.Tasks WHERE ISNULL(deleted, 0) = 0;
 
 PRINT '== 3. Líneas de órdenes de venta: ¿a qué orden apuntan?';
 SELECT CASE WHEN l.Orden IS NULL THEN 'sin orden'
