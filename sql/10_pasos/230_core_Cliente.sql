@@ -117,7 +117,7 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cedula]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoIdentificacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RazonSocial]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoFiscal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Exonerado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Correo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Telefono]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Segmento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Industria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoCorrespondencia]), N'~'))) AS HashContenido,
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cedula]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoIdentificacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RazonSocial]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoFiscal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Exonerado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Correo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Telefono]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Segmento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Industria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoCorrespondencia]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Cedula],
            q.[lf_Nombre_sis],
            q.[lf_Nombre_tab],
@@ -151,7 +151,7 @@ BEGIN
            q.[lf_Industria_tab],
            q.[lf_Industria_llave],
            q.[lf_Industria_fecha],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Cedula]) > 12 THEN N'Cedula' END, CASE WHEN LEN(q.[TipoIdentificacion]) > 10 THEN N'TipoIdentificacion' END, CASE WHEN LEN(q.[Nombre]) > 200 THEN N'Nombre' END, CASE WHEN LEN(q.[RazonSocial]) > 200 THEN N'RazonSocial' END, CASE WHEN LEN(q.[TipoFiscal]) > 50 THEN N'TipoFiscal' END, CASE WHEN LEN(q.[Correo]) > 200 THEN N'Correo' END, CASE WHEN LEN(q.[Telefono]) > 30 THEN N'Telefono' END, CASE WHEN LEN(q.[Segmento]) > 50 THEN N'Segmento' END, CASE WHEN LEN(q.[Industria]) > 100 THEN N'Industria' END, CASE WHEN LEN(q.[EstadoCorrespondencia]) > 20 THEN N'EstadoCorrespondencia' END) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Cedula]) > 12 THEN N'Cedula' END, CASE WHEN LEN(q.[TipoIdentificacion]) > 10 THEN N'TipoIdentificacion' END, CASE WHEN LEN(q.[Nombre]) > 200 THEN N'Nombre' END, CASE WHEN LEN(q.[RazonSocial]) > 200 THEN N'RazonSocial' END, CASE WHEN LEN(q.[TipoFiscal]) > 50 THEN N'TipoFiscal' END, CASE WHEN LEN(q.[Correo]) > 200 THEN N'Correo' END, CASE WHEN LEN(q.[Telefono]) > 30 THEN N'Telefono' END, CASE WHEN LEN(q.[Segmento]) > 50 THEN N'Segmento' END, CASE WHEN LEN(q.[Industria]) > 100 THEN N'Industria' END, CASE WHEN LEN(q.[EstadoCorrespondencia]) > 20 THEN N'EstadoCorrespondencia' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT p.KSis AS FuenteSistema, p.KBase AS FuenteBase, p.KTab AS FuenteTabla, p.KLlave AS FuenteLlave,

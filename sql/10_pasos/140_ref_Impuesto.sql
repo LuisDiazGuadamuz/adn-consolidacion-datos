@@ -23,8 +23,8 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ImpuestoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Porcentaje]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsPredeterminado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'))) AS HashContenido,
-           CONCAT_WS(N',', CASE WHEN LEN(q.[ImpuestoBooksId]) > 30 THEN N'ImpuestoBooksId' END, CASE WHEN LEN(q.[Nombre]) > 100 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END) AS _Recortadas
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ImpuestoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Porcentaje]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsPredeterminado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           CONCAT_WS(N',', CASE WHEN LEN(q.[ImpuestoBooksId]) > 30 THEN N'ImpuestoBooksId' END, CASE WHEN LEN(q.[Nombre]) > 100 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ZohoBooks' AS FuenteSistema, N'ZBooks_Mirror' AS FuenteBase, N'taxes' AS FuenteTabla,

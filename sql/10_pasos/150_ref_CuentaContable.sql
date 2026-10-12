@@ -27,9 +27,9 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[CuentaBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Codigo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsDeSistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activa]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'))) AS HashContenido,
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[CuentaBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Codigo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EsDeSistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activa]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Creada],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[CuentaBooksId]) > 30 THEN N'CuentaBooksId' END, CASE WHEN LEN(q.[Codigo]) > 50 THEN N'Codigo' END, CASE WHEN LEN(q.[Nombre]) > 200 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END, CASE WHEN LEN(q.[Descripcion]) > 500 THEN N'Descripcion' END) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[CuentaBooksId]) > 30 THEN N'CuentaBooksId' END, CASE WHEN LEN(q.[Codigo]) > 50 THEN N'Codigo' END, CASE WHEN LEN(q.[Nombre]) > 200 THEN N'Nombre' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END, CASE WHEN LEN(q.[Descripcion]) > 500 THEN N'Descripcion' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ZohoBooks' AS FuenteSistema, N'ZBooks_Mirror' AS FuenteBase, N'chartofaccounts' AS FuenteTabla,

@@ -108,6 +108,7 @@ class Paso:
             tipo = d[c]["type"]
             estilo = ", 126" if tipo.startswith(("date", "datetime", "time", "float")) else ""
             partes.append(f"ISNULL(CONVERT(nvarchar(max), q.[{c}]{estilo}), N'~')")
+        partes.append("CAST(NULL AS nvarchar(1))")  # CONCAT_WS exige al menos 2 valores; NULL no altera el resultado
         return "HASHBYTES('SHA2_256', CONCAT_WS(N'|', " + ", ".join(partes) + "))"
 
     def _match(self, a="t", b="s"):
@@ -169,7 +170,7 @@ class Paso:
         for c in self.linaje_campos:
             aux += [f"lf_{c}_sis", f"lf_{c}_tab", f"lf_{c}_llave", f"lf_{c}_fecha"]
         sel += [f"q.[{a}]" for a in aux]
-        sel.append(("CONCAT_WS(N',', " + ", ".join(trunc) + ")") if trunc else "CAST(N'' AS nvarchar(1))")
+        sel.append(("CONCAT_WS(N',', " + ", ".join(trunc + ["CAST(NULL AS nvarchar(1))"]) + ")") if trunc else "CAST(N'' AS nvarchar(1))")
         w("    SELECT " + ",\n           ".join(sel) + " AS _Recortadas")
         w("    INTO #src")
         w("    FROM (")

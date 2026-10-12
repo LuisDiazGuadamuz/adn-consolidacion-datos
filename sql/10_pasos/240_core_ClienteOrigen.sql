@@ -115,9 +115,9 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TablaOrigen]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[LlaveOrigen]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CedulaOriginal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CircuitoOriginal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MetodoEmparejamiento]), N'~'))) AS HashContenido,
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TablaOrigen]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[LlaveOrigen]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CedulaOriginal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CircuitoOriginal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MetodoEmparejamiento]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Cuentas],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Sistema]) > 20 THEN N'Sistema' END, CASE WHEN LEN(q.[TablaOrigen]) > 128 THEN N'TablaOrigen' END, CASE WHEN LEN(q.[LlaveOrigen]) > 200 THEN N'LlaveOrigen' END, CASE WHEN LEN(q.[CedulaOriginal]) > 50 THEN N'CedulaOriginal' END, CASE WHEN LEN(q.[CircuitoOriginal]) > 100 THEN N'CircuitoOriginal' END, CASE WHEN LEN(q.[MetodoEmparejamiento]) > 20 THEN N'MetodoEmparejamiento' END) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Sistema]) > 20 THEN N'Sistema' END, CASE WHEN LEN(q.[TablaOrigen]) > 128 THEN N'TablaOrigen' END, CASE WHEN LEN(q.[LlaveOrigen]) > 200 THEN N'LlaveOrigen' END, CASE WHEN LEN(q.[CedulaOriginal]) > 50 THEN N'CedulaOriginal' END, CASE WHEN LEN(q.[CircuitoOriginal]) > 100 THEN N'CircuitoOriginal' END, CASE WHEN LEN(q.[MetodoEmparejamiento]) > 20 THEN N'MetodoEmparejamiento' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT f.Sis AS FuenteSistema, f.Base AS FuenteBase, f.Tab AS FuenteTabla, f.Llave AS FuenteLlave, f.Creada AS FechaDato,

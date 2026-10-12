@@ -20,8 +20,8 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Codigo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Categoria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activo]), N'~'))) AS HashContenido,
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Codigo]) > 50 THEN N'Codigo' END, CASE WHEN LEN(q.[Categoria]) > 50 THEN N'Categoria' END) AS _Recortadas
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Codigo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Categoria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activo]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Codigo]) > 50 THEN N'Codigo' END, CASE WHEN LEN(q.[Categoria]) > 50 THEN N'Categoria' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ADNPayV2' AS FuenteSistema, N'ADNPayV2' AS FuenteBase, N'code_promo_condo' AS FuenteTabla,

@@ -18,8 +18,8 @@ BEGIN
            CAST(q.[FuenteTabla] AS nvarchar(128)) AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'))) AS HashContenido,
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Nombre]) > 60 THEN N'Nombre' END) AS _Recortadas
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Nombre]) > 60 THEN N'Nombre' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ADNPayV2' AS FuenteSistema, N'ADNPayV2' AS FuenteBase, N'AddressProvince' AS FuenteTabla,
