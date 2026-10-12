@@ -32,6 +32,7 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Impuesto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitario]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Total]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descuento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Cantidad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ProductoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OrdenVentaId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Moneda]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitarioCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[DescuentoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ImpuestoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TotalCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoCambio]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           q.[o_OrdenEliminada],
            q.[o_ProductoId],
            q.[o_OrdenVentaId],
            q.[o_Impuesto],
@@ -65,6 +66,7 @@ BEGIN
                fk_OrdenVentaId_0.Id AS [OrdenVentaId],
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[sales_order])) AS [o_OrdenVentaId],
                ov.Moneda AS [Moneda],
+               CASE WHEN EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Sales_Orders so WHERE so.id = l.sales_order AND so.deleted = 1) THEN 1 ELSE 0 END AS [o_OrdenEliminada],
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[line_tax])) AS [o_Impuesto],
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[unit_price])) AS [o_PrecioUnitario],
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[net_total])) AS [o_Total],
@@ -80,6 +82,11 @@ BEGIN
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
     /* 2. Filtros de carga: filas excluidas con la regla que las excluye (DD-06) */
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'DD-06', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'Línea de una orden de venta eliminada en Zoho', @Ahora FROM #src s WHERE s.o_OrdenEliminada = 1
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'DD-06' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    DELETE s FROM #src s WHERE s.o_OrdenEliminada = 1;
     INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
     SELECT @LoteId, 'DD-06', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'Registro marcado como eliminado en el origen (deleted = 1)', @Ahora FROM #src s WHERE s.o_Eliminado = 1
       AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'

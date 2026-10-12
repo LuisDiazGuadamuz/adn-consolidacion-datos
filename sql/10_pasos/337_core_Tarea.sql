@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 337 · core_Tarea → core.Tarea
-   Tareas del CRM. El registro relacionado se conserva (RelacionadoCrmId) y se vincula al servicio si es una cuenta.
+   Tareas del CRM. El registro relacionado (What_Id) puede ser una cuenta, oportunidad, caso, orden de venta, cotización o prospecto: el servicio se toma de la cuenta o del registro relacionado. Solo se marca anomalía si el relacionado no está en ninguno de esos módulos.
    Reglas: DD-06, ES-01, ES-02, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_Tarea @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -23,17 +23,17 @@ BEGIN
            CAST(q.[TareaCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [TareaCrmId],
            q.[FechaCierre],
            q.[Descripcion] COLLATE DATABASE_DEFAULT AS [Descripcion],
-           q.[ServicioId],
            q.[ContactoId],
            q.[AsignadoUsuarioId],
+           q.[ServicioId],
            q.[AtributosExtendidos] COLLATE DATABASE_DEFAULT AS [AtributosExtendidos],
            CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
            CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
            CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[RelacionadoCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Asunto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Prioridad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaVencimiento], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TareaCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCierre], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ContactoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AsignadoUsuarioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
-           q.[o_ServicioId],
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[RelacionadoCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Asunto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Prioridad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaVencimiento], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TareaCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCierre], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ContactoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AsignadoUsuarioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           q.[o_Relacionado],
            q.[o_ContactoId],
            q.[o_AsignadoUsuarioId],
            q.[o_FechaCreacionOrigen],
@@ -60,12 +60,12 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(max), t.[id])) AS [TareaCrmId],
                ctl.fn_FechaCR(CONVERT(nvarchar(60), t.[Closed_Time])) AS [FechaCierre],
                ctl.fn_Texto(CONVERT(nvarchar(max), CONVERT(nvarchar(max), t.[Description]))) AS [Descripcion],
-               fk_ServicioId_0.Id AS [ServicioId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), t.[What_Id])) AS [o_ServicioId],
                fk_ContactoId_0.Id AS [ContactoId],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[Who_Id])) AS [o_ContactoId],
                fk_AsignadoUsuarioId_0.Id AS [AsignadoUsuarioId],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[Asignado_a])) AS [o_AsignadoUsuarioId],
+               COALESCE(r1.Id, r2.Id, r3.Id, r4.Id, r5.Id) AS [ServicioId],
+               CASE WHEN w.Id IS NOT NULL AND r1.n + r2.n + r3.n + r4.n + r5.n + r6.n = 0 THEN w.Id END AS [o_Relacionado],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[Created_Time])) AS [o_FechaCreacionOrigen],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[Due_Date])) AS [o_FechaVencimiento],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[Modified_Time])) AS [o_FechaModificacionOrigen],
@@ -73,7 +73,13 @@ BEGIN
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), t.[Created_By])) AS [Created_By], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Tag])) AS [Tag], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Capacidad_Actual])) AS [Capacidad_Actual], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Llamada_Seguimiento_30D])) AS [Llamada_Seguimiento_30D], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Remind_At])) AS [Remind_At], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Capacidad_Nueva])) AS [Capacidad_Nueva], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Actualizaci_n_de_Tarea])) AS [Actualizaci_n_de_Tarea], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Modified_By])) AS [Modified_By], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Send_Notification_Email])) AS [Send_Notification_Email], ctl.fn_Texto(CONVERT(nvarchar(max), t.[Owner])) AS [Owner] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos],
                CAST(ISNULL(t.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Tasks] t
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ServicioId]) END AS Id FROM core.Servicio r WHERE r.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[What_Id]))) fk_ServicioId_0
+        CROSS APPLY (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(max), t.What_Id)) AS nvarchar(30)) AS Id) w
+        OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Servicio x WHERE x.CuentaCrmId = w.Id) r1
+        OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Oportunidad x WHERE x.OportunidadCrmId = w.Id) r2
+        OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Caso x WHERE x.CasoCrmId = w.Id) r3
+        OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.OrdenVenta x WHERE x.OrdenVentaCrmId = w.Id) r4
+        OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Cotizacion x WHERE x.CotizacionCrmId = w.Id) r5
+        OUTER APPLY (SELECT COUNT(*) AS n FROM core.Prospecto x WHERE x.FuenteSistema = 'ZohoCRM' AND x.FuenteTabla = N'Leads' AND x.FuenteLlave = w.Id) r6
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ContactoId]) END AS Id FROM core.Contacto r WHERE r.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Who_Id]))) fk_ContactoId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[UsuarioId]) END AS Id FROM ref.Usuario r WHERE r.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a])) OR r.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a]))) fk_AsignadoUsuarioId_0
     ) AS q;
@@ -127,10 +133,10 @@ BEGIN
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
-        UPDATE SET t.[RelacionadoCrmId] = s.[RelacionadoCrmId], t.[Tipo] = s.[Tipo], t.[Asunto] = s.[Asunto], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[Prioridad] = s.[Prioridad], t.[FechaVencimiento] = s.[FechaVencimiento], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Estado] = s.[Estado], t.[TareaCrmId] = s.[TareaCrmId], t.[FechaCierre] = s.[FechaCierre], t.[Descripcion] = s.[Descripcion], t.[ServicioId] = s.[ServicioId], t.[ContactoId] = s.[ContactoId], t.[AsignadoUsuarioId] = s.[AsignadoUsuarioId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
+        UPDATE SET t.[RelacionadoCrmId] = s.[RelacionadoCrmId], t.[Tipo] = s.[Tipo], t.[Asunto] = s.[Asunto], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[Prioridad] = s.[Prioridad], t.[FechaVencimiento] = s.[FechaVencimiento], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Estado] = s.[Estado], t.[TareaCrmId] = s.[TareaCrmId], t.[FechaCierre] = s.[FechaCierre], t.[Descripcion] = s.[Descripcion], t.[ContactoId] = s.[ContactoId], t.[AsignadoUsuarioId] = s.[AsignadoUsuarioId], t.[ServicioId] = s.[ServicioId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
-        INSERT ([RelacionadoCrmId], [Tipo], [Asunto], [FechaCreacionOrigen], [Prioridad], [FechaVencimiento], [FechaModificacionOrigen], [Estado], [TareaCrmId], [FechaCierre], [Descripcion], [ServicioId], [ContactoId], [AsignadoUsuarioId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
-        VALUES (s.[RelacionadoCrmId], s.[Tipo], s.[Asunto], s.[FechaCreacionOrigen], s.[Prioridad], s.[FechaVencimiento], s.[FechaModificacionOrigen], s.[Estado], s.[TareaCrmId], s.[FechaCierre], s.[Descripcion], s.[ServicioId], s.[ContactoId], s.[AsignadoUsuarioId], s.[AtributosExtendidos], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
+        INSERT ([RelacionadoCrmId], [Tipo], [Asunto], [FechaCreacionOrigen], [Prioridad], [FechaVencimiento], [FechaModificacionOrigen], [Estado], [TareaCrmId], [FechaCierre], [Descripcion], [ContactoId], [AsignadoUsuarioId], [ServicioId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
+        VALUES (s.[RelacionadoCrmId], s.[Tipo], s.[Asunto], s.[FechaCreacionOrigen], s.[Prioridad], s.[FechaVencimiento], s.[FechaModificacionOrigen], s.[Estado], s.[TareaCrmId], s.[FechaCierre], s.[Descripcion], s.[ContactoId], s.[AsignadoUsuarioId], s.[ServicioId], s.[AtributosExtendidos], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
     OUTPUT $action, inserted.[TareaId], inserted.FuenteLlave INTO #cambios;
 
     /* 5. Bitácora por registro */
@@ -145,9 +151,9 @@ BEGIN
     FROM #src s JOIN core.Tarea t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Tarea', t.[TareaId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioId), 400), N'Referencia sin correspondencia única en core.Servicio'
+    SELECT @LoteId, 'IN-01', N'core.Tarea', t.[TareaId], N'RelacionadoCrmId', LEFT(CONVERT(nvarchar(400), s.o_Relacionado), 400), N'Registro relacionado que no está en los módulos cargados (cuenta, oportunidad, caso, orden, cotización, prospecto)'
     FROM #src s JOIN core.Tarea t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ServicioId IS NOT NULL AND s.[ServicioId] IS NULL;
+    WHERE s.o_Relacionado IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'IN-01', N'core.Tarea', t.[TareaId], N'ContactoId', LEFT(CONVERT(nvarchar(400), s.o_ContactoId), 400), N'Referencia sin correspondencia única en core.Contacto'
     FROM #src s JOIN core.Tarea t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

@@ -10,16 +10,19 @@ Las tablas con versión _Extended usan esa como principal y la tabla completa so
 """
 from ..auto import paso_matriz
 from ..matriz import atributos
-from ..paso import Paso
+from ..paso import Anomalia, Paso
 
 _CRM = "ZohoCRM"
 
 PASOS = [
     # ------------------------------------------------------------------ productos
     paso_matriz("core_Producto_CRM", 300, "core.Producto", _CRM, "Zoho_Mirror", "Products", "p",
-                override={"Sistema": "'ZohoCRM'", "ProductoCrmId": "ctl.fn_Texto(p.id)"},
-                depende=["ref_Impuesto"],
-                descripcion="Productos del CRM (catálogo principal). El impuesto se vincula por nombre o id de Books."),
+                override={"Sistema": "'ZohoCRM'", "ProductoCrmId": "ctl.fn_Texto(p.id)", "ImpuestoId": "CAST(NULL AS int)",
+                          "AtributosExtendidos": "JSON_MODIFY(ISNULL(" + atributos("Zoho_Mirror", "Products", "p")
+                                                 + ", N'{}'), '$.Impuestos', ctl.fn_Texto(p.Tax))"},
+                descripcion="Productos del CRM (catálogo principal). El CRM guarda una LISTA de impuestos en texto (p. ej. "
+                            "'911 - 0.75 %, Cruz Roja - 1.0 %, IVA - 13.0 %'), que no cabe en una sola referencia: se conserva "
+                            "en AtributosExtendidos.Impuestos y ImpuestoId queda vacío."),
     paso_matriz("core_Producto_Books", 301, "core.Producto", "ZohoBooks", "ZBooks_Mirror", "items", "i",
                 override={"Sistema": "'ZohoBooks'", "ItemBooksId": "ctl.fn_Texto(i.item_id)", "ProductoCrmId": "CAST(NULL AS nvarchar(30))",
                           "Moneda": "'CRC'"},
@@ -93,7 +96,12 @@ WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Products p WHERE p.id = i.zcrm_produ
                 excluir_atributos=("Product_Details",), reglas_extra=("D2",),
                 descripcion="Órdenes de venta presentes solo en la tabla completa Sales_Orders (complemento, D2)."),
     paso_matriz("core_OrdenVentaLinea", 324, "core.OrdenVentaLinea", _CRM, "Zoho_Mirror", "Sales_Orders_Products", "l",
-                override={"Moneda": "ov.Moneda"}, fecha_dato="ov.FechaCreacionOrigen",
+                override={"Moneda": "ov.Moneda",
+                          "o_OrdenEliminada": "CASE WHEN EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Sales_Orders so "
+                                              "WHERE so.id = l.sales_order AND so.deleted = 1) THEN 1 ELSE 0 END"},
+                auxiliares_extra=["o_OrdenEliminada"],
+                filtros_extra=[("s.o_OrdenEliminada = 1", "DD-06", "Línea de una orden de venta eliminada en Zoho")],
+                fecha_dato="ov.FechaCreacionOrigen",
                 extra_from="LEFT JOIN core.OrdenVenta ov ON ov.OrdenVentaCrmId = ctl.fn_Texto(l.sales_order)",
                 depende=["core_OrdenVenta_Complemento", "core_Producto_CRM"],
                 descripcion="Líneas de las órdenes de venta; heredan moneda y fecha de su orden (D5). Sin orden → descarte IN-01."),
@@ -125,8 +133,22 @@ WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Products p WHERE p.id = i.zcrm_produ
                 llave="id", depende=["core_ClienteOrigen"],
                 descripcion="Comentarios de los contactos de Books (Entidad = CLIENTE), vinculados por la tabla de correspondencia (ID-04)."),
     paso_matriz("core_Tarea", 337, "core.Tarea", _CRM, "Zoho_Mirror", "Tasks", "t",
-                depende=["core_Servicio", "core_Contacto", "ref_Usuario"],
-                descripcion="Tareas del CRM. El registro relacionado se conserva (RelacionadoCrmId) y se vincula al servicio si es una cuenta."),
+                override={"ServicioId": "COALESCE(r1.Id, r2.Id, r3.Id, r4.Id, r5.Id)",
+                          "o_Relacionado": "CASE WHEN w.Id IS NOT NULL AND r1.n + r2.n + r3.n + r4.n + r5.n + r6.n = 0 THEN w.Id END"},
+                auxiliares_extra=["o_Relacionado"],
+                anomalias_extra=[Anomalia("IN-01", "RelacionadoCrmId", "s.o_Relacionado", "s.o_Relacionado IS NOT NULL",
+                                          "Registro relacionado que no está en los módulos cargados (cuenta, oportunidad, caso, orden, cotización, prospecto)")],
+                extra_from="""CROSS APPLY (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(max), t.What_Id)) AS nvarchar(30)) AS Id) w
+OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Servicio x WHERE x.CuentaCrmId = w.Id) r1
+OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Oportunidad x WHERE x.OportunidadCrmId = w.Id) r2
+OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Caso x WHERE x.CasoCrmId = w.Id) r3
+OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.OrdenVenta x WHERE x.OrdenVentaCrmId = w.Id) r4
+OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Cotizacion x WHERE x.CotizacionCrmId = w.Id) r5
+OUTER APPLY (SELECT COUNT(*) AS n FROM core.Prospecto x WHERE x.FuenteSistema = 'ZohoCRM' AND x.FuenteTabla = N'Leads' AND x.FuenteLlave = w.Id) r6""",
+                depende=["core_Servicio", "core_Contacto", "core_Caso_Complemento", "core_OrdenVenta_Complemento", "core_Prospecto_CRM", "ref_Usuario"],
+                descripcion="Tareas del CRM. El registro relacionado (What_Id) puede ser una cuenta, oportunidad, caso, orden de venta, "
+                            "cotización o prospecto: el servicio se toma de la cuenta o del registro relacionado. Solo se marca "
+                            "anomalía si el relacionado no está en ninguno de esos módulos."),
     paso_matriz("core_Adjunto", 338, "core.Adjunto", _CRM, "Zoho_Mirror", "Zoho_Attachments", "a", llave="AttachmentId",
                 descripcion="Metadatos de los adjuntos del CRM (el archivo queda en la nube; solo se guarda la ruta)."),
     paso_matriz("core_Proveedor", 339, "core.Proveedor", "ZohoBooks", "ZBooks_Mirror", "contacts", "v",

@@ -1,8 +1,8 @@
 USE ADN_Unificado;
 GO
 /* Paso 300 · core_Producto_CRM → core.Producto
-   Productos del CRM (catálogo principal). El impuesto se vincula por nombre o id de Books.
-   Reglas: D5, DD-06, ES-01, ES-02, ES-04, ES-07, IN-01, IN-05
+   Productos del CRM (catálogo principal). El CRM guarda una LISTA de impuestos en texto (p. ej. '911 - 0.75 %, Cruz Roja - 1.0 %, IVA - 13.0 %'), que no cabe en una sola referencia: se conserva en AtributosExtendidos.Impuestos y ImpuestoId queda vacío.
+   Reglas: D5, DD-06, ES-01, ES-02, ES-04, ES-07, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_Producto_CRM @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
@@ -22,17 +22,16 @@ BEGIN
            q.[Activo],
            CAST(q.[Descripcion] AS nvarchar(1000)) COLLATE DATABASE_DEFAULT AS [Descripcion],
            CAST(q.[Categoria] AS nvarchar(100)) COLLATE DATABASE_DEFAULT AS [Categoria],
-           q.[ImpuestoId],
            CAST(q.[Sistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [Sistema],
            CAST(q.[ProductoCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [ProductoCrmId],
+           q.[ImpuestoId],
            q.[AtributosExtendidos] COLLATE DATABASE_DEFAULT AS [AtributosExtendidos],
            CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
            CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
            CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
-           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Precio]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CodigoCabys]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Unidad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Categoria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ImpuestoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ProductoCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
-           q.[o_ImpuestoId],
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Precio]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CodigoCabys]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Unidad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Activo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Categoria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sistema]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ProductoCrmId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ImpuestoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Precio],
            q.[o_FechaCreacionOrigen],
            q.[o_FechaModificacionOrigen],
@@ -55,17 +54,15 @@ BEGIN
                ctl.fn_Bit(CONVERT(nvarchar(20), p.[Product_Active])) AS [Activo],
                ctl.fn_Texto(CONVERT(nvarchar(max), CONVERT(nvarchar(max), p.[Description]))) AS [Descripcion],
                ctl.fn_Texto(CONVERT(nvarchar(max), p.[Product_Category])) AS [Categoria],
-               fk_ImpuestoId_0.Id AS [ImpuestoId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), p.[Tax])) AS [o_ImpuestoId],
                'ZohoCRM' AS [Sistema],
                ctl.fn_Texto(p.id) AS [ProductoCrmId],
+               CAST(NULL AS int) AS [ImpuestoId],
+               JSON_MODIFY(ISNULL(NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), p.[Taxable])) AS [Taxable], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Tag])) AS [Tag], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Created_By])) AS [Created_By], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Layout])) AS [Layout], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Commission_Rate])) AS [Commission_Rate], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Modified_By])) AS [Modified_By], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Record_Image])) AS [Record_Image], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Owner])) AS [Owner] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}'), N'{}'), '$.Impuestos', ctl.fn_Texto(p.Tax)) AS [AtributosExtendidos],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[Unit_Price])) AS [o_Precio],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[Created_Time])) AS [o_FechaCreacionOrigen],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[Modified_Time])) AS [o_FechaModificacionOrigen],
-               NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), p.[Taxable])) AS [Taxable], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Tag])) AS [Tag], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Created_By])) AS [Created_By], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Layout])) AS [Layout], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Commission_Rate])) AS [Commission_Rate], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Modified_By])) AS [Modified_By], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Record_Image])) AS [Record_Image], ctl.fn_Texto(CONVERT(nvarchar(max), p.[Owner])) AS [Owner] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos],
                CAST(ISNULL(p.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Products] p
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ImpuestoId]) END AS Id FROM ref.Impuesto r WHERE r.[ImpuestoBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), p.[Tax])) OR r.[Nombre] = ctl.fn_Texto(CONVERT(nvarchar(max), p.[Tax]))) fk_ImpuestoId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
@@ -117,10 +114,10 @@ BEGIN
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
-        UPDATE SET t.[Precio] = s.[Precio], t.[CodigoCabys] = s.[CodigoCabys], t.[Nombre] = s.[Nombre], t.[Tipo] = s.[Tipo], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Unidad] = s.[Unidad], t.[Activo] = s.[Activo], t.[Descripcion] = s.[Descripcion], t.[Categoria] = s.[Categoria], t.[ImpuestoId] = s.[ImpuestoId], t.[Sistema] = s.[Sistema], t.[ProductoCrmId] = s.[ProductoCrmId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
+        UPDATE SET t.[Precio] = s.[Precio], t.[CodigoCabys] = s.[CodigoCabys], t.[Nombre] = s.[Nombre], t.[Tipo] = s.[Tipo], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Unidad] = s.[Unidad], t.[Activo] = s.[Activo], t.[Descripcion] = s.[Descripcion], t.[Categoria] = s.[Categoria], t.[Sistema] = s.[Sistema], t.[ProductoCrmId] = s.[ProductoCrmId], t.[ImpuestoId] = s.[ImpuestoId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
-        INSERT ([Precio], [CodigoCabys], [Nombre], [Tipo], [FechaCreacionOrigen], [FechaModificacionOrigen], [Unidad], [Activo], [Descripcion], [Categoria], [ImpuestoId], [Sistema], [ProductoCrmId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
-        VALUES (s.[Precio], s.[CodigoCabys], s.[Nombre], s.[Tipo], s.[FechaCreacionOrigen], s.[FechaModificacionOrigen], s.[Unidad], s.[Activo], s.[Descripcion], s.[Categoria], s.[ImpuestoId], s.[Sistema], s.[ProductoCrmId], s.[AtributosExtendidos], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
+        INSERT ([Precio], [CodigoCabys], [Nombre], [Tipo], [FechaCreacionOrigen], [FechaModificacionOrigen], [Unidad], [Activo], [Descripcion], [Categoria], [Sistema], [ProductoCrmId], [ImpuestoId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
+        VALUES (s.[Precio], s.[CodigoCabys], s.[Nombre], s.[Tipo], s.[FechaCreacionOrigen], s.[FechaModificacionOrigen], s.[Unidad], s.[Activo], s.[Descripcion], s.[Categoria], s.[Sistema], s.[ProductoCrmId], s.[ImpuestoId], s.[AtributosExtendidos], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
     OUTPUT $action, inserted.[ProductoId], inserted.FuenteLlave INTO #cambios;
 
     /* 5. Bitácora por registro */
@@ -134,10 +131,6 @@ BEGIN
     SELECT @LoteId, 'ES-05', N'core.Producto', t.[ProductoId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
     FROM #src s JOIN core.Producto t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
-    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Producto', t.[ProductoId], N'ImpuestoId', LEFT(CONVERT(nvarchar(400), s.o_ImpuestoId), 400), N'Referencia sin correspondencia única en ref.Impuesto'
-    FROM #src s JOIN core.Producto t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ImpuestoId IS NOT NULL AND s.[ImpuestoId] IS NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ES-04', N'core.Producto', t.[ProductoId], N'Precio', LEFT(CONVERT(nvarchar(400), s.o_Precio), 400), N'Monto ilegible; se conserva el texto original'
     FROM #src s JOIN core.Producto t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
