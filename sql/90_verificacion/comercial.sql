@@ -17,58 +17,77 @@ SELECT 'ADNPayV2.OnvoProduct' AS Fuente, COUNT(*) AS Filas FROM ADNPayV2.dbo.Onv
 UNION ALL SELECT 'ADNPayV2.OnvoPrice', COUNT(*) FROM ADNPayV2.dbo.OnvoPrice
 UNION ALL SELECT 'Zoho_Mirror.Zoho_Attachments', COUNT(*) FROM Zoho_Mirror.dbo.Zoho_Attachments;
 
-PRINT '== 3. Líneas de órdenes de venta descartadas: ¿a qué orden apuntan?';
-;WITH l AS (SELECT ctl.fn_Texto(sales_order) AS Orden, CAST(ISNULL(deleted, 0) AS int) AS Eliminada FROM Zoho_Mirror.dbo.Sales_Orders_Products),
-      c AS (
-    SELECT l.Eliminada,
-           CASE WHEN l.Orden IS NULL THEN 'sin orden'
-                WHEN EXISTS (SELECT 1 FROM core.OrdenVenta o WHERE o.OrdenVentaCrmId = l.Orden) THEN 'orden cargada en el modelo'
-                WHEN EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Sales_Orders s WHERE ctl.fn_Texto(s.id) = l.Orden AND s.deleted = 1) THEN 'orden eliminada en Zoho'
-                WHEN EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Sales_Orders s WHERE ctl.fn_Texto(s.id) = l.Orden)
-                  OR EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Sales_Orders_Extended e WHERE ctl.fn_Texto(e.id) = l.Orden) THEN 'orden en el espejo pero no cargada'
-                ELSE 'orden que no existe en el espejo' END AS Situacion
-    FROM l)
-SELECT Situacion, SUM(Eliminada) AS LineasEliminadas, COUNT(*) AS Lineas FROM c GROUP BY Situacion ORDER BY Lineas DESC;
+/* Llaves normalizadas UNA vez, en tablas temporales con índice (comparar ctl.fn_Texto(columna) fila por fila
+   impide usar índices y hace la consulta cuadrática) */
+DROP TABLE IF EXISTS #so, #soe, #ld, #lin, #ot, #tk;
+SELECT DISTINCT ctl.fn_Texto(id) AS Id, CAST(MAX(CAST(ISNULL(deleted, 0) AS int)) AS int) AS Eliminada INTO #so
+FROM Zoho_Mirror.dbo.Sales_Orders GROUP BY ctl.fn_Texto(id);
+SELECT DISTINCT ctl.fn_Texto(id) AS Id INTO #soe FROM Zoho_Mirror.dbo.Sales_Orders_Extended;
+SELECT DISTINCT ctl.fn_Texto(id) AS Id INTO #ld FROM Zoho_Mirror.dbo.Leads;
+CREATE INDEX i ON #so (Id); CREATE INDEX i ON #soe (Id); CREATE INDEX i ON #ld (Id);
+SELECT ctl.fn_Texto(sales_order) AS Orden, CAST(ISNULL(deleted, 0) AS int) AS Eliminada INTO #lin FROM Zoho_Mirror.dbo.Sales_Orders_Products;
+SELECT ctl.fn_Circuito(N_mero_de_circuito_contrato) AS Circ, ctl.fn_Texto(N_mero_de_circuito_contrato) AS CircTexto,
+       ctl.fn_Texto(Asignado_a) AS Asignado INTO #ot
+FROM Zoho_Mirror.dbo.Ordenes_de_Trabajo WHERE ISNULL(deleted, 0) = 0;
+SELECT ctl.fn_Texto(What_Id) AS Que, ctl.fn_Texto(Who_Id) AS Quien INTO #tk FROM Zoho_Mirror.dbo.Tasks WHERE ISNULL(deleted, 0) = 0;
 
-PRINT '== 4. Órdenes de trabajo: forma del circuito y del asignado';
-SELECT CASE WHEN ctl.fn_Texto(t.N_mero_de_circuito_contrato) IS NULL THEN 'circuito vacío'
-            WHEN ctl.fn_Circuito(t.N_mero_de_circuito_contrato) IS NULL THEN 'circuito fuera del patrón'
-            ELSE 'circuito válido' END AS Circuito,
-       COUNT(*) AS Ordenes
-FROM Zoho_Mirror.dbo.Ordenes_de_Trabajo t WHERE ISNULL(t.deleted, 0) = 0
-GROUP BY CASE WHEN ctl.fn_Texto(t.N_mero_de_circuito_contrato) IS NULL THEN 'circuito vacío'
-              WHEN ctl.fn_Circuito(t.N_mero_de_circuito_contrato) IS NULL THEN 'circuito fuera del patrón' ELSE 'circuito válido' END;
-SELECT x.Coincidencias, COUNT(*) AS Ordenes FROM (
-    SELECT (SELECT COUNT(*) FROM core.Servicio s WHERE s.Circuito = ctl.fn_Circuito(t.N_mero_de_circuito_contrato)) AS Coincidencias
-    FROM Zoho_Mirror.dbo.Ordenes_de_Trabajo t
-    WHERE ISNULL(t.deleted, 0) = 0 AND ctl.fn_Circuito(t.N_mero_de_circuito_contrato) IS NOT NULL) x
-GROUP BY x.Coincidencias ORDER BY x.Coincidencias;
-SELECT CASE WHEN ctl.fn_Texto(t.Asignado_a) IS NULL THEN 'vacío'
-            WHEN ctl.fn_Texto(t.Asignado_a) NOT LIKE '%[^0-9]%' THEN 'id numérico'
-            ELSE 'texto' END AS FormaAsignado,
-       SUM(CASE WHEN u.UsuarioId IS NOT NULL THEN 1 ELSE 0 END) AS ConUsuario, COUNT(*) AS Ordenes
-FROM Zoho_Mirror.dbo.Ordenes_de_Trabajo t
-OUTER APPLY (SELECT TOP 1 r.UsuarioId FROM ref.Usuario r WHERE r.ZohoUsuarioId = ctl.fn_Texto(t.Asignado_a) OR r.NombreCompleto = ctl.fn_Texto(t.Asignado_a)) u
-WHERE ISNULL(t.deleted, 0) = 0
-GROUP BY CASE WHEN ctl.fn_Texto(t.Asignado_a) IS NULL THEN 'vacío'
-              WHEN ctl.fn_Texto(t.Asignado_a) NOT LIKE '%[^0-9]%' THEN 'id numérico' ELSE 'texto' END;
+PRINT '== 3. Líneas de órdenes de venta: ¿a qué orden apuntan?';
+SELECT CASE WHEN l.Orden IS NULL THEN 'sin orden'
+            WHEN o.OrdenVentaCrmId IS NOT NULL THEN 'orden cargada en el modelo'
+            WHEN so.Eliminada = 1 THEN 'orden eliminada en Zoho'
+            WHEN so.Id IS NOT NULL OR soe.Id IS NOT NULL THEN 'orden en el espejo pero no cargada'
+            ELSE 'orden que no existe en el espejo' END AS Situacion,
+       SUM(l.Eliminada) AS LineasEliminadas, COUNT(*) AS Lineas
+FROM #lin l
+LEFT JOIN (SELECT DISTINCT OrdenVentaCrmId FROM core.OrdenVenta) o ON o.OrdenVentaCrmId = l.Orden
+LEFT JOIN #so so ON so.Id = l.Orden
+LEFT JOIN #soe soe ON soe.Id = l.Orden
+GROUP BY CASE WHEN l.Orden IS NULL THEN 'sin orden'
+              WHEN o.OrdenVentaCrmId IS NOT NULL THEN 'orden cargada en el modelo'
+              WHEN so.Eliminada = 1 THEN 'orden eliminada en Zoho'
+              WHEN so.Id IS NOT NULL OR soe.Id IS NOT NULL THEN 'orden en el espejo pero no cargada'
+              ELSE 'orden que no existe en el espejo' END
+ORDER BY Lineas DESC;
 
-PRINT '== 5. Tareas: a qué módulo del CRM apunta el registro relacionado (What_Id) y la persona (Who_Id)';
-;WITH t AS (SELECT ctl.fn_Texto(What_Id) AS Que, ctl.fn_Texto(Who_Id) AS Quien FROM Zoho_Mirror.dbo.Tasks WHERE ISNULL(deleted, 0) = 0),
-      c AS (
-    SELECT CASE WHEN t.Que IS NULL THEN 'vacío'
-                WHEN EXISTS (SELECT 1 FROM core.Servicio s WHERE s.CuentaCrmId = t.Que) THEN 'cuenta (servicio)'
-                WHEN EXISTS (SELECT 1 FROM core.Oportunidad o WHERE o.OportunidadCrmId = t.Que) THEN 'oportunidad'
-                WHEN EXISTS (SELECT 1 FROM core.Caso k WHERE k.CasoCrmId = t.Que) THEN 'caso'
-                WHEN EXISTS (SELECT 1 FROM core.OrdenVenta v WHERE v.OrdenVentaCrmId = t.Que) THEN 'orden de venta'
-                WHEN EXISTS (SELECT 1 FROM core.Cotizacion q WHERE q.CotizacionCrmId = t.Que) THEN 'cotización'
-                ELSE 'otro módulo o no cargado' END AS Relacionado,
-           CASE WHEN t.Quien IS NULL THEN 'vacío'
-                WHEN EXISTS (SELECT 1 FROM core.Contacto k WHERE k.ContactoCrmId = t.Quien) THEN 'contacto'
-                WHEN EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Leads l WHERE ctl.fn_Texto(l.id) = t.Quien) THEN 'prospecto (lead)'
-                ELSE 'otro' END AS Persona
-    FROM t)
-SELECT Relacionado, Persona, COUNT(*) AS Tareas FROM c GROUP BY Relacionado, Persona ORDER BY Tareas DESC;
+PRINT '== 4. Órdenes de trabajo: circuito (cuántos servicios coinciden) y forma del asignado';
+SELECT CASE WHEN t.CircTexto IS NULL THEN 'circuito vacío' WHEN t.Circ IS NULL THEN 'circuito fuera del patrón'
+            WHEN c.n IS NULL THEN 'circuito válido sin servicio' WHEN c.n = 1 THEN 'circuito con un servicio'
+            ELSE 'circuito en varios servicios' END AS Circuito, COUNT(*) AS Ordenes
+FROM #ot t LEFT JOIN (SELECT Circuito, COUNT(*) AS n FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito) c ON c.Circuito = t.Circ
+GROUP BY CASE WHEN t.CircTexto IS NULL THEN 'circuito vacío' WHEN t.Circ IS NULL THEN 'circuito fuera del patrón'
+              WHEN c.n IS NULL THEN 'circuito válido sin servicio' WHEN c.n = 1 THEN 'circuito con un servicio'
+              ELSE 'circuito en varios servicios' END
+ORDER BY Ordenes DESC;
+SELECT CASE WHEN t.Asignado IS NULL THEN 'vacío' WHEN t.Asignado NOT LIKE '%[^0-9]%' THEN 'id numérico' ELSE 'texto' END AS FormaAsignado,
+       SUM(CASE WHEN ui.UsuarioId IS NOT NULL OR un.UsuarioId IS NOT NULL THEN 1 ELSE 0 END) AS ConUsuario, COUNT(*) AS Ordenes
+FROM #ot t
+LEFT JOIN (SELECT ZohoUsuarioId, MIN(UsuarioId) AS UsuarioId FROM ref.Usuario GROUP BY ZohoUsuarioId) ui ON ui.ZohoUsuarioId = t.Asignado
+LEFT JOIN (SELECT NombreCompleto, MIN(UsuarioId) AS UsuarioId FROM ref.Usuario GROUP BY NombreCompleto) un ON un.NombreCompleto = t.Asignado
+GROUP BY CASE WHEN t.Asignado IS NULL THEN 'vacío' WHEN t.Asignado NOT LIKE '%[^0-9]%' THEN 'id numérico' ELSE 'texto' END;
+
+PRINT '== 5. Tareas: a qué apunta el registro relacionado (What_Id) y la persona (Who_Id)';
+SELECT CASE WHEN t.Que IS NULL THEN 'vacío' WHEN s.CuentaCrmId IS NOT NULL THEN 'cuenta (servicio)'
+            WHEN o.OportunidadCrmId IS NOT NULL THEN 'oportunidad' WHEN k.CasoCrmId IS NOT NULL THEN 'caso'
+            WHEN v.OrdenVentaCrmId IS NOT NULL THEN 'orden de venta' WHEN q.CotizacionCrmId IS NOT NULL THEN 'cotización'
+            ELSE 'otro módulo o no cargado' END AS Relacionado,
+       CASE WHEN t.Quien IS NULL THEN 'vacío' WHEN c.ContactoCrmId IS NOT NULL THEN 'contacto'
+            WHEN ld.Id IS NOT NULL THEN 'prospecto (lead)' ELSE 'otro' END AS Persona,
+       COUNT(*) AS Tareas
+FROM #tk t
+LEFT JOIN (SELECT DISTINCT CuentaCrmId FROM core.Servicio) s ON s.CuentaCrmId = t.Que
+LEFT JOIN (SELECT DISTINCT OportunidadCrmId FROM core.Oportunidad) o ON o.OportunidadCrmId = t.Que
+LEFT JOIN (SELECT DISTINCT CasoCrmId FROM core.Caso) k ON k.CasoCrmId = t.Que
+LEFT JOIN (SELECT DISTINCT OrdenVentaCrmId FROM core.OrdenVenta) v ON v.OrdenVentaCrmId = t.Que
+LEFT JOIN (SELECT DISTINCT CotizacionCrmId FROM core.Cotizacion) q ON q.CotizacionCrmId = t.Que
+LEFT JOIN (SELECT DISTINCT ContactoCrmId FROM core.Contacto) c ON c.ContactoCrmId = t.Quien
+LEFT JOIN #ld ld ON ld.Id = t.Quien
+GROUP BY CASE WHEN t.Que IS NULL THEN 'vacío' WHEN s.CuentaCrmId IS NOT NULL THEN 'cuenta (servicio)'
+              WHEN o.OportunidadCrmId IS NOT NULL THEN 'oportunidad' WHEN k.CasoCrmId IS NOT NULL THEN 'caso'
+              WHEN v.OrdenVentaCrmId IS NOT NULL THEN 'orden de venta' WHEN q.CotizacionCrmId IS NOT NULL THEN 'cotización'
+              ELSE 'otro módulo o no cargado' END,
+         CASE WHEN t.Quien IS NULL THEN 'vacío' WHEN c.ContactoCrmId IS NOT NULL THEN 'contacto'
+              WHEN ld.Id IS NOT NULL THEN 'prospecto (lead)' ELSE 'otro' END
+ORDER BY Tareas DESC;
 
 PRINT '== 6. Impuesto de los productos del CRM frente al catálogo de impuestos (catálogo interno)';
 SELECT TOP 10 ctl.fn_Texto(p.Tax) AS ImpuestoEnProducto, COUNT(*) AS Productos FROM Zoho_Mirror.dbo.Products p GROUP BY ctl.fn_Texto(p.Tax) ORDER BY Productos DESC;
