@@ -150,7 +150,7 @@ tabla("core", "ClienteOrigen", "Cliente y servicio", "Tabla de correspondencia: 
       [pk("ClienteOrigenId"), fk("ClienteId", "core.Cliente", True, "Cliente vinculado", "ID-05"), fk("ServicioId", "core.Servicio", True, "Servicio vinculado", "ID-05"),
        c("Sistema", V(20), False, "", "ID-04"), c("TablaOrigen", N(128), False, "", "ID-04"), c("LlaveOrigen", N(200), False, "ID en el origen", "ID-04"),
        c("CedulaOriginal", N(50), True, "Valor sin normalizar", "ES-08"), c("CircuitoOriginal", N(100), True, "Valor sin normalizar", "ES-08"),
-       c("MetodoEmparejamiento", V(20), False, "CIRCUITO, CEDULA, CEDULA_HEREDADA, LLAVE_DIRECTA o SIN_CORRESPONDENCIA", "ID-05"),
+       c("MetodoEmparejamiento", V(20), False, "CIRCUITO, CEDULA, LLAVE_DIRECTA o SIN_CORRESPONDENCIA", "ID-05"),
        c("FechaEmparejamiento", DT, False, "")],
       uniques=[["Sistema", "TablaOrigen", "LlaveOrigen"]], origen="Generada en la carga")
 tabla("core", "Servicio", "Cliente y servicio", "Servicio contratado, identificado por el número de circuito; corresponde a una cuenta del CRM", "Una fila por cuenta del CRM o circuito",
