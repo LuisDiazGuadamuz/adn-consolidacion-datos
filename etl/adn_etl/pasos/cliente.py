@@ -63,6 +63,7 @@ CREATE TABLE #f (Sis varchar(20) COLLATE DATABASE_DEFAULT NOT NULL, Base nvarcha
                  Correo nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Tel nvarchar(60) COLLATE DATABASE_DEFAULT NULL, Segmento nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Industria nvarchar(120) COLLATE DATABASE_DEFAULT NULL,
                  Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
                  RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
+                 CedHeredada bit NOT NULL DEFAULT 0,
                  KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
 INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
 SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
@@ -91,6 +92,19 @@ FROM ADNPayV2.dbo.Customer p WHERE p.status = 'approved';
 /* Emparejamiento de Books y ADNPayV2 */
 UPDATE f SET f.CuentaCircuito = c.Cuenta, f.CuentasDelCircuito = c.Cuentas
 FROM #f f JOIN #circ c ON c.Circ = f.Circ WHERE f.Sis <> 'ZohoCRM';
+/* Cédula heredada (ID-02 + D9, Books manda en lo fiscal): cuenta del CRM sin cédula válida toma la cédula de los
+   registros ligados a ella (Books por circuito, app.data.cr por id de Zoho) solo si todos traen la MISMA cédula.
+   El valor original de la cuenta no cambia (core.ClienteOrigen.CedulaOriginal); se marca con anomalía ID-02. */
+DROP TABLE IF EXISTS #her;
+SELECT Cuenta, MIN(Ced) AS Ced, COUNT(DISTINCT Ced) AS Cedulas INTO #her FROM (
+    SELECT f.CuentaCircuito AS Cuenta, f.Ced FROM #f f WHERE f.Sis = 'ZohoBooks' AND f.CuentaCircuito IS NOT NULL AND f.Ced IS NOT NULL
+    UNION ALL
+    SELECT ctl.fn_Texto(z.ZohoID), ctl.fn_Cedula(z.IDCard) FROM ADNApp.dbo.ZohoEngine_zohocustomer z
+    WHERE ctl.fn_Texto(z.ZohoID) IS NOT NULL AND ctl.fn_Cedula(z.IDCard) IS NOT NULL) x
+GROUP BY Cuenta;
+UPDATE f SET f.Ced = h.Ced, f.CedHeredada = 1, f.Clave = N'C:' + h.Ced
+FROM #f f JOIN #her h ON h.Cuenta = f.Llave
+WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NULL AND h.Cedulas = 1;
 UPDATE f SET f.Clave = k.Clave, f.Metodo = 'CIRCUITO'
 FROM #f f JOIN #f k ON k.Sis = 'ZohoCRM' AND k.Llave = f.CuentaCircuito
 WHERE f.Sis <> 'ZohoCRM' AND f.CuentaCircuito IS NOT NULL;
@@ -132,9 +146,10 @@ SELECT_CLIENTE = (
     + "       CASE WHEN k.ConCrm = 1 THEN 'CRM' WHEN k.ConBooks = 1 THEN 'SOLO_BOOKS' ELSE 'SOLO_ADNPAY' END AS EstadoCorrespondencia,\n"
     + ",\n".join(f"       x_{f}.Sis AS lf_{m}_sis, x_{f}.Tab AS lf_{m}_tab, x_{f}.Llave AS lf_{m}_llave, x_{f}.Modificada AS lf_{m}_fecha"
                  for m, f, _ in CAMPOS_CLIENTE)
-    + ",\n       p.CedO AS o_Cedula\n"
+    + ",\n       p.CedO AS o_Cedula, k.Heredada AS o_Heredada\n"
     "FROM (SELECT Clave, MIN(Creada) AS Desde, MAX(CASE WHEN Sis = 'ZohoCRM' THEN 1 ELSE 0 END) AS ConCrm,\n"
-    "             MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas\n"
+    "             MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas,\n"
+    "             MAX(CAST(CedHeredada AS int)) AS Heredada\n"
     "      FROM #f GROUP BY Clave) k\n"
     "CROSS APPLY (SELECT TOP 1 f.KSis, f.KBase, f.KTab, f.KLlave, f.CedO FROM #f f WHERE f.Clave = k.Clave ORDER BY f.RankCom, f.Modificada DESC, f.Llave) p\n"
     + "\n".join(_campo(f, r) for _, f, r in CAMPOS_CLIENTE)
@@ -359,9 +374,11 @@ OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(u1.UsuarioId) END AS Usuario
         preparacion=IDENTIDAD,
         columnas=["Cedula", "TipoIdentificacion"] + [m for m, _, _ in CAMPOS_CLIENTE] + ["EstadoCorrespondencia"],
         linaje_campos=[m for m, _, _ in CAMPOS_CLIENTE],
-        auxiliares=["o_Cedula"],
+        auxiliares=["o_Cedula", "o_Heredada"],
         anomalias=[Anomalia("ID-02", "Cedula", "s.o_Cedula", "s.Cedula IS NULL AND s.TipoIdentificacion = 'INVALIDA'",
-                            "Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen")],
+                            "Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen"),
+                   Anomalia("ID-02", "Cedula", "s.o_Cedula", "s.o_Heredada = 1",
+                            "Cuenta del CRM sin cédula: se tomó la cédula única de Books o app.data.cr ligados a la cuenta")],
         select=SELECT_CLIENTE,
     ),
     Paso(
@@ -380,7 +397,8 @@ OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(u1.UsuarioId) END AS Usuario
         select="""
 SELECT f.Sis AS FuenteSistema, f.Base AS FuenteBase, f.Tab AS FuenteTabla, f.Llave AS FuenteLlave, f.Creada AS FechaDato,
        cl.ClienteId, sv.ServicioId, f.Sis AS Sistema, f.Tab AS TablaOrigen, f.Llave AS LlaveOrigen,
-       ctl.fn_Texto(f.CedO) AS CedulaOriginal, ctl.fn_Texto(f.CircO) AS CircuitoOriginal, f.Metodo AS MetodoEmparejamiento,
+       ctl.fn_Texto(f.CedO) AS CedulaOriginal, ctl.fn_Texto(f.CircO) AS CircuitoOriginal,
+       CASE WHEN f.CedHeredada = 1 THEN 'CEDULA_HEREDADA' ELSE f.Metodo END AS MetodoEmparejamiento,
        @Ahora AS FechaEmparejamiento, f.CuentasDelCircuito AS o_Cuentas
 FROM #f f
 LEFT JOIN core.Cliente cl ON cl.FuenteSistema = f.KSis AND cl.FuenteTabla = f.KTab AND cl.FuenteLlave = f.KLlave

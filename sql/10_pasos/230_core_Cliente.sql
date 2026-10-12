@@ -53,6 +53,7 @@ BEGIN
                      Correo nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Tel nvarchar(60) COLLATE DATABASE_DEFAULT NULL, Segmento nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Industria nvarchar(120) COLLATE DATABASE_DEFAULT NULL,
                      Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
                      RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
+                     CedHeredada bit NOT NULL DEFAULT 0,
                      KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
     INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
     SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
@@ -81,6 +82,19 @@ BEGIN
     /* Emparejamiento de Books y ADNPayV2 */
     UPDATE f SET f.CuentaCircuito = c.Cuenta, f.CuentasDelCircuito = c.Cuentas
     FROM #f f JOIN #circ c ON c.Circ = f.Circ WHERE f.Sis <> 'ZohoCRM';
+    /* Cédula heredada (ID-02 + D9, Books manda en lo fiscal): cuenta del CRM sin cédula válida toma la cédula de los
+       registros ligados a ella (Books por circuito, app.data.cr por id de Zoho) solo si todos traen la MISMA cédula.
+       El valor original de la cuenta no cambia (core.ClienteOrigen.CedulaOriginal); se marca con anomalía ID-02. */
+    DROP TABLE IF EXISTS #her;
+    SELECT Cuenta, MIN(Ced) AS Ced, COUNT(DISTINCT Ced) AS Cedulas INTO #her FROM (
+        SELECT f.CuentaCircuito AS Cuenta, f.Ced FROM #f f WHERE f.Sis = 'ZohoBooks' AND f.CuentaCircuito IS NOT NULL AND f.Ced IS NOT NULL
+        UNION ALL
+        SELECT ctl.fn_Texto(z.ZohoID), ctl.fn_Cedula(z.IDCard) FROM ADNApp.dbo.ZohoEngine_zohocustomer z
+        WHERE ctl.fn_Texto(z.ZohoID) IS NOT NULL AND ctl.fn_Cedula(z.IDCard) IS NOT NULL) x
+    GROUP BY Cuenta;
+    UPDATE f SET f.Ced = h.Ced, f.CedHeredada = 1, f.Clave = N'C:' + h.Ced
+    FROM #f f JOIN #her h ON h.Cuenta = f.Llave
+    WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NULL AND h.Cedulas = 1;
     UPDATE f SET f.Clave = k.Clave, f.Metodo = 'CIRCUITO'
     FROM #f f JOIN #f k ON k.Sis = 'ZohoCRM' AND k.Llave = f.CuentaCircuito
     WHERE f.Sis <> 'ZohoCRM' AND f.CuentaCircuito IS NOT NULL;
@@ -119,6 +133,7 @@ BEGIN
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cedula]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoIdentificacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RazonSocial]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoFiscal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Exonerado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Correo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Telefono]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Segmento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Industria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoCorrespondencia]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Cedula],
+           q.[o_Heredada],
            q.[lf_Nombre_sis],
            q.[lf_Nombre_tab],
            q.[lf_Nombre_llave],
@@ -175,9 +190,10 @@ BEGIN
                x_Tel.Sis AS lf_Telefono_sis, x_Tel.Tab AS lf_Telefono_tab, x_Tel.Llave AS lf_Telefono_llave, x_Tel.Modificada AS lf_Telefono_fecha,
                x_Segmento.Sis AS lf_Segmento_sis, x_Segmento.Tab AS lf_Segmento_tab, x_Segmento.Llave AS lf_Segmento_llave, x_Segmento.Modificada AS lf_Segmento_fecha,
                x_Industria.Sis AS lf_Industria_sis, x_Industria.Tab AS lf_Industria_tab, x_Industria.Llave AS lf_Industria_llave, x_Industria.Modificada AS lf_Industria_fecha,
-               p.CedO AS o_Cedula
+               p.CedO AS o_Cedula, k.Heredada AS o_Heredada
         FROM (SELECT Clave, MIN(Creada) AS Desde, MAX(CASE WHEN Sis = 'ZohoCRM' THEN 1 ELSE 0 END) AS ConCrm,
-                     MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas
+                     MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas,
+                     MAX(CAST(CedHeredada AS int)) AS Heredada
               FROM #f GROUP BY Clave) k
         CROSS APPLY (SELECT TOP 1 f.KSis, f.KBase, f.KTab, f.KLlave, f.CedO FROM #f f WHERE f.Clave = k.Clave ORDER BY f.RankCom, f.Modificada DESC, f.Llave) p
         OUTER APPLY (SELECT TOP 1 f.Nombre AS v, f.Sis, f.Tab, f.Llave, f.Modificada FROM #f f WHERE f.Clave = k.Clave AND f.Nombre IS NOT NULL ORDER BY f.RankCom, f.Modificada DESC, f.Llave) AS x_Nombre
@@ -292,6 +308,10 @@ BEGIN
     SELECT @LoteId, 'ID-02', N'core.Cliente', c.RegistroId, N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen'
     FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.Cedula IS NULL AND s.TipoIdentificacion = 'INVALIDA';
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'ID-02', N'core.Cliente', c.RegistroId, N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Cuenta del CRM sin cédula: se tomó la cédula única de Books o app.data.cr ligados a la cuenta'
+    FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s.o_Heredada = 1;
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
 END;
