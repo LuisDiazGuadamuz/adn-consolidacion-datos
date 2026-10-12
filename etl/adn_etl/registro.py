@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Registro de todos los pasos de carga, en orden de ejecución."""
-from .pasos import ref, cliente
+from .pasos import ref, cliente, comercial
 
-MODULOS = [ref, cliente]
+MODULOS = [ref, cliente, comercial]
 
 
 def todos():
