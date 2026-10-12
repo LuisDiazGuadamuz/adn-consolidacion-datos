@@ -53,7 +53,7 @@ BEGIN
                ctl.fn_FechaDia(c.Fecha_de_Instalaci_n) AS FechaInstalacion,
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), c.[Tag])) AS [Tag], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Created_By])) AS [Created_By], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Tel_fono])) AS [Tel_fono], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Unsubscribed_Mode])) AS [Unsubscribed_Mode], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Modified_By])) AS [Modified_By], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Record_Image])) AS [Record_Image], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Last_Activity_Time])) AS [Last_Activity_Time], ctl.fn_Texto(CONVERT(nvarchar(max), c.[N_A_Cortes_a])) AS [N_A_Cortes_a], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Cortes_a])) AS [Cortes_a], ctl.fn_Texto(CONVERT(nvarchar(max), c.[CPO])) AS [CPO], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Email])) AS [Email], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Owner])) AS [Owner], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Fases])) AS [Fases], ctl.fn_Texto(CONVERT(nvarchar(max), c.[Estado_de_Construncion])) AS [Estado_de_Construncion] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS AtributosExtendidos,
                ctl.fn_FechaCR(c.Created_Time) AS FechaCreacionOrigen, ctl.fn_FechaCR(c.Modified_Time) AS FechaModificacionOrigen,
-               CAST(ISNULL(c.deleted, 0) AS int) AS o_Eliminado, ctl.fn_Texto(c.Coordenadas) AS o_Coordenadas
+               CAST(ISNULL(c.deleted, 0) AS int) AS o_Eliminado, ctl.fn_CoordenadaTexto(c.Coordenadas) AS o_Coordenadas
         FROM Zoho_Mirror.dbo.Condominios c
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
@@ -117,14 +117,15 @@ BEGIN
     SELECT @LoteId, N'core.Condominio', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'core.Condominio', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN core.Condominio t ON t.[CondominioId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ES-05', N'core.Condominio', t.[CondominioId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN core.Condominio t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'core.Condominio', c.RegistroId, N'Latitud', LEFT(CONVERT(nvarchar(400), s.o_Coordenadas), 400), N'Coordenadas ilegibles o fuera de Costa Rica'
-    FROM #cambios c JOIN core.Condominio t ON t.[CondominioId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ES-05', N'core.Condominio', t.[CondominioId], N'Latitud', LEFT(CONVERT(nvarchar(400), s.o_Coordenadas), 400), N'Coordenadas ilegibles o fuera de Costa Rica'
+    FROM #src s JOIN core.Condominio t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_Coordenadas IS NOT NULL AND s.Latitud IS NULL;
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;

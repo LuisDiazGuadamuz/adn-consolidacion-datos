@@ -112,14 +112,15 @@ BEGIN
     SELECT @LoteId, N'core.ClusterFTTH', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'core.ClusterFTTH', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN core.ClusterFTTH t ON t.[ClusterFTTHId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ES-05', N'core.ClusterFTTH', t.[ClusterFTTHId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN core.ClusterFTTH t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.ClusterFTTH', c.RegistroId, N'NodoId', LEFT(CONVERT(nvarchar(400), s.o_Nodo), 400), N'Nodo sin correspondencia única por nombre'
-    FROM #cambios c JOIN core.ClusterFTTH t ON t.[ClusterFTTHId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'IN-01', N'core.ClusterFTTH', t.[ClusterFTTHId], N'NodoId', LEFT(CONVERT(nvarchar(400), s.o_Nodo), 400), N'Nodo sin correspondencia única por nombre'
+    FROM #src s JOIN core.ClusterFTTH t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_Nodo IS NOT NULL AND s.NodoId IS NULL;
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;

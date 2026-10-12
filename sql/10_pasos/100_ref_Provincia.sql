@@ -82,10 +82,11 @@ BEGIN
     SELECT @LoteId, N'ref.Provincia', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'ref.Provincia', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN ref.Provincia t ON t.[ProvinciaId] = c.RegistroId JOIN #src s ON t.[Nombre] = s.[Nombre]
+    SELECT @LoteId, 'ES-05', N'ref.Provincia', t.[ProvinciaId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN ref.Provincia t ON t.[Nombre] = s.[Nombre]
     WHERE s._Recortadas <> N'';
     -- sin reglas de anomalía en este paso
 

@@ -55,6 +55,7 @@ GO
 /* Las funciones que dependen de otras (WITH SCHEMABINDING) se eliminan primero para que la instalación se pueda repetir */
 DROP FUNCTION IF EXISTS ctl.fn_TipoIdentificacion;
 DROP FUNCTION IF EXISTS ctl.fn_EsFechaFicticia;
+DROP FUNCTION IF EXISTS ctl.fn_Coordenada;
 GO
 
 /* ES-05: recorta espacios; vacío pasa a NULL */
@@ -201,16 +202,58 @@ GO
 
 /* Coordenadas 'lat,lon' (con o sin espacio). @Parte = 1 latitud, 2 longitud.
    Solo acepta valores dentro de Costa Rica (lat 5 a 12, lon -88 a -82); fuera de rango o '0,0' → NULL. */
+/* Una coordenada en grados, minutos y segundos (p. ej. 9°56'12.3"N) → grados decimales con signo */
+CREATE OR ALTER FUNCTION ctl.fn_GradosDecimales (@p nvarchar(60))
+RETURNS float WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @t nvarchar(60) = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(@p, N'″', N'"'), N'”', N'"'), N'′', N''''), N'’', N''''), N'''''', N'"');
+    DECLARE @g int = CHARINDEX(N'°', @t), @m int = CHARINDEX(N'''', @t), @s int = CHARINDEX(N'"', @t);
+    DECLARE @h nchar(1) = UPPER(RIGHT(@t, 1)), @d float, @mi float = 0, @se float = 0;
+    IF @g < 2 OR @h NOT IN (N'N', N'S', N'E', N'W', N'O') RETURN NULL;
+    SET @d = TRY_CONVERT(float, LEFT(@t, @g - 1));
+    IF @m > @g + 1 SET @mi = TRY_CONVERT(float, SUBSTRING(@t, @g + 1, @m - @g - 1));
+    IF @s > @m + 1 AND @m > 0 SET @se = TRY_CONVERT(float, SUBSTRING(@t, @m + 1, @s - @m - 1));
+    IF @d IS NULL OR @mi IS NULL OR @se IS NULL OR @mi >= 60 OR @se >= 60 RETURN NULL;
+    RETURN (@d + @mi / 60.0 + @se / 3600.0) * CASE WHEN @h IN (N'S', N'W', N'O') THEN -1 ELSE 1 END;
+END;
+GO
+
+/* Coordenadas "lat,lon" en un solo texto, validadas dentro de Costa Rica. Formas aceptadas:
+   "9.93,-84.08" · "(9.93, -84.08)" · enlace de Google Maps con q=lat,lon · grados 9°56'12.3"N 84°4'48"W ·
+   invertidas "-84.08,9.93" (sin ambigüedad en Costa Rica: la latitud es positiva y la longitud negativa) */
 CREATE OR ALTER FUNCTION ctl.fn_Coordenada (@v nvarchar(255), @Parte tinyint)
 RETURNS decimal(10,7) WITH SCHEMABINDING
 AS BEGIN
-    DECLARE @t nvarchar(255) = REPLACE(LTRIM(RTRIM(@v)), N' ', N''), @p int, @lat float, @lon float;
-    SET @p = CHARINDEX(N',', @t);
-    IF @p = 0 RETURN NULL;
-    SET @lat = TRY_CONVERT(float, LEFT(@t, @p - 1));
-    SET @lon = TRY_CONVERT(float, SUBSTRING(@t, @p + 1, 255));
+    DECLARE @t nvarchar(255) = REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(@v)), N' ', N''), N'(', N''), N')', N''), @p int, @lat float, @lon float, @x float;
+    IF @t IS NULL OR @t NOT LIKE N'%[0-9]%' RETURN NULL;
+    IF CHARINDEX(N'q=', @t) > 0 SET @t = SUBSTRING(@t, CHARINDEX(N'q=', @t) + 2, 255);
+    IF CHARINDEX(N'&', @t) > 0 SET @t = LEFT(@t, CHARINDEX(N'&', @t) - 1);
+    IF CHARINDEX(N'°', @t) > 0
+    BEGIN
+        SET @p = PATINDEX(N'%[NS]%', @t);
+        IF @p = 0 RETURN NULL;
+        SET @lat = ctl.fn_GradosDecimales(LEFT(@t, @p));
+        SET @lon = ctl.fn_GradosDecimales(REPLACE(SUBSTRING(@t, @p + 1, 255), N',', N''));
+    END
+    ELSE
+    BEGIN
+        SET @p = CHARINDEX(N',', @t);
+        IF @p < 2 RETURN NULL;
+        SET @lat = TRY_CONVERT(float, LEFT(@t, @p - 1));
+        SET @lon = TRY_CONVERT(float, SUBSTRING(@t, @p + 1, 255));
+        IF @lat BETWEEN -88 AND -82 AND @lon BETWEEN 5 AND 12 SELECT @x = @lat, @lat = @lon, @lon = @x;
+    END
     IF @lat IS NULL OR @lon IS NULL OR @lat NOT BETWEEN 5 AND 12 OR @lon NOT BETWEEN -88 AND -82 RETURN NULL;
     RETURN CAST(CASE @Parte WHEN 1 THEN @lat ELSE @lon END AS decimal(10,7));
+END;
+GO
+
+/* Texto original de coordenadas para la anomalía: sin dígitos ("null,null", "no brinda") cuenta como vacío */
+CREATE OR ALTER FUNCTION ctl.fn_CoordenadaTexto (@v nvarchar(255))
+RETURNS nvarchar(255) WITH SCHEMABINDING
+AS BEGIN
+    DECLARE @t nvarchar(255) = NULLIF(LTRIM(RTRIM(@v)), N'');
+    RETURN CASE WHEN @t LIKE N'%[0-9]%' THEN @t END;
 END;
 GO
 
@@ -301,4 +344,14 @@ SELECT N'Objetos de control instalados' AS Resultado,
        (SELECT COUNT(*) FROM sys.objects WHERE schema_id = SCHEMA_ID(N'ctl') AND type IN ('FN', 'IF', 'TF')) AS Funciones,
        (SELECT COUNT(*) FROM sys.procedures WHERE schema_id = SCHEMA_ID(N'ctl')) AS Procedimientos,
        CASE WHEN OBJECT_ID(N'ctl.Bitacora') IS NOT NULL THEN 'Sí' ELSE 'No' END AS Bitacora;
+GO
+
+/* Anomalías vigentes: las del último lote confirmado y exitoso de cada paso. Los lotes anteriores quedan como
+   historia (y los revertidos no cuentan). Es la vista que se usa para informes de calidad. */
+CREATE OR ALTER VIEW ctl.vw_AnomaliaVigente
+AS
+SELECT a.*, l.Paso
+FROM ctl.Anomalia a
+JOIN ctl.Lote l ON l.LoteId = a.LoteId
+WHERE l.LoteId = (SELECT MAX(x.LoteId) FROM ctl.Lote x WHERE x.Paso = l.Paso AND x.Modo = 'CONFIRM' AND x.Estado = 'Exitoso');
 GO

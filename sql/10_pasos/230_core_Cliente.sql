@@ -299,18 +299,19 @@ BEGIN
     FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.lf_Industria_sis IS NOT NULL AND s.lf_Industria_tab IS NOT NULL AND s.lf_Industria_llave IS NOT NULL;
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'core.Cliente', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ES-05', N'core.Cliente', t.[ClienteId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ID-02', N'core.Cliente', c.RegistroId, N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen'
-    FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ID-02', N'core.Cliente', t.[ClienteId], N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen'
+    FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.Cedula IS NULL AND s.TipoIdentificacion = 'INVALIDA';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ID-02', N'core.Cliente', c.RegistroId, N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Cuenta del CRM sin cédula: se tomó la cédula única de Books o app.data.cr ligados a la cuenta'
-    FROM #cambios c JOIN core.Cliente t ON t.[ClienteId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ID-02', N'core.Cliente', t.[ClienteId], N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Cuenta del CRM sin cédula: se tomó la cédula única de Books o app.data.cr ligados a la cuenta'
+    FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_Heredada = 1;
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;

@@ -233,14 +233,15 @@ BEGIN
     SELECT @LoteId, N'core.ClienteOrigen', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'core.ClienteOrigen', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN core.ClienteOrigen t ON t.[ClienteOrigenId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ES-05', N'core.ClienteOrigen', t.[ClienteOrigenId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN core.ClienteOrigen t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ID-01', N'core.ClienteOrigen', c.RegistroId, N'ServicioId', LEFT(CONVERT(nvarchar(400), s.CircuitoOriginal), 400), N'Circuito presente en varias cuentas: se vinculó a la cuenta activa más reciente'
-    FROM #cambios c JOIN core.ClienteOrigen t ON t.[ClienteOrigenId] = c.RegistroId JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    SELECT @LoteId, 'ID-01', N'core.ClienteOrigen', t.[ClienteOrigenId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.CircuitoOriginal), 400), N'Circuito presente en varias cuentas: se vinculó a la cuenta activa más reciente'
+    FROM #src s JOIN core.ClienteOrigen t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_Cuentas > 1;
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;

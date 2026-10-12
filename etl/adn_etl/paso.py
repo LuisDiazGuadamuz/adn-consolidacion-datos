@@ -11,7 +11,8 @@ y carga una tabla del modelo con este contrato fijo:
   4. MERGE por la llave: inserta lo nuevo, actualiza solo si cambió el contenido (HashContenido).
      Una segunda ejecución sobre la misma copia no cambia nada (reproducibilidad).
   5. ctl.Bitacora: una fila por registro insertado o actualizado (con valores anteriores).
-  6. ctl.Anomalia: valores marcados por las reglas (ES-02, ES-03, IN-01...), solo de filas afectadas.
+  6. ctl.Anomalia: valores marcados por las reglas (ES-02, ES-03, IN-01...) de todas las filas válidas;
+     las vigentes son las del último lote confirmado de cada paso (ctl.vw_AnomaliaVigente).
 
 El procedimiento no abre ni confirma transacciones: el runner lo ejecuta dentro de una transacción
 y decide si confirma (confirm) o revierte (dry-run).
@@ -274,16 +275,17 @@ class Paso:
                 w(f"    FROM #cambios c JOIN {destino} t ON t.[{pk}] = c.RegistroId JOIN #src s ON {self._match()}")
                 w(f"    WHERE s.lf_{c}_sis IS NOT NULL AND s.lf_{c}_tab IS NOT NULL AND s.lf_{c}_llave IS NOT NULL;")
             w("")
-        w("    /* 6. Anomalías de las filas afectadas */")
+        w("    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),")
+        w("       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */")
         w("    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)")
-        w(f"    SELECT @LoteId, 'ES-05', N'{destino}', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'")
-        w(f"    FROM #cambios c JOIN {destino} t ON t.[{pk}] = c.RegistroId JOIN #src s ON {self._match()}")
+        w(f"    SELECT @LoteId, 'ES-05', N'{destino}', t.[{pk}], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'")
+        w(f"    FROM #src s JOIN {destino} t ON {self._match()}")
         w("    WHERE s._Recortadas <> N'';")
         if self.anomalias:
             for an in self.anomalias:
                 w("    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)")
-                w(f"    SELECT @LoteId, '{an.regla}', N'{destino}', c.RegistroId, N'{an.columna}', LEFT(CONVERT(nvarchar(400), {an.valor}), 400), N'{an.detalle}'")
-                w(f"    FROM #cambios c JOIN {destino} t ON t.[{pk}] = c.RegistroId JOIN #src s ON {self._match()}")
+                w(f"    SELECT @LoteId, '{an.regla}', N'{destino}', t.[{pk}], N'{an.columna}', LEFT(CONVERT(nvarchar(400), {an.valor}), 400), N'{an.detalle}'")
+                w(f"    FROM #src s JOIN {destino} t ON {self._match()}")
                 w(f"    WHERE {an.condicion};")
         else:
             w("    -- sin reglas de anomalía en este paso")

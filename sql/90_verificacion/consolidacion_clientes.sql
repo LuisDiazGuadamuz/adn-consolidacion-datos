@@ -46,10 +46,9 @@ SELECT l.Columna, l.FuenteSistema, COUNT(*) AS Valores
 FROM ctl.LinajeCampo l JOIN ctl.Lote lo ON lo.LoteId = l.LoteId AND lo.Estado = 'Exitoso'
 WHERE l.TablaModelo = N'core.Cliente' GROUP BY l.Columna, l.FuenteSistema ORDER BY l.Columna, Valores DESC;
 
-PRINT '== 9. Anomalías de servicios y clientes por regla y detalle (lotes confirmados)';
+PRINT '== 9. Anomalías vigentes por tabla, regla y detalle (último lote confirmado de cada paso)';
 SELECT a.TablaModelo, a.ReglaId, a.Columna, LEFT(a.Detalle, 90) AS Detalle, COUNT(*) AS Anomalias
-FROM ctl.Anomalia a JOIN ctl.Lote l ON l.LoteId = a.LoteId AND l.Estado = 'Exitoso' AND l.Modo = 'CONFIRM'
-WHERE a.TablaModelo IN (N'core.Servicio', N'core.Cliente', N'core.ClienteOrigen')
+FROM ctl.vw_AnomaliaVigente a
 GROUP BY a.TablaModelo, a.ReglaId, a.Columna, LEFT(a.Detalle, 90) ORDER BY a.TablaModelo, Anomalias DESC;
 
 PRINT '== 10. Nodo de los clústeres FTTH: forma del valor y con qué coincide (datos de infraestructura, no de clientes)';

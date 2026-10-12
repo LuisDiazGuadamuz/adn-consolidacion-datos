@@ -220,7 +220,7 @@ SELECT 'ZohoCRM' AS FuenteSistema, N'Zoho_Mirror' AS FuenteBase, N'Condominios' 
        ctl.fn_FechaDia(c.Fecha_de_Instalaci_n) AS FechaInstalacion,
        {atributos("Zoho_Mirror", "Condominios", "c")} AS AtributosExtendidos,
        ctl.fn_FechaCR(c.Created_Time) AS FechaCreacionOrigen, ctl.fn_FechaCR(c.Modified_Time) AS FechaModificacionOrigen,
-       CAST(ISNULL(c.deleted, 0) AS int) AS o_Eliminado, ctl.fn_Texto(c.Coordenadas) AS o_Coordenadas
+       CAST(ISNULL(c.deleted, 0) AS int) AS o_Eliminado, ctl.fn_CoordenadaTexto(c.Coordenadas) AS o_Coordenadas
 FROM Zoho_Mirror.dbo.Condominios c
 """),
     Paso(
@@ -336,7 +336,7 @@ FROM (
            {atributos("Zoho_Mirror", "Accounts_Extended", "a")} AS AtributosExtendidos,
            {_f("a.Created_Time")} AS FechaCreacionOrigen, {_f("a.Modified_Time")} AS FechaModificacionOrigen,
            0 AS o_Eliminado, ctl.fn_Texto(a.N_mero_Circuito) AS o_Circuito, ctl.fn_Texto(a.Mensualidad) AS o_Mensualidad,
-           ctl.fn_Texto(a.coordinates) AS o_Coordenadas
+           ctl.fn_CoordenadaTexto(a.coordinates) AS o_Coordenadas
     FROM Zoho_Mirror.dbo.Accounts_Extended a
     UNION ALL
     SELECT 'ZohoCRM', N'Zoho_Mirror', N'Accounts', b.id, ctl.fn_FechaCR(b.Created_Time),
@@ -351,7 +351,7 @@ FROM (
            NULL, ctl.fn_FechaCR(b.Fecha_Confirmacion), ctl.fn_FechaDia(b.Fecha_de_Retiro), 'CRM',
            {atributos("Zoho_Mirror", "Accounts", "b")},
            ctl.fn_FechaCR(b.Created_Time), ctl.fn_FechaCR(b.Modified_Time),
-           CAST(ISNULL(b.deleted, 0) AS int), ctl.fn_Texto(b.N_mero_Circuito), NULL, ctl.fn_Texto(b.Coordenadas)
+           CAST(ISNULL(b.deleted, 0) AS int), ctl.fn_Texto(b.N_mero_Circuito), NULL, ctl.fn_CoordenadaTexto(b.Coordenadas)
     FROM Zoho_Mirror.dbo.Accounts b
     WHERE NOT EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Accounts_Extended e WHERE e.id = b.id)
 ) q

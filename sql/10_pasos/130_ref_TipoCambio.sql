@@ -96,14 +96,15 @@ BEGIN
     SELECT @LoteId, N'ref.TipoCambio', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
-    /* 6. Anomalías de las filas afectadas */
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-05', N'ref.TipoCambio', c.RegistroId, LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
-    FROM #cambios c JOIN ref.TipoCambio t ON t.[TipoCambioId] = c.RegistroId JOIN #src s ON t.[Fecha] = s.[Fecha]
+    SELECT @LoteId, 'ES-05', N'ref.TipoCambio', t.[TipoCambioId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN ref.TipoCambio t ON t.[Fecha] = s.[Fecha]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'ES-03', N'ref.TipoCambio', c.RegistroId, N'Fecha', LEFT(CONVERT(nvarchar(400), s.o_Fecha), 400), N'Fecha posterior a la carga'
-    FROM #cambios c JOIN ref.TipoCambio t ON t.[TipoCambioId] = c.RegistroId JOIN #src s ON t.[Fecha] = s.[Fecha]
+    SELECT @LoteId, 'ES-03', N'ref.TipoCambio', t.[TipoCambioId], N'Fecha', LEFT(CONVERT(nvarchar(400), s.o_Fecha), 400), N'Fecha posterior a la carga'
+    FROM #src s JOIN ref.TipoCambio t ON t.[Fecha] = s.[Fecha]
     WHERE s.Fecha > CAST(SYSDATETIMEOFFSET() AS date);
 
     SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
