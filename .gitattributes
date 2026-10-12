@@ -1,0 +1,6 @@
+# Finales de línea fijos (LF) para que Windows no marque archivos como modificados
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.xlsx binary
+*.docx binary

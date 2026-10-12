@@ -33,7 +33,7 @@ def _instalar(cfg):
             # primera instalación: la marca aún no existe; se verifica solo la configuración
             from . import seguridad
             print(seguridad.verificar_configuracion(cfg))
-        generador.generar()
+        # Se instalan los pasos tal como están versionados (no se regeneran aquí; para cambiarlos: 'generar' y commit)
         archivos += sorted(glob.glob(os.path.join(runner.RAIZ, "sql", "10_pasos", "*.sql")))
         for a in archivos:
             with open(a, encoding="utf-8") as f:
