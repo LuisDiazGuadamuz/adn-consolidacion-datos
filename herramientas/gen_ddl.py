@@ -117,6 +117,8 @@ def build():
         w(");")
         for col, cond in t.get("filtered_unique", {}).items():
             w(f"CREATE UNIQUE INDEX [UX_{t['name']}_{col}] ON {full} ([{col}]) WHERE {cond};")
+        for ix in t.get("indices", []):
+            w(f"CREATE INDEX [IX_{t['name']}_{'_'.join(ix)}] ON {full} ({', '.join('['+c+']' for c in ix)});")
         if t.get("unique_hash"):
             w(f"CREATE UNIQUE INDEX [UX_{t['name']}_HashContenido] ON {full} ([HashContenido]) WHERE [HashContenido] IS NOT NULL;")
         if t["linaje"]:

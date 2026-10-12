@@ -166,7 +166,8 @@ tabla("core", "Servicio", "Cliente y servicio", "Servicio contratado, identifica
        c("FechaInstalacion", D, True, "", "ES-01"), c("FechaActivacion", DT, True, "", "ES-01"), c("FechaRetiro", D, True, "", "ES-01"),
        c("EstadoCorrespondencia", V(20), False, "", "D8"), EXT] + AUD,
       uniques=[["CuentaCrmId"]], origen="Zoho_Mirror.Accounts_Extended (principal) y Accounts (complemento)")
-T[-1]["filtered_unique"] = {"Circuito": "Circuito IS NOT NULL", "CuentaCrmId": "CuentaCrmId IS NOT NULL"}
+T[-1]["filtered_unique"] = {"CuentaCrmId": "CuentaCrmId IS NOT NULL"}
+T[-1]["indices"] = [["Circuito"]]  # un circuito puede estar en varias cuentas (cambio de razón social): no es único
 T[-1]["uniques"] = []
 tabla("core", "Contacto", "Cliente y servicio", "Personas de contacto del CRM", "Una fila por contacto del CRM",
       [pk("ContactoId"), fk("ClienteId", "core.Cliente", True, "", "ID-05"), fk("ServicioId", "core.Servicio", True, "Cuenta del CRM asociada", "IN-01"),

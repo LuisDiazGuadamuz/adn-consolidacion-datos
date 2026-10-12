@@ -526,8 +526,8 @@ CREATE TABLE core.Servicio (
     CONSTRAINT [CK_Servicio_Circuito] CHECK ([Circuito] IS NULL OR [Circuito] LIKE '[A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]%'),
     CONSTRAINT [CK_Servicio_Moneda] CHECK ([Moneda] IS NULL OR [Moneda] IN ('CRC','USD','EUR'))
 );
-CREATE UNIQUE INDEX [UX_Servicio_Circuito] ON core.Servicio ([Circuito]) WHERE Circuito IS NOT NULL;
 CREATE UNIQUE INDEX [UX_Servicio_CuentaCrmId] ON core.Servicio ([CuentaCrmId]) WHERE CuentaCrmId IS NOT NULL;
+CREATE INDEX [IX_Servicio_Circuito] ON core.Servicio ([Circuito]);
 CREATE INDEX [IX_Servicio_Linaje] ON core.Servicio ([FuenteSistema], [FuenteTabla], [FuenteLlave]);
 GO
 
