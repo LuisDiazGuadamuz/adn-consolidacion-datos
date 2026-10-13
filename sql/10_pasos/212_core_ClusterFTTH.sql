@@ -92,7 +92,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[ClusterFTTHId] AS RegistroId, t.FuenteLlave, (SELECT t.[ClusterCrmId], t.[Nombre], t.[CodigoCluster], t.[NodoId], t.[Fase], t.[CapacidadRed], t.[CantidadClientes], t.[Provincia], t.[Canton], t.[Distrito], t.[FechaInstalacion], t.[AtributosExtendidos], t.[FechaCreacionOrigen], t.[FechaModificacionOrigen], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.ClusterFTTH t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -100,7 +100,7 @@ BEGIN
     MERGE core.ClusterFTTH WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[ClusterCrmId] = s.[ClusterCrmId], t.[Nombre] = s.[Nombre], t.[CodigoCluster] = s.[CodigoCluster], t.[NodoId] = s.[NodoId], t.[Fase] = s.[Fase], t.[CapacidadRed] = s.[CapacidadRed], t.[CantidadClientes] = s.[CantidadClientes], t.[Provincia] = s.[Provincia], t.[Canton] = s.[Canton], t.[Distrito] = s.[Distrito], t.[FechaInstalacion] = s.[FechaInstalacion], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([ClusterCrmId], [Nombre], [CodigoCluster], [NodoId], [Fase], [CapacidadRed], [CantidadClientes], [Provincia], [Canton], [Distrito], [FechaInstalacion], [AtributosExtendidos], [FechaCreacionOrigen], [FechaModificacionOrigen], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

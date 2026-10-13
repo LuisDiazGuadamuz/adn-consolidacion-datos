@@ -33,7 +33,7 @@ BEGIN
                N'ADNApp' AS FuenteBase,
                N'XMLEngine_invoicexmlfiles' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), x.[invoice_number])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), x.[invoice_issue_date], 126)) AS FechaDato,
                ctl.fn_Texto(CONVERT(nvarchar(max), x.[invoice_number])) AS [Numero],
                ctl.fn_Texto(CONVERT(nvarchar(max), x.[path])) AS [Ruta],
                ctl.fn_FechaCR(CONVERT(nvarchar(30), x.[invoice_issue_date], 126)) AS [FechaEmision],
@@ -79,7 +79,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[FacturaElectronicaProveedorId] AS RegistroId, t.FuenteLlave, (SELECT t.[Numero], t.[EmisorNombre], t.[EmisorCedula], t.[FechaEmision], t.[NombreArchivo], t.[Ruta], t.[TextoPlano], t.[Procesada], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.FacturaElectronicaProveedor t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -87,7 +87,7 @@ BEGIN
     MERGE core.FacturaElectronicaProveedor WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[Numero] = s.[Numero], t.[Ruta] = s.[Ruta], t.[FechaEmision] = s.[FechaEmision], t.[NombreArchivo] = s.[NombreArchivo], t.[EmisorNombre] = s.[EmisorNombre], t.[EmisorCedula] = s.[EmisorCedula], t.[TextoPlano] = s.[TextoPlano], t.[Procesada] = s.[Procesada], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([Numero], [Ruta], [FechaEmision], [NombreArchivo], [EmisorNombre], [EmisorCedula], [TextoPlano], [Procesada], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

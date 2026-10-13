@@ -35,7 +35,7 @@ BEGIN
                N'History_Tables' AS FuenteBase,
                N'Conexiones_desconexiones_realizadas' AS FuenteTabla,
                CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), x.[customer_name]), N'~'), ISNULL(CONVERT(nvarchar(4000), x.[type]), N'~'), ISNULL(CONVERT(nvarchar(30), x.[date], 126), N'~'), ISNULL(CONVERT(nvarchar(4000), x.[realized_by]), N'~'), ISNULL(CONVERT(nvarchar(4000), x.[type_desc_rec]), N'~'), ISNULL(CONVERT(nvarchar(30), x.[date_desc_rec], 126), N'~'))), 2) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), x.[date], 126)) AS FechaDato,
                ctl.fn_Texto(CONVERT(nvarchar(max), CONVERT(nvarchar(max), x.[ip]))) AS [DireccionesIP],
                ctl.fn_Texto(CONVERT(nvarchar(max), x.[type])) AS [Tipo],
                ctl.fn_Texto(CONVERT(nvarchar(max), x.[realized_by])) AS [RealizadoPor],
@@ -80,7 +80,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[EventoConexionId] AS RegistroId, t.FuenteLlave, (SELECT t.[ClienteId], t.[ContactoBooksId], t.[Tipo], t.[RealizadoPor], t.[Fecha], t.[TipoDesconexionReconexion], t.[FechaDesconexionReconexion], t.[DireccionesIP], t.[ErroresIP], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.EventoConexion t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -88,7 +88,7 @@ BEGIN
     MERGE core.EventoConexion WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[DireccionesIP] = s.[DireccionesIP], t.[Tipo] = s.[Tipo], t.[RealizadoPor] = s.[RealizadoPor], t.[Fecha] = s.[Fecha], t.[ErroresIP] = s.[ErroresIP], t.[TipoDesconexionReconexion] = s.[TipoDesconexionReconexion], t.[FechaDesconexionReconexion] = s.[FechaDesconexionReconexion], t.[ContactoBooksId] = s.[ContactoBooksId], t.[ClienteId] = s.[ClienteId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([DireccionesIP], [Tipo], [RealizadoPor], [Fecha], [ErroresIP], [TipoDesconexionReconexion], [FechaDesconexionReconexion], [ContactoBooksId], [ClienteId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

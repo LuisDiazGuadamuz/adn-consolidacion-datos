@@ -115,7 +115,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[CasoId] AS RegistroId, t.FuenteLlave, (SELECT t.[CasoCrmId], t.[ServicioId], t.[Circuito], t.[NumeroTicket], t.[Asunto], t.[Descripcion], t.[Estado], t.[Origen], t.[Segmento], t.[TipoMantenimiento], t.[DepartamentoOrigen], t.[ProveedorExterno], t.[VisitaTecnica], t.[Escalado], t.[PropietarioUsuarioId], t.[FechaSolicitud], t.[FechaAfectacion], t.[FechaEscalamiento], t.[FechaFinMantenimiento], t.[FechaFinalizacion], t.[AtributosExtendidos], t.[FechaCreacionOrigen], t.[FechaModificacionOrigen], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.Caso t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -123,7 +123,7 @@ BEGIN
     MERGE core.Caso WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[CasoCrmId] = s.[CasoCrmId], t.[Asunto] = s.[Asunto], t.[Descripcion] = s.[Descripcion], t.[Estado] = s.[Estado], t.[Origen] = s.[Origen], t.[Segmento] = s.[Segmento], t.[Circuito] = s.[Circuito], t.[VisitaTecnica] = s.[VisitaTecnica], t.[Escalado] = s.[Escalado], t.[ProveedorExterno] = s.[ProveedorExterno], t.[DepartamentoOrigen] = s.[DepartamentoOrigen], t.[TipoMantenimiento] = s.[TipoMantenimiento], t.[FechaSolicitud] = s.[FechaSolicitud], t.[FechaAfectacion] = s.[FechaAfectacion], t.[FechaEscalamiento] = s.[FechaEscalamiento], t.[FechaFinMantenimiento] = s.[FechaFinMantenimiento], t.[FechaFinalizacion] = s.[FechaFinalizacion], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[PropietarioUsuarioId] = s.[PropietarioUsuarioId], t.[ServicioId] = s.[ServicioId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([CasoCrmId], [Asunto], [Descripcion], [Estado], [Origen], [Segmento], [Circuito], [VisitaTecnica], [Escalado], [ProveedorExterno], [DepartamentoOrigen], [TipoMantenimiento], [FechaSolicitud], [FechaAfectacion], [FechaEscalamiento], [FechaFinMantenimiento], [FechaFinalizacion], [FechaCreacionOrigen], [FechaModificacionOrigen], [PropietarioUsuarioId], [ServicioId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

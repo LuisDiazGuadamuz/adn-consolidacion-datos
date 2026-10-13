@@ -126,7 +126,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[FacturaRecurrenteId] AS RegistroId, t.FuenteLlave, (SELECT t.[RecurrenteBooksId], t.[ClienteId], t.[ServicioId], t.[ContactoBooksId], t.[Nombre], t.[Estado], t.[Frecuencia], t.[RepetirCada], t.[Moneda], t.[TipoCambio], t.[Total], t.[TotalCRC], t.[FechaInicio], t.[FechaFin], t.[FechaUltimoEnvio], t.[FechaProximaFactura], t.[MedioPago], t.[Vendedor], t.[AtributosExtendidos], t.[FechaCreacionOrigen], t.[FechaModificacionOrigen], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.FacturaRecurrente t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -134,7 +134,7 @@ BEGIN
     MERGE core.FacturaRecurrente WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[RecurrenteBooksId] = s.[RecurrenteBooksId], t.[Nombre] = s.[Nombre], t.[Estado] = s.[Estado], t.[Total] = s.[Total], t.[ContactoBooksId] = s.[ContactoBooksId], t.[FechaInicio] = s.[FechaInicio], t.[FechaFin] = s.[FechaFin], t.[FechaUltimoEnvio] = s.[FechaUltimoEnvio], t.[FechaProximaFactura] = s.[FechaProximaFactura], t.[Frecuencia] = s.[Frecuencia], t.[RepetirCada] = s.[RepetirCada], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Vendedor] = s.[Vendedor], t.[MedioPago] = s.[MedioPago], t.[ClienteId] = s.[ClienteId], t.[ServicioId] = s.[ServicioId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([RecurrenteBooksId], [Nombre], [Estado], [Total], [ContactoBooksId], [FechaInicio], [FechaFin], [FechaUltimoEnvio], [FechaProximaFactura], [Frecuencia], [RepetirCada], [FechaCreacionOrigen], [FechaModificacionOrigen], [Vendedor], [MedioPago], [ClienteId], [ServicioId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

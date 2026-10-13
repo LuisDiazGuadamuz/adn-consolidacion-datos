@@ -105,7 +105,13 @@ def muestreo(cfg, n=10, solo=None):
         ev = runner.evidencia_entorno(cfg, conn)
         cur = conn.cursor()
         pasos = registro.todos()
-        trazas = {}                               # (base, tabla de origen) → cómo recalcular su llave
+        trazas = {                                # (base, tabla de origen) → cómo recalcular su llave
+            # orígenes que solo usa la consolidación de clientes (no tienen paso propio)
+            ("Zoho_Mirror", "Accounts"): ("Zoho_Mirror.dbo.[Accounts] x", "CAST(x.id AS nvarchar(200))",
+                                          "Zoho_Mirror.dbo.[Accounts] x", "x.[id]"),
+            ("ADNApp", "ZohoEngine_zohocustomer"): ("ADNApp.dbo.[ZohoEngine_zohocustomer] z", "CAST(z.id AS nvarchar(200))",
+                                                     "ADNApp.dbo.[ZohoEngine_zohocustomer] z", "z.[id]"),
+        }
         for p in pasos:
             tz = _traza(p)
             if tz and not p.solo_actualizar:

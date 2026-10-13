@@ -38,7 +38,7 @@ BEGIN
                N'ADNApp' AS FuenteBase,
                N'ZohoEngine_zohocustomervoipbill' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), b.[id])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               CAST(b.[invoice_start_date] AS date) AS FechaDato,
                ctl.fn_Texto(CONVERT(nvarchar(max), b.[customer_name])) AS [NombreCliente],
                CAST(b.[invoice_start_date] AS date) AS [FechaInicio],
                CAST(b.[invoice_end_date] AS date) AS [FechaFin],
@@ -86,7 +86,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[CorteVoIPId] AS RegistroId, t.FuenteLlave, (SELECT t.[ServicioId], t.[ClienteId], t.[NombreCliente], t.[FechaInicio], t.[FechaFin], t.[MinutosMovilDisponibles], t.[MinutosFijoDisponibles], t.[MinutosMovilAplicados], t.[MinutosFijoAplicados], t.[Reporte], t.[Estado], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.CorteVoIP t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -94,7 +94,7 @@ BEGIN
     MERGE core.CorteVoIP WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[NombreCliente] = s.[NombreCliente], t.[FechaInicio] = s.[FechaInicio], t.[FechaFin] = s.[FechaFin], t.[MinutosMovilDisponibles] = s.[MinutosMovilDisponibles], t.[MinutosFijoDisponibles] = s.[MinutosFijoDisponibles], t.[MinutosMovilAplicados] = s.[MinutosMovilAplicados], t.[MinutosFijoAplicados] = s.[MinutosFijoAplicados], t.[Reporte] = s.[Reporte], t.[Estado] = s.[Estado], t.[ClienteId] = s.[ClienteId], t.[ServicioId] = s.[ServicioId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([NombreCliente], [FechaInicio], [FechaFin], [MinutosMovilDisponibles], [MinutosFijoDisponibles], [MinutosMovilAplicados], [MinutosFijoAplicados], [Reporte], [Estado], [ClienteId], [ServicioId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

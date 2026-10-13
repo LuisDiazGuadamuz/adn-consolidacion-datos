@@ -34,7 +34,7 @@ BEGIN
                N'History_Tables' AS FuenteBase,
                N'check_in_navsat' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), c.[Id])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), c.[fecha], 126)) AS FechaDato,
                ctl.fn_FechaCR(CONVERT(nvarchar(30), c.[fecha], 126)) AS [FechaHora],
                ctl.fn_Texto(CONVERT(nvarchar(max), c.[address])) AS [Direccion],
                ctl.fn_CoordenadaSola(CONVERT(nvarchar(60), c.[longitud]), 2) AS [Longitud],
@@ -81,7 +81,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[CheckInCampoId] AS RegistroId, t.FuenteLlave, (SELECT t.[Empleado], t.[FechaHora], t.[Direccion], t.[Latitud], t.[Longitud], t.[Comentario], t.[RutaArchivo], t.[UrlDescarga], t.[ArchivoId], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.CheckInCampo t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -89,7 +89,7 @@ BEGIN
     MERGE core.CheckInCampo WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[FechaHora] = s.[FechaHora], t.[Direccion] = s.[Direccion], t.[Longitud] = s.[Longitud], t.[RutaArchivo] = s.[RutaArchivo], t.[UrlDescarga] = s.[UrlDescarga], t.[Empleado] = s.[Empleado], t.[Comentario] = s.[Comentario], t.[Latitud] = s.[Latitud], t.[ArchivoId] = s.[ArchivoId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([FechaHora], [Direccion], [Longitud], [RutaArchivo], [UrlDescarga], [Empleado], [Comentario], [Latitud], [ArchivoId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

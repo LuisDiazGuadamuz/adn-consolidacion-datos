@@ -115,6 +115,10 @@ def _destinos(texto, cols_modelo):
     return res
 
 
+_FECHAS_DATO = ("FechaCreacionOrigen", "FechaHora", "Fecha", "FechaSolicitud", "FechaCreacion", "FechaInicio",
+                "FechaEmision", "FechaRegistro", "FechaInsercion", "FechaBloqueo")
+
+
 def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, override=None, omitir=(), extra_from="",
                 where="", llave=None, fecha_dato=None, fecha_tc=None, moneda=None, descripcion="", depende=None,
                 reglas_extra=(), filtros_extra=(), anomalias_extra=(), auxiliares_extra=None, preparacion="",
@@ -260,7 +264,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
         reglas.add("DD-06")
 
     ft = fuente_tabla or tabla
-    fdato = fecha_dato or ("FechaCreacionOrigen" if "FechaCreacionOrigen" in sel else None)
+    # Período del dato (trazabilidad a fuente y período): la fecha propia del registro, en este orden de preferencia
+    fdato = fecha_dato or next((c for c in _FECHAS_DATO if c in sel), None)
     llave_sql = llave_expr or f"ctl.fn_Texto(CONVERT(nvarchar(200), {_src(alias, llave_src, llave_tipo)}))"
     lineas = [f"'{sistema}' AS FuenteSistema", f"N'{base}' AS FuenteBase", f"N'{ft}' AS FuenteTabla",
               f"{llave_sql} AS FuenteLlave",

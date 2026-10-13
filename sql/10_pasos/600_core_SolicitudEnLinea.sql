@@ -64,7 +64,7 @@ BEGIN
                N'ADNPayV2' AS FuenteBase,
                N'Customer' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), c.[index])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), c.[create_time], 126)) AS FechaDato,
                ctl.fn_Texto(CONVERT(nvarchar(max), c.[type])) AS [TipoCliente],
                ctl.fn_Texto(CONVERT(nvarchar(max), c.[condominium])) AS [Condominio],
                ctl.fn_Texto(CONVERT(nvarchar(max), c.[ftth])) AS [CodigoFTTH],
@@ -136,7 +136,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[SolicitudEnLineaId] AS RegistroId, t.FuenteLlave, (SELECT t.[ClienteId], t.[ProductoId], t.[Referencia], t.[Estado], t.[TipoCliente], t.[Condominio], t.[CodigoFTTH], t.[Provincia], t.[Canton], t.[Distrito], t.[Direccion], t.[Latitud], t.[Longitud], t.[IPTVAdicionales], t.[CantidadFirestick], t.[Telefonia], t.[IPPublica], t.[TienePromocion], t.[TipoPromocion], t.[CodigoPromocion], t.[FechaPromocion], t.[TipoPago], t.[Moneda], t.[TipoCambio], t.[Total], t.[TotalCRC], t.[Referido], t.[ReferidoPor], t.[DatosInvalidos], t.[EnviadoCRM], t.[RutaContrato], t.[IntentoPagoId], t.[FechaSolicitud], t.[AtributosExtendidos], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.SolicitudEnLinea t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -144,7 +144,7 @@ BEGIN
     MERGE core.SolicitudEnLinea WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[TipoCliente] = s.[TipoCliente], t.[Condominio] = s.[Condominio], t.[CodigoFTTH] = s.[CodigoFTTH], t.[Provincia] = s.[Provincia], t.[Canton] = s.[Canton], t.[Distrito] = s.[Distrito], t.[Direccion] = s.[Direccion], t.[Estado] = s.[Estado], t.[Referencia] = s.[Referencia], t.[FechaSolicitud] = s.[FechaSolicitud], t.[EnviadoCRM] = s.[EnviadoCRM], t.[Telefonia] = s.[Telefonia], t.[IPPublica] = s.[IPPublica], t.[TienePromocion] = s.[TienePromocion], t.[TipoPromocion] = s.[TipoPromocion], t.[FechaPromocion] = s.[FechaPromocion], t.[TipoPago] = s.[TipoPago], t.[Total] = s.[Total], t.[IntentoPagoId] = s.[IntentoPagoId], t.[Referido] = s.[Referido], t.[ReferidoPor] = s.[ReferidoPor], t.[DatosInvalidos] = s.[DatosInvalidos], t.[RutaContrato] = s.[RutaContrato], t.[CantidadFirestick] = s.[CantidadFirestick], t.[ClienteId] = s.[ClienteId], t.[ProductoId] = s.[ProductoId], t.[Latitud] = s.[Latitud], t.[Longitud] = s.[Longitud], t.[IPTVAdicionales] = s.[IPTVAdicionales], t.[CodigoPromocion] = s.[CodigoPromocion], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[Moneda] = s.[Moneda], t.[TotalCRC] = s.[TotalCRC], t.[TipoCambio] = s.[TipoCambio], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([TipoCliente], [Condominio], [CodigoFTTH], [Provincia], [Canton], [Distrito], [Direccion], [Estado], [Referencia], [FechaSolicitud], [EnviadoCRM], [Telefonia], [IPPublica], [TienePromocion], [TipoPromocion], [FechaPromocion], [TipoPago], [Total], [IntentoPagoId], [Referido], [ReferidoPor], [DatosInvalidos], [RutaContrato], [CantidadFirestick], [ClienteId], [ProductoId], [Latitud], [Longitud], [IPTVAdicionales], [CodigoPromocion], [AtributosExtendidos], [Moneda], [TotalCRC], [TipoCambio], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

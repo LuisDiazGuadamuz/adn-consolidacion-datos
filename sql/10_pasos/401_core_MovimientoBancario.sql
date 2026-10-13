@@ -120,7 +120,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[MovimientoBancarioId] AS RegistroId, t.FuenteLlave, (SELECT t.[MovimientoBooksId], t.[CuentaBancariaId], t.[ClienteId], t.[Fecha], t.[Tipo], t.[DebitoCredito], t.[Estado], t.[Origen], t.[Beneficiario], t.[Descripcion], t.[Referencia], t.[EstadoConciliacion], t.[Moneda], t.[TipoCambio], t.[Monto], t.[MontoCRC], t.[Sucursal], t.[AtributosExtendidos], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.MovimientoBancario t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -128,7 +128,7 @@ BEGIN
     MERGE core.MovimientoBancario WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[MovimientoBooksId] = s.[MovimientoBooksId], t.[Fecha] = s.[Fecha], t.[Monto] = s.[Monto], t.[Tipo] = s.[Tipo], t.[Estado] = s.[Estado], t.[Origen] = s.[Origen], t.[Beneficiario] = s.[Beneficiario], t.[Descripcion] = s.[Descripcion], t.[Moneda] = s.[Moneda], t.[DebitoCredito] = s.[DebitoCredito], t.[Referencia] = s.[Referencia], t.[EstadoConciliacion] = s.[EstadoConciliacion], t.[Sucursal] = s.[Sucursal], t.[CuentaBancariaId] = s.[CuentaBancariaId], t.[ClienteId] = s.[ClienteId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[MontoCRC] = s.[MontoCRC], t.[TipoCambio] = s.[TipoCambio], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([MovimientoBooksId], [Fecha], [Monto], [Tipo], [Estado], [Origen], [Beneficiario], [Descripcion], [Moneda], [DebitoCredito], [Referencia], [EstadoConciliacion], [Sucursal], [CuentaBancariaId], [ClienteId], [AtributosExtendidos], [MontoCRC], [TipoCambio], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

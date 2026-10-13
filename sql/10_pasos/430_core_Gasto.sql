@@ -134,7 +134,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[GastoId] AS RegistroId, t.FuenteLlave, (SELECT t.[GastoBooksId], t.[ProveedorId], t.[ClienteId], t.[Fecha], t.[Cuenta], t.[PagadoDesde], t.[Descripcion], t.[Estado], t.[Referencia], t.[Moneda], t.[TipoCambio], t.[Total], t.[TotalCRC], t.[TotalSinImpuesto], t.[TotalSinImpuestoCRC], t.[Etiquetas], t.[Sucursal], t.[AtributosExtendidos], t.[FechaCreacionOrigen], t.[FechaModificacionOrigen], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.Gasto t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -142,7 +142,7 @@ BEGIN
     MERGE core.Gasto WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[GastoBooksId] = s.[GastoBooksId], t.[Fecha] = s.[Fecha], t.[PagadoDesde] = s.[PagadoDesde], t.[Cuenta] = s.[Cuenta], t.[Descripcion] = s.[Descripcion], t.[Moneda] = s.[Moneda], t.[Total] = s.[Total], t.[TotalSinImpuesto] = s.[TotalSinImpuesto], t.[Referencia] = s.[Referencia], t.[Estado] = s.[Estado], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Sucursal] = s.[Sucursal], t.[ClienteId] = s.[ClienteId], t.[ProveedorId] = s.[ProveedorId], t.[Etiquetas] = s.[Etiquetas], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[TotalCRC] = s.[TotalCRC], t.[TotalSinImpuestoCRC] = s.[TotalSinImpuestoCRC], t.[TipoCambio] = s.[TipoCambio], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([GastoBooksId], [Fecha], [PagadoDesde], [Cuenta], [Descripcion], [Moneda], [Total], [TotalSinImpuesto], [Referencia], [Estado], [FechaCreacionOrigen], [FechaModificacionOrigen], [Sucursal], [ClienteId], [ProveedorId], [Etiquetas], [AtributosExtendidos], [TotalCRC], [TotalSinImpuestoCRC], [TipoCambio], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

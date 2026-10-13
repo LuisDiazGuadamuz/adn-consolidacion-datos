@@ -40,7 +40,7 @@ BEGIN
                N'ZCRM2Trengo' AS FuenteBase,
                N'trengo_data_tickets' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), t.[id_case])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), t.[created_at], 126)) AS FechaDato,
                ctl.fn_Texto(CONVERT(nvarchar(max), t.[id_case])) AS [TicketTrengoId],
                ctl.fn_FechaCR(CONVERT(nvarchar(30), t.[created_at], 126)) AS [FechaCreacion],
                ctl.fn_FechaCR(CONVERT(nvarchar(30), t.[updated_at], 126)) AS [FechaActualizacion],
@@ -100,7 +100,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[TicketAtencionId] AS RegistroId, t.FuenteLlave, (SELECT t.[TicketTrengoId], t.[ContactoId], t.[ServicioId], t.[Canal], t.[Departamento], t.[Responsable], t.[Telefono], t.[Etiquetas], t.[DatosAdicionales], t.[DuracionMinutos], t.[FechaCreacion], t.[FechaAsignacion], t.[FechaCierre], t.[FechaActualizacion], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.TicketAtencion t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -108,7 +108,7 @@ BEGIN
     MERGE core.TicketAtencion WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[TicketTrengoId] = s.[TicketTrengoId], t.[FechaCreacion] = s.[FechaCreacion], t.[FechaActualizacion] = s.[FechaActualizacion], t.[FechaCierre] = s.[FechaCierre], t.[DuracionMinutos] = s.[DuracionMinutos], t.[FechaAsignacion] = s.[FechaAsignacion], t.[Responsable] = s.[Responsable], t.[Departamento] = s.[Departamento], t.[Telefono] = s.[Telefono], t.[Canal] = s.[Canal], t.[Etiquetas] = s.[Etiquetas], t.[DatosAdicionales] = s.[DatosAdicionales], t.[ContactoId] = s.[ContactoId], t.[ServicioId] = s.[ServicioId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([TicketTrengoId], [FechaCreacion], [FechaActualizacion], [FechaCierre], [DuracionMinutos], [FechaAsignacion], [Responsable], [Departamento], [Telefono], [Canal], [Etiquetas], [DatosAdicionales], [ContactoId], [ServicioId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

@@ -112,7 +112,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[ProspectoId] AS RegistroId, t.FuenteLlave, (SELECT t.[ClienteId], t.[Cedula], t.[Nombre], t.[Apellido], t.[Empresa], t.[Correo], t.[Telefono], t.[Movil], t.[Estado], t.[Origen], t.[Segmento], t.[CondominioSolicitado], t.[DireccionId], t.[Provincia], t.[Canton], t.[FechaRegistro], t.[FechaConversion], t.[CompraRealizada], t.[PropietarioUsuarioId], t.[AtributosExtendidos], t.[FechaCreacionOrigen], t.[FechaModificacionOrigen], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.Prospecto t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -120,7 +120,7 @@ BEGIN
     MERGE core.Prospecto WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[Cedula] = s.[Cedula], t.[Origen] = s.[Origen], t.[Apellido] = s.[Apellido], t.[Segmento] = s.[Segmento], t.[Movil] = s.[Movil], t.[Canton] = s.[Canton], t.[FechaConversion] = s.[FechaConversion], t.[FechaModificacionOrigen] = s.[FechaModificacionOrigen], t.[Provincia] = s.[Provincia], t.[Telefono] = s.[Telefono], t.[Nombre] = s.[Nombre], t.[Estado] = s.[Estado], t.[FechaCreacionOrigen] = s.[FechaCreacionOrigen], t.[Correo] = s.[Correo], t.[Empresa] = s.[Empresa], t.[PropietarioUsuarioId] = s.[PropietarioUsuarioId], t.[ClienteId] = s.[ClienteId], t.[AtributosExtendidos] = s.[AtributosExtendidos], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([Cedula], [Origen], [Apellido], [Segmento], [Movil], [Canton], [FechaConversion], [FechaModificacionOrigen], [Provincia], [Telefono], [Nombre], [Estado], [FechaCreacionOrigen], [Correo], [Empresa], [PropietarioUsuarioId], [ClienteId], [AtributosExtendidos], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

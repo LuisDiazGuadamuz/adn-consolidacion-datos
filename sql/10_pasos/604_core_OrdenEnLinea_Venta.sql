@@ -41,7 +41,7 @@ BEGIN
                N'ADNPayV2' AS FuenteBase,
                N'SaleOrder' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), o.[order_id])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), o.[order_date], 126)) AS FechaDato,
                ctl.fn_FechaCR(CONVERT(nvarchar(30), o.[order_date], 126)) AS [Fecha],
                ctl.fn_Texto(CONVERT(nvarchar(max), o.[status])) AS [Estado],
                TRY_CONVERT(decimal(19,4), o.[total_amount_crc]) AS [Total],
@@ -91,7 +91,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[OrdenEnLineaId] AS RegistroId, t.FuenteLlave, (SELECT t.[SolicitudEnLineaId], t.[ClienteReferencia], t.[Tipo], t.[Estado], t.[Bloqueado], t.[Moneda], t.[TipoCambio], t.[Total], t.[TotalCRC], t.[TotalSinImpuesto], t.[TotalSinImpuestoCRC], t.[Fecha], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.OrdenEnLinea t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -99,7 +99,7 @@ BEGIN
     MERGE core.OrdenEnLinea WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[Fecha] = s.[Fecha], t.[Estado] = s.[Estado], t.[Total] = s.[Total], t.[TotalSinImpuesto] = s.[TotalSinImpuesto], t.[SolicitudEnLineaId] = s.[SolicitudEnLineaId], t.[Tipo] = s.[Tipo], t.[Moneda] = s.[Moneda], t.[TotalCRC] = s.[TotalCRC], t.[TotalSinImpuestoCRC] = s.[TotalSinImpuestoCRC], t.[TipoCambio] = s.[TipoCambio], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([Fecha], [Estado], [Total], [TotalSinImpuesto], [SolicitudEnLineaId], [Tipo], [Moneda], [TotalCRC], [TotalSinImpuestoCRC], [TipoCambio], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

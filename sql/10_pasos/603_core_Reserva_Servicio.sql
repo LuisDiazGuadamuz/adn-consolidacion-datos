@@ -32,7 +32,7 @@ BEGIN
                N'ADNPayV2' AS FuenteBase,
                N'ServiceReservations' AS FuenteTabla,
                ctl.fn_Texto(CONVERT(nvarchar(200), r.[reservation_id])) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(30), r.[booking_timestamp], 126)) AS FechaDato,
                CAST(r.[reservation_date] AS date) AS [FechaReservada],
                r.[time_slot] AS [Franja],
                ctl.fn_FechaCR(CONVERT(nvarchar(30), r.[booking_timestamp], 126)) AS [FechaRegistro],
@@ -73,7 +73,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[ReservaInstalacionId] AS RegistroId, t.FuenteLlave, (SELECT t.[SolicitudEnLineaId], t.[FechaReservada], t.[Franja], t.[Estado], t.[FechaRegistro], t.[FechaExpiracion], t.[Direccion], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.ReservaInstalacion t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -81,7 +81,7 @@ BEGIN
     MERGE core.ReservaInstalacion WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[FechaReservada] = s.[FechaReservada], t.[Franja] = s.[Franja], t.[FechaRegistro] = s.[FechaRegistro], t.[FechaExpiracion] = s.[FechaExpiracion], t.[Estado] = s.[Estado], t.[SolicitudEnLineaId] = s.[SolicitudEnLineaId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([FechaReservada], [Franja], [FechaRegistro], [FechaExpiracion], [Estado], [SolicitudEnLineaId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)

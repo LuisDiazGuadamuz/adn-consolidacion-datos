@@ -35,7 +35,7 @@ BEGIN
                N'Navsat' AS FuenteBase,
                N'Ultima_ubicacion' AS FuenteTabla,
                CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), u.[deviceName]), N'~'), ISNULL(CONVERT(nvarchar(4000), u.[crDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), u.[latitude]), N'~'), ISNULL(CONVERT(nvarchar(4000), u.[longitude]), N'~'))), 2) AS FuenteLlave,
-               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               ctl.fn_FechaCR(CONVERT(nvarchar(60), u.[crDateTime])) AS FechaDato,
                ctl.fn_FechaCR(CONVERT(nvarchar(60), u.[crDateTime])) AS [FechaHora],
                ctl.fn_CoordenadaSola(CONVERT(nvarchar(60), u.[latitude]), 1) AS [Latitud],
                ctl.fn_CoordenadaSola(CONVERT(nvarchar(60), u.[longitude]), 2) AS [Longitud],
@@ -90,7 +90,7 @@ BEGIN
     DROP TABLE IF EXISTS #antes;
     SELECT t.[UbicacionFlotaId] AS RegistroId, t.FuenteLlave, (SELECT t.[UnidadFlotaId], t.[FechaHora], t.[Latitud], t.[Longitud], t.[Odometro], t.[Velocidad], t.[Lugar], t.[Estado], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
     INTO #antes FROM core.UbicacionFlota t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato);
 
     /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
     DROP TABLE IF EXISTS #cambios;
@@ -98,7 +98,7 @@ BEGIN
     MERGE core.UbicacionFlota WITH (HOLDLOCK) AS t
     USING #src AS s
        ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido OR EXISTS (SELECT t.FechaDato EXCEPT SELECT s.FechaDato)) THEN
         UPDATE SET t.[FechaHora] = s.[FechaHora], t.[Latitud] = s.[Latitud], t.[Longitud] = s.[Longitud], t.[Odometro] = s.[Odometro], t.[Velocidad] = s.[Velocidad], t.[Lugar] = s.[Lugar], t.[Estado] = s.[Estado], t.[UnidadFlotaId] = s.[UnidadFlotaId], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
     WHEN NOT MATCHED BY TARGET THEN
         INSERT ([FechaHora], [Latitud], [Longitud], [Odometro], [Velocidad], [Lugar], [Estado], [UnidadFlotaId], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
