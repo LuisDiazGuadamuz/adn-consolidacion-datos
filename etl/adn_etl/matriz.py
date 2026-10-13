@@ -21,10 +21,11 @@ def columnas(base, tabla, disposicion):
     return [r["ColumnaOrigen"] for r in de_tabla(base, tabla) if r["Disposicion"] == disposicion]
 
 
-def atributos(base, tabla, alias="x", excluir=()):
+def atributos(base, tabla, alias="x", excluir=(), incluir=()):
     """Expresión T-SQL que arma AtributosExtendidos (JSON) con las columnas que la matriz marca como
     'Atributo extendido'. Los valores vacíos se omiten (ES-05); si no queda ninguno devuelve NULL."""
     cols = [c for c in columnas(base, tabla, "Atributo extendido") if c not in excluir]
+    cols += [c for c in incluir if c not in cols and c not in excluir]   # filas 'Mapeada' cuyo destino es AtributosExtendidos
     if not cols:
         return "CAST(NULL AS nvarchar(max))"
     partes = ", ".join(f"ctl.fn_Texto(CONVERT(nvarchar(max), {alias}.[{c}])) AS [{c}]" for c in cols)

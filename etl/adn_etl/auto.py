@@ -140,6 +140,7 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
     sel = {}            # columna del modelo → expresión
     fuentes = {}        # columna del modelo → (expresión original de texto, tipo origen)
     crc_directo = {}    # XCRC → expresión, cuando el origen ya trae el monto en moneda base (bcy_*, D5)
+    attr_extra = []     # columnas de origen que la matriz manda enteras a AtributosExtendidos
     fks = {}            # columna fk → lista de (expresión del valor, columna de origen)
     reglas = set(reglas_extra) | {"IN-05"}
     llave_src = llave
@@ -153,6 +154,10 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
                     llave_src = col_o
                 continue
             if d in omitir or d in override or d == pk:
+                continue
+            if d == "AtributosExtendidos":      # la matriz manda la columna entera a los atributos: va como clave del JSON
+                if col_o not in attr_extra:
+                    attr_extra.append(col_o)
                 continue
             if d.endswith("CRC") and d[:-3] in cols_modelo:     # el equivalente en colones se calcula (D5)
                 if len(dests) == 1:                              # ... salvo que el origen lo traiga en moneda base
@@ -238,7 +243,7 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
             reglas.add(regla)
 
     if "AtributosExtendidos" in cols_modelo and "AtributosExtendidos" not in sel:
-        sel["AtributosExtendidos"] = atributos(base, tabla, alias, excluir=excluir_atributos)
+        sel["AtributosExtendidos"] = atributos(base, tabla, alias, excluir=excluir_atributos, incluir=attr_extra)
     if moneda and "Moneda" in cols_modelo and "Moneda" not in override:
         sel["Moneda"] = moneda
 
