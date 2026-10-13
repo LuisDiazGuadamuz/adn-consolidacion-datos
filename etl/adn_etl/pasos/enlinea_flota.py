@@ -148,10 +148,10 @@ WHERE u.rn = 1
                 llave="id_case",
                 override={"ContactoId": "ct.ContactoId", "ServicioId": "ct.ServicioId",
                           "o_IdZcrm": "z.IdZcrm"},
-                extra_from="""CROSS APPLY (SELECT CONVERT(nvarchar(max), t.custom_data) AS cd) d0
+                extra_from="""CROSS APPLY (SELECT CONVERT(nvarchar(max), t.custom_data) COLLATE DATABASE_DEFAULT AS cd) d0
 CROSS APPLY (SELECT CASE WHEN CHARINDEX(N'ID_ZCRM', d0.cd) > 0 THEN
                     NULLIF(LEFT(LTRIM(REPLACE(REPLACE(REPLACE(SUBSTRING(d0.cd, CHARINDEX(N'ID_ZCRM', d0.cd) + 7, 60), N'''', N''), N'"', N''), N':', N'')), 19), N'')
-                END AS IdZcrm) z
+                END COLLATE DATABASE_DEFAULT AS IdZcrm) z
 OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(k.ContactoId) END AS ContactoId,
                     CASE WHEN COUNT(*) = 1 THEN MIN(k.ServicioId) END AS ServicioId
              FROM core.Contacto k WHERE k.ContactoCrmId = z.IdZcrm) ct""",
