@@ -11,7 +11,7 @@
   python -m adn_etl lotes [--ultimos 20]
   python -m adn_etl instantanea --nombre corrida1
   python -m adn_etl comparar --a corrida1 --b corrida2
-  python -m adn_etl muestreo [--n 10]
+  python -m adn_etl muestreo [--n 10] [--paso core_Factura]
 """
 import argparse
 import glob
@@ -75,6 +75,7 @@ def main(argv=None):
     st.add_argument("--hasta")
     m = sub.add_parser("muestreo")
     m.add_argument("--n", type=int, default=10)
+    m.add_argument("--paso", help="solo este paso")
     a = ap.parse_args(argv)
 
     if a.cmd == "generar":
@@ -142,7 +143,7 @@ def main(argv=None):
         from . import mongo_stage
         mongo_stage.copiar(cfg, a.coleccion, a.desde, a.hasta)
     elif a.cmd == "muestreo":
-        verificar.muestreo(cfg, a.n)
+        verificar.muestreo(cfg, a.n, a.paso)
 
 
 if __name__ == "__main__":

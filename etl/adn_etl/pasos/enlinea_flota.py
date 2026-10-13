@@ -88,7 +88,10 @@ LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl
     # ------------------------------------------------------------------ flota
     Paso(
         nombre="ref_UnidadFlota", orden=700, destino="ref.UnidadFlota",
-        fuente=(_N, "SQLServer", "Navsat", "Ultima_ubicacion"), llave_origen="",
+        fuente=(_N, "SQLServer", "Navsat", "Ultima_ubicacion"), llave_origen="", linaje_tabla="Dispositivo",
+        traza_from="""(SELECT deviceName AS d FROM Navsat.dbo.Ultima_ubicacion UNION ALL SELECT DeviceName FROM Navsat.dbo.viajes_ayer_finalizado
+      UNION ALL SELECT dispositivo FROM Navsat.dbo.eventos UNION ALL SELECT dispositivo FROM Navsat.dbo.Eco_Driving) u""",
+        traza_llave="CAST(ctl.fn_Texto(u.d) AS nvarchar(100))",
         descripcion="Unidades de flota derivadas de todas las tablas de Navsat (una por dispositivo, con la placa más "
                     "reciente). Clasificación ES-09: placa → VEHICULO_EMPRESA; 'propio' → VEHICULO_PROPIO; otro texto → COLABORADOR.",
         reglas=["ES-05", "ES-09", "IN-05", "DD-04"], columnas=["Dispositivo", "Placa", "TipoUnidad", "Descripcion"],

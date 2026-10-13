@@ -59,6 +59,11 @@ class Paso:
     hash_excluir: List[str] = field(default_factory=list)  # columnas que no cuentan como cambio (p. ej. fecha de emparejamiento)  # columnas con linaje por campo (aux lf_<col>_sis/_tab/_llave/_fecha)
     depende: List[str] = field(default_factory=list)
     requiere_periodo: bool = False           # tabla grande: solo se carga por período (--desde/--hasta)
+    # Trazabilidad (muestreo del DoD): cómo recalcular FuenteLlave desde la tabla de origen
+    traza_from: str = ""                     # FROM sobre el origen, con alias (vacío = [base].dbo.[tabla] por llave_origen)
+    traza_llave: str = ""                    # expresión de FuenteLlave sobre ese FROM
+    traza_columna: str = ""                  # columna simple del origen para la búsqueda rápida (índice)
+    linaje_tabla: str = ""                   # FuenteTabla que escribe el paso, si no es la tabla de origen (p. ej. 'Dispositivo')
 
     # ------------------------------------------------------------------ utilidades
     @property

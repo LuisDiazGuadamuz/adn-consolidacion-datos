@@ -81,6 +81,11 @@ PASOS = [
     Paso(
         nombre="core_PagoFactura", orden=421, destino="core.PagoFactura", depende=["core_Pago", "core_Factura"],
         fuente=(_B, "SQLServer", "ZBooks_Mirror", "customerpayments"), llave_origen="",
+        traza_from="""ZBooks_Mirror.dbo.customerpayments p
+CROSS APPLY (SELECT DISTINCT CAST(ctl.fn_Texto(v.value) AS nvarchar(50)) AS Numero
+             FROM STRING_SPLIT(REPLACE(CONVERT(nvarchar(max), p.invoice_numbers), N';', N','), N',') v
+             WHERE ctl.fn_Texto(v.value) IS NOT NULL) n""",
+        traza_llave="CONCAT(ctl.fn_Texto(p.payment_id), N'|', n.Numero)",
         descripcion="Facturas que cubre cada pago: una fila por número de factura de customerpayments.invoice_numbers. "
                     "La factura se liga por número solo si el número es único.",
         reglas=["IN-01", "IN-05", "DD-04"], columnas=["PagoId", "FacturaId", "NumeroFactura"],

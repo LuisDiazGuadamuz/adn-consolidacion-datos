@@ -308,6 +308,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
         reglas=sorted(reglas), columnas=columnas, auxiliares=aux, anomalias=anoms, filtros=filtros,
         preparacion=preparacion, clave=clave, depende=list(depende or []), solo_actualizar=solo_actualizar,
         requiere_periodo=requiere_periodo,
+        traza_from=f"{base}.dbo.[{tabla}] {alias}" + ("\n" + extra_from.strip() if extra_from else "") + (f"\nWHERE {where}" if where else ""),
+        traza_llave=llave_sql, traza_columna="" if llave_expr else f"{alias}.[{llave_src}]",
         dedup_regla="DD-02" if (dedup and tiene_mod) else "DD-04",
         dedup_orden="s.FechaModificacionOrigen DESC, s.HashContenido" if (dedup and tiene_mod) else "",
         dedup_motivo=("Versión anterior del mismo registro en el espejo; se conserva la modificación más reciente"
