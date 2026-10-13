@@ -35,3 +35,12 @@ WHERE ctl.fn_FechaCR(crDateTime) < TODATETIMEOFFSET(CAST('2024-01-01' AS datetim
 
 PRINT '== 5. Correcciones del modelo aplicadas en el sandbox';
 SELECT '03 EventoConexion.ClienteId' AS Correccion, CASE WHEN COL_LENGTH(N'core.EventoConexion', N'ClienteId') IS NULL THEN 'NO' ELSE 'si' END AS Aplicada;
+
+PRINT '== 6. Conexiones: valores de la fecha de desconexión/reconexión (año) y si hay tipo';
+SELECT CASE WHEN date_desc_rec IS NULL THEN 'nula' ELSE CONVERT(char(4), YEAR(date_desc_rec)) END AS Anio,
+       CASE WHEN NULLIF(LTRIM(RTRIM(type_desc_rec)), N'') IS NULL THEN 'sin tipo' ELSE 'con tipo' END AS TipoDescRec,
+       COUNT(*) AS Filas
+FROM History_Tables.dbo.Conexiones_desconexiones_realizadas
+GROUP BY CASE WHEN date_desc_rec IS NULL THEN 'nula' ELSE CONVERT(char(4), YEAR(date_desc_rec)) END,
+         CASE WHEN NULLIF(LTRIM(RTRIM(type_desc_rec)), N'') IS NULL THEN 'sin tipo' ELSE 'con tipo' END
+ORDER BY 1, 2;

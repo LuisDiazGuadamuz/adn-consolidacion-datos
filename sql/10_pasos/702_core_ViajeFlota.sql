@@ -1,8 +1,8 @@
 USE ADN_Unificado;
 GO
 /* Paso 702 · core_ViajeFlota → core.ViajeFlota
-   Viajes finalizados de las unidades; la duración (time) se pasa a minutos.
-   Reglas: ES-01, IN-01, IN-05
+   Viajes finalizados de las unidades; la duración (time) se pasa a minutos. Id viene nulo en el origen (IN-05): la llave es la huella de dispositivo, inicio, fin y kilómetros.
+   Reglas: DD-01, ES-01, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_ViajeFlota @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
@@ -33,7 +33,7 @@ BEGIN
         SELECT 'Navsat' AS FuenteSistema,
                N'Navsat' AS FuenteBase,
                N'viajes_ayer_finalizado' AS FuenteTabla,
-               ctl.fn_Texto(CONVERT(nvarchar(200), v.[Id])) AS FuenteLlave,
+               CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), v.[DeviceName]), N'~'), ISNULL(CONVERT(nvarchar(30), v.[FechaInicio], 126), N'~'), ISNULL(CONVERT(nvarchar(30), v.[FechaFin], 126), N'~'), ISNULL(CONVERT(nvarchar(4000), v.[KilometrosRecorridos]), N'~'))), 2) AS FuenteLlave,
                CAST(NULL AS datetimeoffset(0)) AS FechaDato,
                ctl.fn_FechaCR(CONVERT(nvarchar(30), v.[FechaInicio], 126)) AS [FechaInicio],
                ctl.fn_FechaCR(CONVERT(nvarchar(30), v.[FechaFin], 126)) AS [FechaFin],

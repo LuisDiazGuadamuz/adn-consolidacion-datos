@@ -119,9 +119,14 @@ WHERE u.rn = 1
                 requiere_periodo=True, depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
                 descripcion="Posiciones reportadas por las unidades (sin llave en el origen: huella de dispositivo, fecha y coordenadas). "
                             "2,5 millones de filas: se carga por período (--desde/--hasta, hasta exclusivo)."),
-    paso_matriz("core_ViajeFlota", 702, "core.ViajeFlota", _N, "Navsat", "viajes_ayer_finalizado", "v", llave="Id",
+    paso_matriz("core_ViajeFlota", 702, "core.ViajeFlota", _N, "Navsat", "viajes_ayer_finalizado", "v", llave="",
+                # Id viene nulo en las 227.352 filas (IN-05 del perfilado): la llave es la huella del viaje
+                llave_expr=_huella("v", ["DeviceName", "FechaInicio", "FechaFin", "KilometrosRecorridos"],
+                                   fechas=("FechaInicio", "FechaFin")),
                 override={"DuracionMinutos": "CAST(" + _MIN_A_SEG.format(x="v.Duracion") + " / 60.0 AS decimal(12,2))"},
-                depende=["ref_UnidadFlota"], descripcion="Viajes finalizados de las unidades; la duración (time) se pasa a minutos."),
+                depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
+                descripcion="Viajes finalizados de las unidades; la duración (time) se pasa a minutos. Id viene nulo en el "
+                            "origen (IN-05): la llave es la huella de dispositivo, inicio, fin y kilómetros."),
     paso_matriz("core_EventoFlota", 703, "core.EventoFlota", _N, "Navsat", "eventos", "e",
                 llave_expr=_huella("e", ["dispositivo", "fecha", "evento", "regla", "latitude", "longitude"], fechas=("fecha",)),
                 depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
