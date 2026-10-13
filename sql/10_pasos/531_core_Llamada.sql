@@ -21,6 +21,10 @@ BEGIN
     SELECT TRY_CONVERT(int, CodigoTroncal) AS Codigo, MIN(TroncalId) AS TroncalId, COUNT(*) AS n INTO #tron
     FROM core.Troncal WHERE TRY_CONVERT(int, CodigoTroncal) IS NOT NULL GROUP BY TRY_CONVERT(int, CodigoTroncal);
     CREATE UNIQUE CLUSTERED INDEX ix ON #tron (Codigo);
+    /* Troncales de proveedores (carriers): no son troncales de clientes, pero tampoco son anomalía */
+    DROP TABLE IF EXISTS #tprov;
+    SELECT DISTINCT TRY_CONVERT(int, CodigoTroncal) AS Codigo INTO #tprov FROM ref.TroncalProveedor WHERE TRY_CONVERT(int, CodigoTroncal) IS NOT NULL;
+    CREATE UNIQUE CLUSTERED INDEX ix ON #tprov (Codigo);
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
@@ -100,12 +104,12 @@ BEGIN
                    TRY_CONVERT(decimal(19,4), c.DestinationRateNoProfit) AS TarifaSinMargen,
                    TRY_CONVERT(decimal(19,4), c.CallCost) AS Costo,
                    TRY_CONVERT(decimal(19,4), c.CallCostNoProfit) AS CostoSinMargen,
-                   NULLIF((SELECT NULLIF(LTRIM(RTRIM(CAST(c.[IngressTrunkAlias] AS nvarchar(400)))), N'') AS [IngressTrunkAlias], NULLIF(LTRIM(RTRIM(CAST(c.[EgressTrunkAlias] AS nvarchar(400)))), N'') AS [EgressTrunkAlias], NULLIF(LTRIM(RTRIM(CAST(c.[OriginationSourceIP] AS nvarchar(400)))), N'') AS [OriginationSourceIP], NULLIF(LTRIM(RTRIM(CAST(c.[OriginationDestinationIP] AS nvarchar(400)))), N'') AS [OriginationDestinationIP], NULLIF(LTRIM(RTRIM(CAST(c.[Rpid_PAI] AS nvarchar(400)))), N'') AS [Rpid_PAI] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS AtributosExtendidos,
+                   NULLIF((SELECT c.IngressTrunk AS [IngressTrunk], c.EgressTrunk AS [EgressTrunk], NULLIF(LTRIM(RTRIM(CAST(c.[IngressTrunkAlias] AS nvarchar(400)))), N'') AS [IngressTrunkAlias], NULLIF(LTRIM(RTRIM(CAST(c.[EgressTrunkAlias] AS nvarchar(400)))), N'') AS [EgressTrunkAlias], NULLIF(LTRIM(RTRIM(CAST(c.[OriginationSourceIP] AS nvarchar(400)))), N'') AS [OriginationSourceIP], NULLIF(LTRIM(RTRIM(CAST(c.[OriginationDestinationIP] AS nvarchar(400)))), N'') AS [OriginationDestinationIP], NULLIF(LTRIM(RTRIM(CAST(c.[Rpid_PAI] AS nvarchar(400)))), N'') AS [Rpid_PAI] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS AtributosExtendidos,
                    c.usd_exchange AS o_TipoCambio,
                    NULLIF(LTRIM(RTRIM(CAST(c.CustomerCircuitNumber AS nvarchar(100)))), N'') AS o_Circuito,
                    CASE WHEN v.Circuito IS NOT NULL AND ci.ServicioId IS NULL THEN v.Circuito END AS o_ServicioCircuito,
-                   CASE WHEN c.IngressTrunk IS NOT NULL AND ti.TroncalId IS NULL THEN CAST(c.IngressTrunk AS nvarchar(20)) END AS o_TroncalEntrada,
-                   CASE WHEN c.EgressTrunk IS NOT NULL AND te.TroncalId IS NULL THEN CAST(c.EgressTrunk AS nvarchar(20)) END AS o_TroncalSalida,
+                   CASE WHEN c.IngressTrunk IS NOT NULL AND ti.TroncalId IS NULL AND pi.Codigo IS NULL THEN CAST(c.IngressTrunk AS nvarchar(20)) END AS o_TroncalEntrada,
+                   CASE WHEN c.EgressTrunk IS NOT NULL AND te.TroncalId IS NULL AND pe.Codigo IS NULL THEN CAST(c.EgressTrunk AS nvarchar(20)) END AS o_TroncalSalida,
                    ROW_NUMBER() OVER (PARTITION BY CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2) ORDER BY CAST(c._id AS nvarchar(200))) AS o_Repetida
             FROM stg.mongo_Telephony_cdr c
             CROSS APPLY (SELECT ctl.fn_Circuito(CONVERT(nvarchar(100), c.CustomerCircuitNumber)) AS Circuito) v
@@ -113,6 +117,8 @@ BEGIN
             OUTER APPLY (SELECT CASE WHEN ci0.n = 1 THEN ci0.ServicioId END AS ServicioId) ci
             LEFT JOIN #tron ti ON ti.Codigo = c.IngressTrunk AND ti.n = 1
             LEFT JOIN #tron te ON te.Codigo = c.EgressTrunk AND te.n = 1
+            LEFT JOIN #tprov pi ON pi.Codigo = c.IngressTrunk
+            LEFT JOIN #tprov pe ON pe.Codigo = c.EgressTrunk
             WHERE c.StartDateTime IS NOT NULL AND c.StartDateTime >= @Corte
               AND (@Desde IS NULL OR c.StartDateTime >= @Desde) AND (@Hasta IS NULL OR c.StartDateTime < @Hasta)
         ) q
@@ -194,11 +200,11 @@ BEGIN
     FROM #src s JOIN core.Llamada t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_ServicioCircuito IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Llamada', t.[LlamadaId], N'TroncalEntradaId', LEFT(CONVERT(nvarchar(400), s.o_TroncalEntrada), 400), N'Troncal de entrada sin correspondencia'
+    SELECT @LoteId, 'IN-01', N'core.Llamada', t.[LlamadaId], N'TroncalEntradaId', LEFT(CONVERT(nvarchar(400), s.o_TroncalEntrada), 400), N'Troncal de entrada que no es de un cliente ni de un proveedor'
     FROM #src s JOIN core.Llamada t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_TroncalEntrada IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Llamada', t.[LlamadaId], N'TroncalSalidaId', LEFT(CONVERT(nvarchar(400), s.o_TroncalSalida), 400), N'Troncal de salida sin correspondencia'
+    SELECT @LoteId, 'IN-01', N'core.Llamada', t.[LlamadaId], N'TroncalSalidaId', LEFT(CONVERT(nvarchar(400), s.o_TroncalSalida), 400), N'Troncal de salida que no es de un cliente ni de un proveedor'
     FROM #src s JOIN core.Llamada t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_TroncalSalida IS NOT NULL;
 

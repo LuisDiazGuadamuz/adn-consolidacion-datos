@@ -13,6 +13,8 @@ por su volumen (millones de filas) y se cargan por período (--desde / --hasta):
   D10  moneda de la llamada según el destino: 506 → CRC, otro → USD
   D5   tipo de cambio: el que registró la central (usd_exchange); si falta, el del día (ref.TipoCambio)
   ID-07 la llamada se asigna al servicio por CustomerCircuitNumber (circuito con un único servicio)
+  IN-01 troncales: TroncalEntradaId/SalidaId solo para troncales de clientes (core.Troncal); las de proveedores (carriers,
+        ref.TroncalProveedor) no son anomalía. Los números originales quedan siempre en AtributosExtendidos.
   DD-01 llamadas idénticas (todas las columnas salvo el id) dentro del período: se carga una
   DD-05 cada archivo de llamadas una sola vez (nombre + dispositivo)
 Hora: los valores de la central no traen zona y están en hora de Costa Rica (D4), igual que ctl.fn_FechaCR.
@@ -130,6 +132,10 @@ CREATE UNIQUE CLUSTERED INDEX ix ON #circ (Circuito);
 SELECT TRY_CONVERT(int, CodigoTroncal) AS Codigo, MIN(TroncalId) AS TroncalId, COUNT(*) AS n INTO #tron
 FROM core.Troncal WHERE TRY_CONVERT(int, CodigoTroncal) IS NOT NULL GROUP BY TRY_CONVERT(int, CodigoTroncal);
 CREATE UNIQUE CLUSTERED INDEX ix ON #tron (Codigo);
+/* Troncales de proveedores (carriers): no son troncales de clientes, pero tampoco son anomalía */
+DROP TABLE IF EXISTS #tprov;
+SELECT DISTINCT TRY_CONVERT(int, CodigoTroncal) AS Codigo INTO #tprov FROM ref.TroncalProveedor WHERE TRY_CONVERT(int, CodigoTroncal) IS NOT NULL;
+CREATE UNIQUE CLUSTERED INDEX ix ON #tprov (Codigo);
 """
 
 
@@ -143,7 +149,8 @@ def _fecha(x):
 
 def _select_llamadas(origen, base, tabla_sql, llave, filtro_periodo, fuente_tabla="Telephony_cdr"):
     c = "c"
-    atrib = ", ".join(f"{_t(f'{c}.[{a}]', 400)} AS [{a}]" for a in _ATRIBUTOS) or "CAST(NULL AS nvarchar(1)) AS x"
+    atrib = ", ".join([f"{c}.IngressTrunk AS [IngressTrunk]", f"{c}.EgressTrunk AS [EgressTrunk]"]
+                      + [f"{_t(f'{c}.[{a}]', 400)} AS [{a}]" for a in _ATRIBUTOS])
     return f"""
 SELECT q.*,
        CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6))
@@ -177,8 +184,8 @@ FROM (
            {c}.usd_exchange AS o_TipoCambio,
            {_t(f'{c}.CustomerCircuitNumber', 100)} AS o_Circuito,
            CASE WHEN v.Circuito IS NOT NULL AND ci.ServicioId IS NULL THEN v.Circuito END AS o_ServicioCircuito,
-           CASE WHEN {c}.IngressTrunk IS NOT NULL AND ti.TroncalId IS NULL THEN CAST({c}.IngressTrunk AS nvarchar(20)) END AS o_TroncalEntrada,
-           CASE WHEN {c}.EgressTrunk IS NOT NULL AND te.TroncalId IS NULL THEN CAST({c}.EgressTrunk AS nvarchar(20)) END AS o_TroncalSalida,
+           CASE WHEN {c}.IngressTrunk IS NOT NULL AND ti.TroncalId IS NULL AND pi.Codigo IS NULL THEN CAST({c}.IngressTrunk AS nvarchar(20)) END AS o_TroncalEntrada,
+           CASE WHEN {c}.EgressTrunk IS NOT NULL AND te.TroncalId IS NULL AND pe.Codigo IS NULL THEN CAST({c}.EgressTrunk AS nvarchar(20)) END AS o_TroncalSalida,
            ROW_NUMBER() OVER (PARTITION BY {_huella_fila(c, _CONTENIDO)} ORDER BY CAST({llave} AS nvarchar(200))) AS o_Repetida
     FROM {tabla_sql} {c}
     CROSS APPLY (SELECT ctl.fn_Circuito(CONVERT(nvarchar(100), {c}.CustomerCircuitNumber)) AS Circuito) v
@@ -186,6 +193,8 @@ FROM (
     OUTER APPLY (SELECT CASE WHEN ci0.n = 1 THEN ci0.ServicioId END AS ServicioId) ci
     LEFT JOIN #tron ti ON ti.Codigo = {c}.IngressTrunk AND ti.n = 1
     LEFT JOIN #tron te ON te.Codigo = {c}.EgressTrunk AND te.n = 1
+    LEFT JOIN #tprov pi ON pi.Codigo = {c}.IngressTrunk
+    LEFT JOIN #tprov pe ON pe.Codigo = {c}.EgressTrunk
     WHERE {c}.StartDateTime IS NOT NULL AND {filtro_periodo}
       AND (@Desde IS NULL OR {c}.StartDateTime >= @Desde) AND (@Hasta IS NULL OR {c}.StartDateTime < @Hasta)
 ) q
@@ -204,8 +213,10 @@ _ANOM_LLAMADA = [
     Anomalia("ID-01", "Circuito", "s.o_Circuito", "s.o_Circuito IS NOT NULL AND s.Circuito IS NULL", "Circuito que no cumple el patrón aprobado"),
     Anomalia("ID-07", "ServicioId", "s.o_ServicioCircuito", "s.o_ServicioCircuito IS NOT NULL",
              "Circuito de la llamada sin un único servicio en el modelo"),
-    Anomalia("IN-01", "TroncalEntradaId", "s.o_TroncalEntrada", "s.o_TroncalEntrada IS NOT NULL", "Troncal de entrada sin correspondencia"),
-    Anomalia("IN-01", "TroncalSalidaId", "s.o_TroncalSalida", "s.o_TroncalSalida IS NOT NULL", "Troncal de salida sin correspondencia"),
+    Anomalia("IN-01", "TroncalEntradaId", "s.o_TroncalEntrada", "s.o_TroncalEntrada IS NOT NULL",
+             "Troncal de entrada que no es de un cliente ni de un proveedor"),
+    Anomalia("IN-01", "TroncalSalidaId", "s.o_TroncalSalida", "s.o_TroncalSalida IS NOT NULL",
+             "Troncal de salida que no es de un cliente ni de un proveedor"),
 ]
 _REGLAS_LLAMADA = ["D1", "D4", "D5", "D6", "D10", "ID-01", "ID-07", "ES-01", "ES-02", "ES-04", "DD-01", "IN-01", "IN-05"]
 
