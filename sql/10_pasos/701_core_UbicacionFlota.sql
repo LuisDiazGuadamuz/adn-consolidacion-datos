@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 701 · core_UbicacionFlota → core.UbicacionFlota
-   Última ubicación reportada por unidad (sin llave en el origen: huella de dispositivo, fecha y coordenadas).
+   Posiciones reportadas por las unidades (sin llave en el origen: huella de dispositivo, fecha y coordenadas). 2,5 millones de filas: se carga por período (--desde/--hasta, hasta exclusivo).
    Reglas: DD-01, ES-01, ES-02, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_UbicacionFlota @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -48,6 +48,7 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), u.[crDateTime])) AS [o_FechaHora]
         FROM Navsat.dbo.[Ultima_ubicacion] u
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[UnidadFlotaId]) END AS Id FROM ref.UnidadFlota zref WHERE zref.[Dispositivo] = ctl.fn_Texto(CONVERT(nvarchar(max), u.[deviceName]))) fk_UnidadFlotaId_0
+        WHERE (@Desde IS NULL OR ctl.fn_FechaCR(u.crDateTime) >= TODATETIMEOFFSET(CAST(@Desde AS datetime2), '-06:00')) AND (@Hasta IS NULL OR ctl.fn_FechaCR(u.crDateTime) < TODATETIMEOFFSET(CAST(@Hasta AS datetime2), '-06:00'))
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

@@ -107,6 +107,15 @@ def main(argv=None):
         elif a.desde_paso:
             n = registro.por_nombre(a.desde_paso).orden
             pasos = [p for p in pasos if p.orden >= n]
+        sin_periodo = not (a.desde or a.hasta)
+        if sin_periodo and a.paso and pasos[0].requiere_periodo:
+            sys.exit(f"{a.paso} es una tabla grande: se carga por período. Agregue --desde AAAA-MM-DD --hasta AAAA-MM-DD "
+                     "(hasta exclusivo), p. ej. un año o un mes por corrida.")
+        if sin_periodo and len(pasos) > 1:
+            omitidos = [p.nombre for p in pasos if p.requiere_periodo]
+            if omitidos:
+                print("Se omiten (se cargan aparte, por período con --paso y --desde/--hasta): " + ", ".join(omitidos))
+                pasos = [p for p in pasos if not p.requiere_periodo]
         if a.modo == "dry-run" and len(pasos) > 1:
             print("Aviso: en dry-run cada paso se ensaya por separado; los pasos que dependen de otros "
                   "verán el modelo sin los cambios ensayados de los anteriores.")

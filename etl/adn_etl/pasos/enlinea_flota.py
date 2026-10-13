@@ -36,6 +36,9 @@ def _orden_adnpay(tabla, x):
             f"AND o.FuenteTabla = N'{tabla}' AND o.FuenteLlave = CAST({x} AS nvarchar(200)))")
 
 
+# Período en hora de Costa Rica (las fechas de Navsat son datetimeoffset -06:00; @Hasta es exclusivo)
+_PERIODO_CR = ("(@Desde IS NULL OR {x} >= TODATETIMEOFFSET(CAST(@Desde AS datetime2), '-06:00')) "
+               "AND (@Hasta IS NULL OR {x} < TODATETIMEOFFSET(CAST(@Hasta AS datetime2), '-06:00'))")
 _MIN_A_SEG = "DATEDIFF(SECOND, CAST('00:00:00' AS time), {x})"
 
 PASOS = [
@@ -112,8 +115,10 @@ WHERE u.rn = 1
 """),
     paso_matriz("core_UbicacionFlota", 701, "core.UbicacionFlota", _N, "Navsat", "Ultima_ubicacion", "u",
                 llave_expr=_huella("u", ["deviceName", "crDateTime", "latitude", "longitude"]),
-                depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
-                descripcion="Última ubicación reportada por unidad (sin llave en el origen: huella de dispositivo, fecha y coordenadas)."),
+                where=_PERIODO_CR.format(x="ctl.fn_FechaCR(u.crDateTime)"),
+                requiere_periodo=True, depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
+                descripcion="Posiciones reportadas por las unidades (sin llave en el origen: huella de dispositivo, fecha y coordenadas). "
+                            "2,5 millones de filas: se carga por período (--desde/--hasta, hasta exclusivo)."),
     paso_matriz("core_ViajeFlota", 702, "core.ViajeFlota", _N, "Navsat", "viajes_ayer_finalizado", "v", llave="Id",
                 override={"DuracionMinutos": "CAST(" + _MIN_A_SEG.format(x="v.Duracion") + " / 60.0 AS decimal(12,2))"},
                 depende=["ref_UnidadFlota"], descripcion="Viajes finalizados de las unidades; la duración (time) se pasa a minutos."),

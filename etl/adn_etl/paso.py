@@ -58,6 +58,7 @@ class Paso:
     linaje_campos: List[str] = field(default_factory=list)
     hash_excluir: List[str] = field(default_factory=list)  # columnas que no cuentan como cambio (p. ej. fecha de emparejamiento)  # columnas con linaje por campo (aux lf_<col>_sis/_tab/_llave/_fecha)
     depende: List[str] = field(default_factory=list)
+    requiere_periodo: bool = False           # tabla grande: solo se carga por período (--desde/--hasta)
 
     # ------------------------------------------------------------------ utilidades
     @property

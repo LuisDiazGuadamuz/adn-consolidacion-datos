@@ -222,7 +222,7 @@ _REGLAS_LLAMADA = ["D1", "D4", "D5", "D6", "D10", "ID-01", "ID-07", "ES-01", "ES
 
 PASOS += [
     Paso(
-        nombre="core_Llamada_Historico", orden=529, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
+        nombre="core_Llamada_Historico", requiere_periodo=True, orden=529, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr_historico"), llave_origen="id",
         descripcion="Llamadas de años anteriores (ADNApp.Telephony_cdr_historico), hasta la primera fecha de ADNApp.Telephony_cdr (D1). "
                     "Según D7 el modelo guarda 24 meses en línea: cargar solo el período necesario con --desde/--hasta.",
@@ -232,7 +232,7 @@ PASOS += [
         select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr_historico", "c.id",
                                 "c.StartDateTime < @CorteSQL AND c.StartDateTime < @Corte", "Telephony_cdr_historico")),
     Paso(
-        nombre="core_Llamada_SQL", orden=530, destino="core.Llamada", depende=["core_Llamada_Historico"],
+        nombre="core_Llamada_SQL", requiere_periodo=True, orden=530, destino="core.Llamada", depende=["core_Llamada_Historico"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr"), llave_origen="id",
         descripcion="Llamadas de ADNApp.Telephony_cdr (2026) anteriores a la primera fecha de la copia de MongoDB (D1). "
                     "Cargar por período con --desde/--hasta.",
@@ -241,7 +241,7 @@ PASOS += [
         filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
         select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr", "c.id", "c.StartDateTime < @Corte")),
     Paso(
-        nombre="core_Llamada", orden=531, destino="core.Llamada", depende=["core_Llamada_SQL"],
+        nombre="core_Llamada", requiere_periodo=True, orden=531, destino="core.Llamada", depende=["core_Llamada_SQL"],
         fuente=(_A, "MongoDB", "developer_adn_app_db", "Telephony_cdr"), llave_origen="_id",
         descripcion="Llamadas desde la primera fecha de la copia de MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. "
                     "Cargar por período con --desde/--hasta.",
