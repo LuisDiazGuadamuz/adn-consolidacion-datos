@@ -49,8 +49,8 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), n.[OwnerId])) AS [o_AutorUsuarioId],
                'SERVICIO' AS [Entidad]
         FROM Zoho_Mirror.dbo.[Accounts_Notes] n
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ServicioId]) END AS Id FROM core.Servicio r WHERE r.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[AccountId]))) fk_ServicioId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[UsuarioId]) END AS Id FROM ref.Usuario r WHERE r.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[OwnerId])) OR r.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[OwnerId]))) fk_AutorUsuarioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.Servicio zref WHERE zref.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[AccountId]))) fk_ServicioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[UsuarioId]) END AS Id FROM ref.Usuario zref WHERE zref.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[OwnerId])) OR zref.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), n.[OwnerId]))) fk_AutorUsuarioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

@@ -74,7 +74,7 @@ BEGIN
                CAST(ISNULL(l.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Leads] l
         LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl.fn_Cedula(l.Legal_ID)
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[UsuarioId]) END AS Id FROM ref.Usuario r WHERE r.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[Owner])) OR r.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[Owner]))) fk_PropietarioUsuarioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[UsuarioId]) END AS Id FROM ref.Usuario zref WHERE zref.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[Owner])) OR zref.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[Owner]))) fk_PropietarioUsuarioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

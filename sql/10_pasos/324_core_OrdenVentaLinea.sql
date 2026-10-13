@@ -74,8 +74,8 @@ BEGIN
                CAST(ISNULL(l.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Sales_Orders_Products] l
         LEFT JOIN core.OrdenVenta ov ON ov.OrdenVentaCrmId = ctl.fn_Texto(l.sales_order)
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ProductoId]) END AS Id FROM core.Producto r WHERE r.[ProductoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[product]))) fk_ProductoId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[OrdenVentaId]) END AS Id FROM core.OrdenVenta r WHERE r.[OrdenVentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[sales_order]))) fk_OrdenVentaId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ProductoId]) END AS Id FROM core.Producto zref WHERE zref.[ProductoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[product])) OR zref.[ItemBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[product]))) fk_ProductoId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[OrdenVentaId]) END AS Id FROM core.OrdenVenta zref WHERE zref.[OrdenVentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[sales_order]))) fk_OrdenVentaId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaDato AS date) ORDER BY t.Fecha DESC) tc
     ) AS q;

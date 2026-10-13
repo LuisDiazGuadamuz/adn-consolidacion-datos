@@ -93,9 +93,9 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), c.[Fecha_Actual])) AS [o_FechaCotizacion],
                CAST(ISNULL(c.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Quotes] c
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ContactoId]) END AS Id FROM core.Contacto r WHERE r.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Contact_Name]))) fk_ContactoId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ServicioId]) END AS Id FROM core.Servicio r WHERE r.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Account_Name]))) fk_ServicioId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[OportunidadId]) END AS Id FROM core.Oportunidad r WHERE r.[OportunidadCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Deal_Name]))) fk_OportunidadId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ContactoId]) END AS Id FROM core.Contacto zref WHERE zref.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Contact_Name]))) fk_ContactoId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.Servicio zref WHERE zref.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Account_Name]))) fk_ServicioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[OportunidadId]) END AS Id FROM core.Oportunidad zref WHERE zref.[OportunidadCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Deal_Name]))) fk_OportunidadId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(COALESCE(q.FechaCotizacion, q.FechaCreacionOrigen) AS date) ORDER BY t.Fecha DESC) tc
     ) AS q;

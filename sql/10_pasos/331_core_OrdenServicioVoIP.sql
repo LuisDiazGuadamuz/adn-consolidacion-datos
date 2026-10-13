@@ -61,7 +61,7 @@ BEGIN
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), v.[Tag])) AS [Tag], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Created_By])) AS [Created_By], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Layout])) AS [Layout], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Contrato])) AS [Contrato], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Cliente])) AS [Cliente], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Unsubscribed_Mode])) AS [Unsubscribed_Mode], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Last_Activity_Time])) AS [Last_Activity_Time], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Proveedor_IPTV])) AS [Proveedor_IPTV], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Descripci_n])) AS [Descripci_n], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Contacto_1])) AS [Contacto_1], ctl.fn_Texto(CONVERT(nvarchar(max), v.[Owner])) AS [Owner] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos],
                CAST(ISNULL(v.[deleted], 0) AS int) AS [o_Eliminado]
         FROM Zoho_Mirror.dbo.[Orden_de_Servicio_Voz_IP] v
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ServicioId]) END AS Id FROM core.Servicio r WHERE r.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), v.[N_mero_Circuito]))) fk_ServicioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.Servicio zref WHERE zref.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), v.[N_mero_Circuito]))) fk_ServicioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

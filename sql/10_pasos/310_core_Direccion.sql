@@ -39,7 +39,7 @@ BEGIN
                fk_DistritoId_0.Id AS [DistritoId],
                ctl.fn_Texto(CONVERT(nvarchar(400), d.[district_id])) AS [o_DistritoId]
         FROM ADNPayV2.dbo.[AddressMain] d
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[DistritoId]) END AS Id FROM ref.Distrito r WHERE r.FuenteBase = N'ADNPayV2' AND r.FuenteLlave = ctl.fn_Texto(CONVERT(nvarchar(max), d.[district_id]))) fk_DistritoId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[DistritoId]) END AS Id FROM ref.Distrito zref WHERE zref.FuenteBase = N'ADNPayV2' AND zref.FuenteLlave = ctl.fn_Texto(CONVERT(nvarchar(max), d.[district_id]))) fk_DistritoId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

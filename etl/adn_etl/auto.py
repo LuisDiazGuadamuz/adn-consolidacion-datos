@@ -32,7 +32,11 @@ BUSQUEDA = {
     "core.Cotizacion": ("CotizacionId", ["CotizacionCrmId"]),
     "core.OrdenVenta": ("OrdenVentaId", ["OrdenVentaCrmId"]),
     "core.Caso": ("CasoId", ["CasoCrmId"]),
-    "core.Producto": ("ProductoId", ["ProductoCrmId"]),
+    "core.Producto": ("ProductoId", ["ProductoCrmId", "ItemBooksId"]),
+    "core.CuentaBancaria": ("CuentaBancariaId", ["CuentaBooksId"]),
+    "core.Proveedor": ("ProveedorId", ["ContactoBooksId"]),
+    "core.Factura": ("FacturaId", ["FacturaBooksId"]),
+    "core.Pago": ("PagoId", ["PagoBooksId"]),
     "core.Nodo": ("NodoId", ["NodoCrmId", "Nombre"]),
     "core.Condominio": ("CondominioId", ["CondominioCrmId", "Nombre"]),
     "ref.Impuesto": ("ImpuestoId", ["ImpuestoBooksId", "Nombre"]),
@@ -108,7 +112,7 @@ def _destinos(texto, cols_modelo):
 def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, override=None, omitir=(), extra_from="",
                 where="", llave=None, fecha_dato=None, fecha_tc=None, moneda=None, descripcion="", depende=None,
                 reglas_extra=(), filtros_extra=(), anomalias_extra=(), auxiliares_extra=None, preparacion="",
-                excluir_atributos=(), clave=None, dedup=True, solo_actualizar=False, fuente_tabla=None):
+                excluir_atributos=(), clave=None, dedup=True, solo_actualizar=False, fuente_tabla=None, llave_expr=None):
     """Arma un Paso desde la matriz.
 
     override: {columna_modelo: expresión T-SQL sobre el alias de origen} (reemplaza o agrega columnas)
@@ -121,19 +125,22 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
     t = modelo.TABLAS[destino]
     cols_modelo = {c["name"]: c for c in t["cols"]}
     pk = t.get("pkcol") or next(c["name"] for c in t["cols"] if c.get("pk"))
-    filas = [r for r in de_tabla(base, tabla) if r["Disposicion"] == "Mapeada" and destino in r["TablaDestino"]]
+    filas = [r for r in de_tabla(base, tabla) if r["Disposicion"] == "Mapeada"
+             and destino in [x.strip() for x in r["TablaDestino"].split("/")]]
     eliminado = any(r["Disposicion"] == "Filtro de carga" and r["ColumnaOrigen"].lower() == "deleted"
                     for r in de_tabla(base, tabla))
 
     sel = {}            # columna del modelo → expresión
     fuentes = {}        # columna del modelo → (expresión original de texto, tipo origen)
+    crc_directo = {}    # XCRC → expresión, cuando el origen ya trae el monto en moneda base (bcy_*, D5)
     fks = {}            # columna fk → lista de (expresión del valor, columna de origen)
     reglas = set(reglas_extra) | {"IN-05"}
     llave_src = llave
     for r in filas:
         col_o, tipo_o = r["ColumnaOrigen"], r["TipoOrigen"]
         x = _src(alias, col_o, tipo_o)
-        for d in _destinos(r["ColumnaDestino"], cols_modelo):
+        dests = _destinos(r["ColumnaDestino"], cols_modelo)
+        for d in dests:
             if d == "FuenteLlave":
                 if llave_src is None:
                     llave_src = col_o
@@ -141,6 +148,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
             if d in omitir or d in override or d == pk:
                 continue
             if d.endswith("CRC") and d[:-3] in cols_modelo:     # el equivalente en colones se calcula (D5)
+                if len(dests) == 1:                              # ... salvo que el origen lo traiga en moneda base
+                    crc_directo[d] = expresion(d, "decimal(19,4)", x, tipo_o)
                 continue
             c = cols_modelo[d]
             for rg in re.findall(r"[A-Z]{2}-\d{2}|D\d+", r["Regla"] or ""):
@@ -152,6 +161,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
                 continue
             sel[d] = expresion(d, c["type"], x, tipo_o)
             fuentes[d] = (x, tipo_o)
+    if llave_src is None and llave_expr:
+        llave_src = ""
     if llave_src is None:
         raise ValueError(f"{nombre}: la matriz no indica la llave de {base}.{tabla}")
     llave_tipo = next((r["TipoOrigen"] for r in filas if r["ColumnaOrigen"] == llave_src), "nvarchar")
@@ -165,18 +176,25 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
         for i, (x, col_o) in enumerate(orígenes):
             a = f"fk_{d}_{i}"
             v = f"ctl.fn_Texto(CONVERT(nvarchar(max), {x}))"
+            if ref in ("core.Cliente", "core.Servicio") and "custome" in col_o.lower():
+                # registro ligado a un cliente de Books/ADNPayV2: se resuelve por la tabla de correspondencia (ID-04, ID-06)
+                pkr = "ClienteId" if ref == "core.Cliente" else "ServicioId"
+                applies.append(f"OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[{pkr}]) = 1 THEN MIN(zref.[{pkr}]) END AS Id "
+                               f"FROM core.ClienteOrigen zref WHERE zref.Sistema = '{sistema}' AND zref.LlaveOrigen = {v}) {a}")
+                partes.append(f"{a}.Id")
+                continue
             if ref == "core.Servicio" and "ircuit" in col_o:
-                cond = f"r.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), {x}))"
+                cond = f"zref.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), {x}))"
                 pkr = "ServicioId"
             elif ref in ("core.Direccion", "ref.Distrito"):          # catálogos de ADNPayV2: por su llave de origen
-                cond = f"r.FuenteBase = N'ADNPayV2' AND r.FuenteLlave = {v}"
+                cond = f"zref.FuenteBase = N'ADNPayV2' AND zref.FuenteLlave = {v}"
                 pkr = modelo.TABLAS[ref].get("pkcol") or next(c["name"] for c in modelo.TABLAS[ref]["cols"] if c.get("pk"))
             elif ref in BUSQUEDA:
                 pkr, claves = BUSQUEDA[ref]
-                cond = " OR ".join(f"r.[{k}] = {v}" for k in claves)
+                cond = " OR ".join(f"zref.[{k}] = {v}" for k in claves)
             else:
                 continue
-            applies.append(f"OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[{pkr}]) END AS Id FROM {ref} r WHERE {cond}) {a}")
+            applies.append(f"OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[{pkr}]) END AS Id FROM {ref} zref WHERE {cond}) {a}")
             partes.append(f"{a}.Id")
         if not partes:
             continue
@@ -227,10 +245,12 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
 
     ft = fuente_tabla or tabla
     fdato = fecha_dato or ("FechaCreacionOrigen" if "FechaCreacionOrigen" in sel else None)
+    llave_sql = llave_expr or f"ctl.fn_Texto(CONVERT(nvarchar(200), {_src(alias, llave_src, llave_tipo)}))"
     lineas = [f"'{sistema}' AS FuenteSistema", f"N'{base}' AS FuenteBase", f"N'{ft}' AS FuenteTabla",
-              f"ctl.fn_Texto(CONVERT(nvarchar(200), {_src(alias, llave_src, llave_tipo)})) AS FuenteLlave",
+              f"{llave_sql} AS FuenteLlave",
               (f"{sel[fdato]} AS FechaDato" if fdato in sel else (f"{fdato} AS FechaDato" if fdato else "CAST(NULL AS datetimeoffset(0)) AS FechaDato"))]
     lineas += [f"{e} AS [{c}]" for c, e in sel.items()]
+    lineas += [f"{e} AS [d_{c}]" for c, e in crc_directo.items()]
     interno = "SELECT " + ",\n       ".join(lineas) + f"\nFROM {base}.dbo.[{tabla}] {alias}"
     if extra_from:
         interno += "\n" + extra_from.strip()
@@ -244,8 +264,15 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
         f_tc = fecha_tc or ("q.FechaCreacionOrigen" if "FechaCreacionOrigen" in sel else "q.FechaDato")
         ext = ["q.*", "CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio"]
         for c in pares:
-            ext.append(f"CASE q.Moneda WHEN 'CRC' THEN q.[{c}] WHEN 'USD' THEN CAST(q.[{c}] * tc.Venta AS decimal(19,4)) END AS [{c}CRC]")
+            calc = f"CASE q.Moneda WHEN 'CRC' THEN q.[{c}] WHEN 'USD' THEN CAST(q.[{c}] * tc.Venta AS decimal(19,4)) END"
+            if c + "CRC" in crc_directo:      # el valor contable de Books en moneda base manda; el cálculo solo si falta
+                calc = f"COALESCE(q.[d_{c}CRC], {calc})"
+            ext.append(f"{calc} AS [{c}CRC]")
             columnas.append(c + "CRC")
+        for c, e in crc_directo.items():      # monto en colones sin su par en moneda original
+            if c[:-3] not in pares:
+                ext.append(f"q.[d_{c}] AS [{c}]")
+                columnas.append(c)
         columnas.append("TipoCambio")
         select = ("SELECT " + ",\n       ".join(ext) + "\nFROM (\n" + interno + "\n) q\n"
                   f"OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST({f_tc} AS date) ORDER BY t.Fecha DESC) tc")

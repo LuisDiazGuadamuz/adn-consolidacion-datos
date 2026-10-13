@@ -56,7 +56,7 @@ BEGIN
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), c.[referred_dat])) AS [referred_dat] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos]
         FROM ADNPayV2.dbo.[CustomerProspect] c
         LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl.fn_Cedula(c.id_card)
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[DireccionId]) END AS Id FROM core.Direccion r WHERE r.FuenteBase = N'ADNPayV2' AND r.FuenteLlave = ctl.fn_Texto(CONVERT(nvarchar(max), c.[address_id]))) fk_DireccionId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[DireccionId]) END AS Id FROM core.Direccion zref WHERE zref.FuenteBase = N'ADNPayV2' AND zref.FuenteLlave = ctl.fn_Texto(CONVERT(nvarchar(max), c.[address_id]))) fk_DireccionId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

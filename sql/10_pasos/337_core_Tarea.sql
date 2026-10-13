@@ -80,8 +80,8 @@ BEGIN
         OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.OrdenVenta x WHERE x.OrdenVentaCrmId = w.Id) r4
         OUTER APPLY (SELECT MIN(x.ServicioId) AS Id, COUNT(*) AS n FROM core.Cotizacion x WHERE x.CotizacionCrmId = w.Id) r5
         OUTER APPLY (SELECT COUNT(*) AS n FROM core.Prospecto x WHERE x.FuenteSistema = 'ZohoCRM' AND x.FuenteTabla = N'Leads' AND x.FuenteLlave = w.Id) r6
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[ContactoId]) END AS Id FROM core.Contacto r WHERE r.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Who_Id]))) fk_ContactoId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(r.[UsuarioId]) END AS Id FROM ref.Usuario r WHERE r.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a])) OR r.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a]))) fk_AsignadoUsuarioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ContactoId]) END AS Id FROM core.Contacto zref WHERE zref.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Who_Id]))) fk_ContactoId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[UsuarioId]) END AS Id FROM ref.Usuario zref WHERE zref.[ZohoUsuarioId] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a])) OR zref.[NombreCompleto] = ctl.fn_Texto(CONVERT(nvarchar(max), t.[Asignado_a]))) fk_AsignadoUsuarioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
