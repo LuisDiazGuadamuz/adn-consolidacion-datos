@@ -2,7 +2,7 @@ USE ADN_Unificado;
 GO
 /* Paso 410 · core_Factura → core.Factura
    Facturas de Books, depuradas por la versión más reciente (DD-02). Cliente y servicio por la tabla de correspondencia (ID-06). El detalle de líneas va en core.FacturaLinea.
-   Reglas: D5, DD-02, ES-01, ES-02, ES-04, ID-04, ID-06, IN-01, IN-05
+   Reglas: D5, DD-02, ES-01, ES-02, ES-04, ID-04, ID-06, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_Factura @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
@@ -45,8 +45,8 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[FacturaBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ContactoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Numero]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Referencia]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Fecha], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaVencimiento], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Moneda]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sucursal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Total]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Saldo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaUltimoPago], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Vendedor]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CargoEnvio]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Ajuste]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoCancelado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TotalCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[SaldoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AjusteCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CargoEnvioCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoCanceladoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoCambio]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
-           q.[o_ClienteId],
-           q.[o_ServicioId],
+           q.[o_ServicioVarios],
+           q.[o_ClienteBooks],
            q.[o_Fecha],
            q.[o_FechaVencimiento],
            q.[o_Total],
@@ -61,12 +61,12 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END AS [TotalCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Saldo] WHEN 'USD' THEN CAST(q.[Saldo] * tc.Venta AS decimal(19,4)) END AS [SaldoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Ajuste] WHEN 'USD' THEN CAST(q.[Ajuste] * tc.Venta AS decimal(19,4)) END AS [AjusteCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[CargoEnvio] WHEN 'USD' THEN CAST(q.[CargoEnvio] * tc.Venta AS decimal(19,4)) END AS [CargoEnvioCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[MontoCancelado] WHEN 'USD' THEN CAST(q.[MontoCancelado] * tc.Venta AS decimal(19,4)) END AS [MontoCanceladoCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Saldo] WHEN 'USD' THEN CAST(q.[Saldo] * tx.Tasa AS decimal(19,4)) END AS [SaldoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Ajuste] WHEN 'USD' THEN CAST(q.[Ajuste] * tx.Tasa AS decimal(19,4)) END AS [AjusteCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[CargoEnvio] WHEN 'USD' THEN CAST(q.[CargoEnvio] * tx.Tasa AS decimal(19,4)) END AS [CargoEnvioCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[MontoCancelado] WHEN 'USD' THEN CAST(q.[MontoCancelado] * tx.Tasa AS decimal(19,4)) END AS [MontoCanceladoCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -91,10 +91,10 @@ BEGIN
                ctl.fn_Monto(CONVERT(nvarchar(60), f.[shipping_charge])) AS [CargoEnvio],
                ctl.fn_Monto(CONVERT(nvarchar(60), f.[adjustment])) AS [Ajuste],
                ctl.fn_Monto(CONVERT(nvarchar(60), f.[write_off_amount])) AS [MontoCancelado],
-               fk_ClienteId_0.Id AS [ClienteId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), f.[customer_id])) AS [o_ClienteId],
-               fk_ServicioId_0.Id AS [ServicioId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), f.[customer_id])) AS [o_ServicioId],
+               co.ClienteId AS [ClienteId],
+               COALESCE(co.ServicioId, CASE WHEN sc.n = 1 THEN sc.ServicioId END) AS [ServicioId],
+               CASE WHEN co.ServicioId IS NULL AND sc.n > 1 THEN ctl.fn_Texto(f.customer_id) END AS [o_ServicioVarios],
+               CASE WHEN co.ClienteId IS NULL THEN ctl.fn_Texto(f.customer_id) END AS [o_ClienteBooks],
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[date])) AS [o_Fecha],
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[due_date])) AS [o_FechaVencimiento],
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[total])) AS [o_Total],
@@ -105,12 +105,16 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[shipping_charge])) AS [o_CargoEnvio],
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[adjustment])) AS [o_Ajuste],
                ctl.fn_Texto(CONVERT(nvarchar(400), f.[write_off_amount])) AS [o_MontoCancelado],
-               NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), f.[ach_payment_initiated])) AS [ach_payment_initiated], ctl.fn_Texto(CONVERT(nvarchar(max), f.[zcrm_potential_name])) AS [zcrm_potential_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[company_name])) AS [company_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[color_code])) AS [color_code], ctl.fn_Texto(CONVERT(nvarchar(max), f.[current_sub_status])) AS [current_sub_status], ctl.fn_Texto(CONVERT(nvarchar(max), f.[due_days])) AS [due_days], ctl.fn_Texto(CONVERT(nvarchar(max), f.[currency_id])) AS [currency_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[email])) AS [email], ctl.fn_Texto(CONVERT(nvarchar(max), f.[currency_symbol])) AS [currency_symbol], ctl.fn_Texto(CONVERT(nvarchar(max), f.[template_type])) AS [template_type], ctl.fn_Texto(CONVERT(nvarchar(max), f.[no_of_copies])) AS [no_of_copies], ctl.fn_Texto(CONVERT(nvarchar(max), f.[show_no_of_copies])) AS [show_no_of_copies], ctl.fn_Texto(CONVERT(nvarchar(max), f.[is_viewed_by_client])) AS [is_viewed_by_client], ctl.fn_Texto(CONVERT(nvarchar(max), f.[has_attachment])) AS [has_attachment], ctl.fn_Texto(CONVERT(nvarchar(max), f.[client_viewed_time])) AS [client_viewed_time], ctl.fn_Texto(CONVERT(nvarchar(max), f.[invoice_url])) AS [invoice_url], ctl.fn_Texto(CONVERT(nvarchar(max), f.[project_name])) AS [project_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[branch_id])) AS [branch_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[billing_address])) AS [billing_address], ctl.fn_Texto(CONVERT(nvarchar(max), f.[shipping_address])) AS [shipping_address], ctl.fn_Texto(CONVERT(nvarchar(max), f.[country])) AS [country], ctl.fn_Texto(CONVERT(nvarchar(max), f.[phone])) AS [phone], ctl.fn_Texto(CONVERT(nvarchar(max), f.[created_by])) AS [created_by], ctl.fn_Texto(CONVERT(nvarchar(max), f.[updated_time])) AS [updated_time], ctl.fn_Texto(CONVERT(nvarchar(max), f.[transaction_type])) AS [transaction_type], ctl.fn_Texto(CONVERT(nvarchar(max), f.[is_emailed])) AS [is_emailed], ctl.fn_Texto(CONVERT(nvarchar(max), f.[reminders_sent])) AS [reminders_sent], ctl.fn_Texto(CONVERT(nvarchar(max), f.[last_reminder_sent_date])) AS [last_reminder_sent_date], ctl.fn_Texto(CONVERT(nvarchar(max), f.[custom_fields])) AS [custom_fields], ctl.fn_Texto(CONVERT(nvarchar(max), f.[cf_envio_facturas_unformatted])) AS [cf_envio_facturas_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[cf_ship_date_unformatted])) AS [cf_ship_date_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_cf_tipo_fiscal_unformatted])) AS [customer_cf_tipo_fiscal_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_cf_exonerado_unformatted])) AS [customer_cf_exonerado_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[template_id])) AS [template_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[documents])) AS [documents], ctl.fn_Texto(CONVERT(nvarchar(max), f.[salesperson_id])) AS [salesperson_id] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos]
+               NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), f.[ach_payment_initiated])) AS [ach_payment_initiated], ctl.fn_Texto(CONVERT(nvarchar(max), f.[zcrm_potential_name])) AS [zcrm_potential_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[company_name])) AS [company_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[color_code])) AS [color_code], ctl.fn_Texto(CONVERT(nvarchar(max), f.[current_sub_status])) AS [current_sub_status], ctl.fn_Texto(CONVERT(nvarchar(max), f.[due_days])) AS [due_days], ctl.fn_Texto(CONVERT(nvarchar(max), f.[currency_id])) AS [currency_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[email])) AS [email], ctl.fn_Texto(CONVERT(nvarchar(max), f.[currency_symbol])) AS [currency_symbol], ctl.fn_Texto(CONVERT(nvarchar(max), f.[template_type])) AS [template_type], ctl.fn_Texto(CONVERT(nvarchar(max), f.[no_of_copies])) AS [no_of_copies], ctl.fn_Texto(CONVERT(nvarchar(max), f.[show_no_of_copies])) AS [show_no_of_copies], ctl.fn_Texto(CONVERT(nvarchar(max), f.[is_viewed_by_client])) AS [is_viewed_by_client], ctl.fn_Texto(CONVERT(nvarchar(max), f.[has_attachment])) AS [has_attachment], ctl.fn_Texto(CONVERT(nvarchar(max), f.[client_viewed_time])) AS [client_viewed_time], ctl.fn_Texto(CONVERT(nvarchar(max), f.[invoice_url])) AS [invoice_url], ctl.fn_Texto(CONVERT(nvarchar(max), f.[project_name])) AS [project_name], ctl.fn_Texto(CONVERT(nvarchar(max), f.[branch_id])) AS [branch_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[billing_address])) AS [billing_address], ctl.fn_Texto(CONVERT(nvarchar(max), f.[shipping_address])) AS [shipping_address], ctl.fn_Texto(CONVERT(nvarchar(max), f.[country])) AS [country], ctl.fn_Texto(CONVERT(nvarchar(max), f.[phone])) AS [phone], ctl.fn_Texto(CONVERT(nvarchar(max), f.[created_by])) AS [created_by], ctl.fn_Texto(CONVERT(nvarchar(max), f.[updated_time])) AS [updated_time], ctl.fn_Texto(CONVERT(nvarchar(max), f.[transaction_type])) AS [transaction_type], ctl.fn_Texto(CONVERT(nvarchar(max), f.[is_emailed])) AS [is_emailed], ctl.fn_Texto(CONVERT(nvarchar(max), f.[reminders_sent])) AS [reminders_sent], ctl.fn_Texto(CONVERT(nvarchar(max), f.[last_reminder_sent_date])) AS [last_reminder_sent_date], ctl.fn_Texto(CONVERT(nvarchar(max), f.[custom_fields])) AS [custom_fields], ctl.fn_Texto(CONVERT(nvarchar(max), f.[cf_envio_facturas_unformatted])) AS [cf_envio_facturas_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[cf_ship_date_unformatted])) AS [cf_ship_date_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_cf_tipo_fiscal_unformatted])) AS [customer_cf_tipo_fiscal_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_cf_exonerado_unformatted])) AS [customer_cf_exonerado_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), f.[template_id])) AS [template_id], ctl.fn_Texto(CONVERT(nvarchar(max), f.[documents])) AS [documents], ctl.fn_Texto(CONVERT(nvarchar(max), f.[salesperson_id])) AS [salesperson_id] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos],
+               TRY_CONVERT(decimal(19,6), TRY_CONVERT(decimal(19,6), ctl.fn_PrimerNumero(CONVERT(nvarchar(255), f.[exchange_rate])))) AS [d_TipoCambio]
         FROM ZBooks_Mirror.dbo.[invoices] f
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ClienteId]) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_id]))) fk_ClienteId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ServicioId]) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), f.[customer_id]))) fk_ServicioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                            CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+                     FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(f.customer_id)) co
+        OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.Fecha AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, CASE WHEN q.d_TipoCambio > 1 THEN q.d_TipoCambio END) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
@@ -184,13 +188,13 @@ BEGIN
     FROM #src s JOIN core.Factura t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Factura', t.[FacturaId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteId), 400), N'Referencia sin correspondencia única en core.Cliente'
+    SELECT @LoteId, 'IN-01', N'core.Factura', t.[FacturaId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioVarios), 400), N'Cliente con varios servicios: el documento de Books no indica a cuál corresponde (ID-03)'
     FROM #src s JOIN core.Factura t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ClienteId IS NOT NULL AND s.[ClienteId] IS NULL;
+    WHERE s.o_ServicioVarios IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Factura', t.[FacturaId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioId), 400), N'Referencia sin correspondencia única en core.Servicio'
+    SELECT @LoteId, 'IN-01', N'core.Factura', t.[FacturaId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteBooks), 400), N'Contacto de Books sin correspondencia en core.ClienteOrigen'
     FROM #src s JOIN core.Factura t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ServicioId IS NOT NULL AND s.[ServicioId] IS NULL;
+    WHERE s.o_ClienteBooks IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ES-02', N'core.Factura', t.[FacturaId], N'Fecha', LEFT(CONVERT(nvarchar(400), s.o_Fecha), 400), N'Fecha ilegible o ficticia; se conserva el texto original'
     FROM #src s JOIN core.Factura t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

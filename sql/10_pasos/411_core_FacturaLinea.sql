@@ -38,9 +38,9 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitario] WHEN 'USD' THEN CAST(q.[PrecioUnitario] * tc.Venta AS decimal(19,4)) END AS [PrecioUnitarioCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END AS [TotalCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitario] WHEN 'USD' THEN CAST(q.[PrecioUnitario] * tx.Tasa AS decimal(19,4)) END AS [PrecioUnitarioCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -59,13 +59,15 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[item_id])) AS [o_ProductoId],
                f.Moneda AS [Moneda],
                ctl.fn_Texto(CONVERT(nvarchar(400), l.[rate])) AS [o_PrecioUnitario],
-               ctl.fn_Texto(CONVERT(nvarchar(400), l.[total])) AS [o_Total]
+               ctl.fn_Texto(CONVERT(nvarchar(400), l.[total])) AS [o_Total],
+               TRY_CONVERT(decimal(19,6), f.TipoCambio) AS [d_TipoCambio]
         FROM ZBooks_Mirror.dbo.[invoices_items] l
         LEFT JOIN core.Factura f ON f.FacturaBooksId = ctl.fn_Texto(l.invoice_id)
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[FacturaId]) END AS Id FROM core.Factura zref WHERE zref.[FacturaBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[invoice_id]))) fk_FacturaId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ProductoId]) END AS Id FROM core.Producto zref WHERE zref.[ProductoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[item_id])) OR zref.[ItemBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[item_id]))) fk_ProductoId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaDato AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, CASE WHEN q.d_TipoCambio > 1 THEN q.d_TipoCambio END) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

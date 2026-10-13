@@ -44,11 +44,11 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitario] WHEN 'USD' THEN CAST(q.[PrecioUnitario] * tc.Venta AS decimal(19,4)) END AS [PrecioUnitarioCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Descuento] WHEN 'USD' THEN CAST(q.[Descuento] * tc.Venta AS decimal(19,4)) END AS [DescuentoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Impuesto] WHEN 'USD' THEN CAST(q.[Impuesto] * tc.Venta AS decimal(19,4)) END AS [ImpuestoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END AS [TotalCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitario] WHEN 'USD' THEN CAST(q.[PrecioUnitario] * tx.Tasa AS decimal(19,4)) END AS [PrecioUnitarioCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Descuento] WHEN 'USD' THEN CAST(q.[Descuento] * tx.Tasa AS decimal(19,4)) END AS [DescuentoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Impuesto] WHEN 'USD' THEN CAST(q.[Impuesto] * tx.Tasa AS decimal(19,4)) END AS [ImpuestoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC]
         FROM (
         SELECT 'ZohoCRM' AS FuenteSistema,
                N'Zoho_Mirror' AS FuenteBase,
@@ -78,6 +78,7 @@ BEGIN
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[OrdenVentaId]) END AS Id FROM core.OrdenVenta zref WHERE zref.[OrdenVentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), l.[sales_order]))) fk_OrdenVentaId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaDato AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

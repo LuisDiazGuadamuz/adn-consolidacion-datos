@@ -37,9 +37,9 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               COALESCE(q.[d_SaldoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Saldo] WHEN 'USD' THEN CAST(q.[Saldo] * tc.Venta AS decimal(19,4)) END) AS [SaldoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[SaldoBanco] WHEN 'USD' THEN CAST(q.[SaldoBanco] * tc.Venta AS decimal(19,4)) END AS [SaldoBancoCRC]
+               tx.Tasa AS TipoCambio,
+               COALESCE(q.[d_SaldoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Saldo] WHEN 'USD' THEN CAST(q.[Saldo] * tx.Tasa AS decimal(19,4)) END) AS [SaldoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[SaldoBanco] WHEN 'USD' THEN CAST(q.[SaldoBanco] * tx.Tasa AS decimal(19,4)) END AS [SaldoBancoCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -62,6 +62,7 @@ BEGIN
         FROM ZBooks_Mirror.dbo.[bankaccounts] b
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaDato AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

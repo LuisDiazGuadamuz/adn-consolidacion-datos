@@ -54,11 +54,11 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[SubTotal] WHEN 'USD' THEN CAST(q.[SubTotal] * tc.Venta AS decimal(19,4)) END AS [SubTotalCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Impuesto] WHEN 'USD' THEN CAST(q.[Impuesto] * tc.Venta AS decimal(19,4)) END AS [ImpuestoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Descuento] WHEN 'USD' THEN CAST(q.[Descuento] * tc.Venta AS decimal(19,4)) END AS [DescuentoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END AS [TotalCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[SubTotal] WHEN 'USD' THEN CAST(q.[SubTotal] * tx.Tasa AS decimal(19,4)) END AS [SubTotalCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Impuesto] WHEN 'USD' THEN CAST(q.[Impuesto] * tx.Tasa AS decimal(19,4)) END AS [ImpuestoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Descuento] WHEN 'USD' THEN CAST(q.[Descuento] * tx.Tasa AS decimal(19,4)) END AS [DescuentoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC]
         FROM (
         SELECT 'ZohoCRM' AS FuenteSistema,
                N'Zoho_Mirror' AS FuenteBase,
@@ -91,13 +91,15 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), c.[Grand_Total])) AS [o_Total],
                ctl.fn_Texto(CONVERT(nvarchar(400), c.[Tax])) AS [o_Impuesto],
                ctl.fn_Texto(CONVERT(nvarchar(400), c.[Fecha_Actual])) AS [o_FechaCotizacion],
-               CAST(ISNULL(c.[deleted], 0) AS int) AS [o_Eliminado]
+               CAST(ISNULL(c.[deleted], 0) AS int) AS [o_Eliminado],
+               TRY_CONVERT(decimal(19,6), TRY_CONVERT(decimal(19,6), ctl.fn_PrimerNumero(CONVERT(nvarchar(255), c.[Exchange_Rate])))) AS [d_TipoCambio]
         FROM Zoho_Mirror.dbo.[Quotes] c
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ContactoId]) END AS Id FROM core.Contacto zref WHERE zref.[ContactoCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Contact_Name]))) fk_ContactoId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.Servicio zref WHERE zref.[CuentaCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Account_Name]))) fk_ServicioId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[OportunidadId]) END AS Id FROM core.Oportunidad zref WHERE zref.[OportunidadCrmId] = ctl.fn_Texto(CONVERT(nvarchar(max), c.[Deal_Name]))) fk_OportunidadId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(COALESCE(q.FechaCotizacion, q.FechaCreacionOrigen) AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, CASE WHEN q.d_TipoCambio > 1 THEN q.d_TipoCambio END) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

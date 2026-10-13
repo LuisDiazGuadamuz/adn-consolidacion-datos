@@ -112,7 +112,8 @@ def _destinos(texto, cols_modelo):
 def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, override=None, omitir=(), extra_from="",
                 where="", llave=None, fecha_dato=None, fecha_tc=None, moneda=None, descripcion="", depende=None,
                 reglas_extra=(), filtros_extra=(), anomalias_extra=(), auxiliares_extra=None, preparacion="",
-                excluir_atributos=(), clave=None, dedup=True, solo_actualizar=False, fuente_tabla=None, llave_expr=None):
+                excluir_atributos=(), clave=None, dedup=True, solo_actualizar=False, fuente_tabla=None, llave_expr=None,
+                tc_respaldo=None):
     """Arma un Paso desde la matriz.
 
     override: {columna_modelo: expresión T-SQL sobre el alias de origen} (reemplaza o agrega columnas)
@@ -235,7 +236,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
     # Montos y su equivalente en colones (D5)
     pares = [c for c in cols_modelo if c + "CRC" in cols_modelo and c in sel]
     tiene_tc = "TipoCambio" in cols_modelo and "Moneda" in sel
-    sel.pop("TipoCambio", None)
+    tc_origen = sel.pop("TipoCambio", None)          # tipo de cambio que trae el origen: solo respaldo (D5)
+    tc_resp = tc_respaldo or tc_origen
     filtros = list(filtros_extra)
     if eliminado and not solo_actualizar:
         sel["o_Eliminado"] = f"CAST(ISNULL({alias}.[deleted], 0) AS int)"
@@ -251,6 +253,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
               (f"{sel[fdato]} AS FechaDato" if fdato in sel else (f"{fdato} AS FechaDato" if fdato else "CAST(NULL AS datetimeoffset(0)) AS FechaDato"))]
     lineas += [f"{e} AS [{c}]" for c, e in sel.items()]
     lineas += [f"{e} AS [d_{c}]" for c, e in crc_directo.items()]
+    if tc_resp and tiene_tc and pares:
+        lineas.append(f"TRY_CONVERT(decimal(19,6), {tc_resp}) AS [d_TipoCambio]")
     interno = "SELECT " + ",\n       ".join(lineas) + f"\nFROM {base}.dbo.[{tabla}] {alias}"
     if extra_from:
         interno += "\n" + extra_from.strip()
@@ -262,9 +266,10 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
     columnas = [c for c in sel if c in cols_modelo]
     if tiene_tc and pares:
         f_tc = fecha_tc or ("q.FechaCreacionOrigen" if "FechaCreacionOrigen" in sel else "q.FechaDato")
-        ext = ["q.*", "CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio"]
+        resp = "CASE WHEN q.d_TipoCambio > 1 THEN q.d_TipoCambio END" if tc_resp else "NULL"
+        ext = ["q.*", "tx.Tasa AS TipoCambio"]
         for c in pares:
-            calc = f"CASE q.Moneda WHEN 'CRC' THEN q.[{c}] WHEN 'USD' THEN CAST(q.[{c}] * tc.Venta AS decimal(19,4)) END"
+            calc = f"CASE q.Moneda WHEN 'CRC' THEN q.[{c}] WHEN 'USD' THEN CAST(q.[{c}] * tx.Tasa AS decimal(19,4)) END"
             if c + "CRC" in crc_directo:      # el valor contable de Books en moneda base manda; el cálculo solo si falta
                 calc = f"COALESCE(q.[d_{c}CRC], {calc})"
             ext.append(f"{calc} AS [{c}CRC]")
@@ -275,7 +280,9 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
                 columnas.append(c)
         columnas.append("TipoCambio")
         select = ("SELECT " + ",\n       ".join(ext) + "\nFROM (\n" + interno + "\n) q\n"
-                  f"OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST({f_tc} AS date) ORDER BY t.Fecha DESC) tc")
+                  f"OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST({f_tc} AS date) ORDER BY t.Fecha DESC) tc\n"
+                  f"CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) "
+                  f"WHEN 'USD' THEN COALESCE(tc.Venta, {resp}) END AS Tasa) tx")
         reglas.add("D5")
     else:
         select = interno

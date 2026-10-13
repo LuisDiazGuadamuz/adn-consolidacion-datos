@@ -45,8 +45,8 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END AS [TotalCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -78,6 +78,7 @@ BEGIN
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ProveedorId]) END AS Id FROM core.Proveedor zref WHERE zref.[ContactoBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), o.[vendor_id]))) fk_ProveedorId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(COALESCE(q.Fecha, CAST(q.FechaCreacionOrigen AS date)) AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

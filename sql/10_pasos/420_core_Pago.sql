@@ -41,9 +41,9 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[PagoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Numero]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Fecha], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MedioPago]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Monto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoNoAplicado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Referencia]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sucursal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ContactoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ImpuestoRetenido]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CuentaBancariaId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Moneda]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoNoAplicadoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ImpuestoRetenidoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoReembolsadoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoCambio]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           q.[o_ServicioVarios],
+           q.[o_ClienteBooks],
            q.[o_CuentaBancariaId],
-           q.[o_ClienteId],
-           q.[o_ServicioId],
            q.[o_Fecha],
            q.[o_Monto],
            q.[o_MontoNoAplicado],
@@ -54,10 +54,10 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               COALESCE(q.[d_MontoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Monto] WHEN 'USD' THEN CAST(q.[Monto] * tc.Venta AS decimal(19,4)) END) AS [MontoCRC],
-               COALESCE(q.[d_MontoNoAplicadoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[MontoNoAplicado] WHEN 'USD' THEN CAST(q.[MontoNoAplicado] * tc.Venta AS decimal(19,4)) END) AS [MontoNoAplicadoCRC],
-               CASE q.Moneda WHEN 'CRC' THEN q.[ImpuestoRetenido] WHEN 'USD' THEN CAST(q.[ImpuestoRetenido] * tc.Venta AS decimal(19,4)) END AS [ImpuestoRetenidoCRC],
+               tx.Tasa AS TipoCambio,
+               COALESCE(q.[d_MontoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Monto] WHEN 'USD' THEN CAST(q.[Monto] * tx.Tasa AS decimal(19,4)) END) AS [MontoCRC],
+               COALESCE(q.[d_MontoNoAplicadoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[MontoNoAplicado] WHEN 'USD' THEN CAST(q.[MontoNoAplicado] * tx.Tasa AS decimal(19,4)) END) AS [MontoNoAplicadoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[ImpuestoRetenido] WHEN 'USD' THEN CAST(q.[ImpuestoRetenido] * tx.Tasa AS decimal(19,4)) END AS [ImpuestoRetenidoCRC],
                q.[d_MontoReembolsadoCRC] AS [MontoReembolsadoCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
@@ -80,10 +80,10 @@ BEGIN
                ctl.fn_Monto(CONVERT(nvarchar(60), p.[tax_amount_withheld])) AS [ImpuestoRetenido],
                fk_CuentaBancariaId_0.Id AS [CuentaBancariaId],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[account_id])) AS [o_CuentaBancariaId],
-               fk_ClienteId_0.Id AS [ClienteId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), p.[customer_id])) AS [o_ClienteId],
-               fk_ServicioId_0.Id AS [ServicioId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), p.[customer_id])) AS [o_ServicioId],
+               co.ClienteId AS [ClienteId],
+               COALESCE(co.ServicioId, CASE WHEN sc.n = 1 THEN sc.ServicioId END) AS [ServicioId],
+               CASE WHEN co.ServicioId IS NULL AND sc.n > 1 THEN ctl.fn_Texto(p.customer_id) END AS [o_ServicioVarios],
+               CASE WHEN co.ClienteId IS NULL THEN ctl.fn_Texto(p.customer_id) END AS [o_ClienteBooks],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[date])) AS [o_Fecha],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[amount])) AS [o_Monto],
                ctl.fn_Texto(CONVERT(nvarchar(400), p.[unused_amount])) AS [o_MontoNoAplicado],
@@ -96,11 +96,14 @@ BEGIN
                ctl.fn_Monto(CONVERT(nvarchar(60), p.[bcy_unused_amount])) AS [d_MontoNoAplicadoCRC],
                ctl.fn_Monto(CONVERT(nvarchar(60), p.[bcy_refunded_amount])) AS [d_MontoReembolsadoCRC]
         FROM ZBooks_Mirror.dbo.[customerpayments] p
+        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                            CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+                     FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(p.customer_id)) co
+        OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[CuentaBancariaId]) END AS Id FROM core.CuentaBancaria zref WHERE zref.[CuentaBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), p.[account_id]))) fk_CuentaBancariaId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ClienteId]) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), p.[customer_id]))) fk_ClienteId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ServicioId]) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), p.[customer_id]))) fk_ServicioId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.Fecha AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
@@ -174,17 +177,17 @@ BEGIN
     FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'IN-01', N'core.Pago', t.[PagoId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioVarios), 400), N'Cliente con varios servicios: el documento de Books no indica a cuál corresponde (ID-03)'
+    FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s.o_ServicioVarios IS NOT NULL;
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'IN-01', N'core.Pago', t.[PagoId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteBooks), 400), N'Contacto de Books sin correspondencia en core.ClienteOrigen'
+    FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s.o_ClienteBooks IS NOT NULL;
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'IN-01', N'core.Pago', t.[PagoId], N'CuentaBancariaId', LEFT(CONVERT(nvarchar(400), s.o_CuentaBancariaId), 400), N'Referencia sin correspondencia única en core.CuentaBancaria'
     FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_CuentaBancariaId IS NOT NULL AND s.[CuentaBancariaId] IS NULL;
-    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Pago', t.[PagoId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteId), 400), N'Referencia sin correspondencia única en core.Cliente'
-    FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ClienteId IS NOT NULL AND s.[ClienteId] IS NULL;
-    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.Pago', t.[PagoId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioId), 400), N'Referencia sin correspondencia única en core.Servicio'
-    FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ServicioId IS NOT NULL AND s.[ServicioId] IS NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ES-02', N'core.Pago', t.[PagoId], N'Fecha', LEFT(CONVERT(nvarchar(400), s.o_Fecha), 400), N'Fecha ilegible o ficticia; se conserva el texto original'
     FROM #src s JOIN core.Pago t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

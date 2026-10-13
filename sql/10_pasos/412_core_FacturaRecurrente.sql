@@ -2,7 +2,7 @@ USE ADN_Unificado;
 GO
 /* Paso 412 · core_FacturaRecurrente → core.FacturaRecurrente
    Perfiles de facturación recurrente de Books.
-   Reglas: D5, DD-02, ES-01, ES-02, ES-04, ID-06, IN-01, IN-05
+   Reglas: D5, DD-02, ES-01, ES-02, ES-04, ID-06, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_FacturaRecurrente @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
@@ -36,8 +36,8 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[RecurrenteBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Total]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ContactoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaInicio], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaFin], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaUltimoEnvio], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaProximaFactura], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Frecuencia]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RepetirCada]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Vendedor]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MedioPago]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
-           q.[o_ClienteId],
-           q.[o_ServicioId],
+           q.[o_ServicioVarios],
+           q.[o_ClienteBooks],
            q.[o_Total],
            q.[o_FechaInicio],
            q.[o_FechaFin],
@@ -68,10 +68,10 @@ BEGIN
                ctl.fn_FechaCR(CONVERT(nvarchar(60), r.[last_modified_time])) AS [FechaModificacionOrigen],
                ctl.fn_Texto(CONVERT(nvarchar(max), r.[salesperson_name])) AS [Vendedor],
                ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_medio_de_pago_unformatted])) AS [MedioPago],
-               fk_ClienteId_0.Id AS [ClienteId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), r.[customer_id])) AS [o_ClienteId],
-               fk_ServicioId_0.Id AS [ServicioId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), r.[customer_id])) AS [o_ServicioId],
+               co.ClienteId AS [ClienteId],
+               COALESCE(co.ServicioId, CASE WHEN sc.n = 1 THEN sc.ServicioId END) AS [ServicioId],
+               CASE WHEN co.ServicioId IS NULL AND sc.n > 1 THEN ctl.fn_Texto(r.customer_id) END AS [o_ServicioVarios],
+               CASE WHEN co.ClienteId IS NULL THEN ctl.fn_Texto(r.customer_id) END AS [o_ClienteBooks],
                ctl.fn_Texto(CONVERT(nvarchar(400), r.[total])) AS [o_Total],
                ctl.fn_Texto(CONVERT(nvarchar(400), r.[start_date])) AS [o_FechaInicio],
                ctl.fn_Texto(CONVERT(nvarchar(400), r.[end_date])) AS [o_FechaFin],
@@ -81,8 +81,10 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), r.[last_modified_time])) AS [o_FechaModificacionOrigen],
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), r.[reference_number])) AS [reference_number], ctl.fn_Texto(CONVERT(nvarchar(max), r.[customer_name])) AS [customer_name], ctl.fn_Texto(CONVERT(nvarchar(max), r.[child_entity_type])) AS [child_entity_type], ctl.fn_Texto(CONVERT(nvarchar(max), r.[salesperson_id])) AS [salesperson_id], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_condici_n_de_venta_unformatted])) AS [cf_condici_n_de_venta_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_actividad_econ_mica_unformatted])) AS [cf_actividad_econ_mica_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_envio_facturas_unformatted])) AS [cf_envio_facturas_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_tipo_id_unformatted])) AS [cf_tipo_id_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_exencion_unformatted])) AS [cf_exencion_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_emisor_exencion_unformatted])) AS [cf_emisor_exencion_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_ship_date_unformatted])) AS [cf_ship_date_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_generado_zm_telefonia_unformatted])) AS [cf_generado_zm_telefonia_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[cf_zm_special_identifier_unformatted])) AS [cf_zm_special_identifier_unformatted], ctl.fn_Texto(CONVERT(nvarchar(max), r.[branch_id])) AS [branch_id], ctl.fn_Texto(CONVERT(nvarchar(max), r.[branch_name])) AS [branch_name] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos]
         FROM ZBooks_Mirror.dbo.[recurringinvoices] r
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ClienteId]) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), r.[customer_id]))) fk_ClienteId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ServicioId]) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), r.[customer_id]))) fk_ServicioId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                            CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+                     FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(r.customer_id)) co
+        OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
@@ -151,13 +153,13 @@ BEGIN
     FROM #src s JOIN core.FacturaRecurrente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.FacturaRecurrente', t.[FacturaRecurrenteId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteId), 400), N'Referencia sin correspondencia única en core.Cliente'
+    SELECT @LoteId, 'IN-01', N'core.FacturaRecurrente', t.[FacturaRecurrenteId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioVarios), 400), N'Cliente con varios servicios: el documento de Books no indica a cuál corresponde (ID-03)'
     FROM #src s JOIN core.FacturaRecurrente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ClienteId IS NOT NULL AND s.[ClienteId] IS NULL;
+    WHERE s.o_ServicioVarios IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.FacturaRecurrente', t.[FacturaRecurrenteId], N'ServicioId', LEFT(CONVERT(nvarchar(400), s.o_ServicioId), 400), N'Referencia sin correspondencia única en core.Servicio'
+    SELECT @LoteId, 'IN-01', N'core.FacturaRecurrente', t.[FacturaRecurrenteId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteBooks), 400), N'Contacto de Books sin correspondencia en core.ClienteOrigen'
     FROM #src s JOIN core.FacturaRecurrente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ServicioId IS NOT NULL AND s.[ServicioId] IS NULL;
+    WHERE s.o_ClienteBooks IS NOT NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ES-04', N'core.FacturaRecurrente', t.[FacturaRecurrenteId], N'Total', LEFT(CONVERT(nvarchar(400), s.o_Total), 400), N'Monto ilegible; se conserva el texto original'
     FROM #src s JOIN core.FacturaRecurrente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

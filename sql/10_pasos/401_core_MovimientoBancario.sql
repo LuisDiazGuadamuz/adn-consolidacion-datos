@@ -1,8 +1,8 @@
 USE ADN_Unificado;
 GO
 /* Paso 401 · core_MovimientoBancario → core.MovimientoBancario
-   Movimientos bancarios de Books. El cliente se liga por la tabla de correspondencia (ID-06).
-   Reglas: D5, DD-02, ES-02, ES-03, ES-04, ID-06, IN-01, IN-05
+   Movimientos bancarios de Books. El cliente se liga por la tabla de correspondencia (ID-06). Los movimientos de proveedores no son anomalía (el contacto es un proveedor de core.Proveedor).
+   Reglas: D5, DD-02, ES-02, ES-03, ES-04, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_MovimientoBancario @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
@@ -36,16 +36,16 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[MovimientoBooksId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Fecha], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Monto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Origen]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Beneficiario]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Moneda]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[DebitoCredito]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Referencia]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoConciliacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Sucursal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CuentaBancariaId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[AtributosExtendidos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[MontoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoCambio]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           q.[o_ClienteBooks],
            q.[o_CuentaBancariaId],
-           q.[o_ClienteId],
            q.[o_Fecha],
            q.[o_Monto],
            CONCAT_WS(N',', CASE WHEN LEN(q.[MovimientoBooksId]) > 30 THEN N'MovimientoBooksId' END, CASE WHEN LEN(q.[Tipo]) > 50 THEN N'Tipo' END, CASE WHEN LEN(q.[Estado]) > 30 THEN N'Estado' END, CASE WHEN LEN(q.[Origen]) > 50 THEN N'Origen' END, CASE WHEN LEN(q.[Beneficiario]) > 200 THEN N'Beneficiario' END, CASE WHEN LEN(q.[Descripcion]) > 1000 THEN N'Descripcion' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CASE WHEN LEN(q.[DebitoCredito]) > 10 THEN N'DebitoCredito' END, CASE WHEN LEN(q.[Referencia]) > 200 THEN N'Referencia' END, CASE WHEN LEN(q.[EstadoConciliacion]) > 30 THEN N'EstadoConciliacion' END, CASE WHEN LEN(q.[Sucursal]) > 100 THEN N'Sucursal' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               CASE q.Moneda WHEN 'CRC' THEN q.[Monto] WHEN 'USD' THEN CAST(q.[Monto] * tc.Venta AS decimal(19,4)) END AS [MontoCRC]
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[Monto] WHEN 'USD' THEN CAST(q.[Monto] * tx.Tasa AS decimal(19,4)) END AS [MontoCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -67,16 +67,18 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(max), m.[branch_name])) AS [Sucursal],
                fk_CuentaBancariaId_0.Id AS [CuentaBancariaId],
                ctl.fn_Texto(CONVERT(nvarchar(400), m.[account_id])) AS [o_CuentaBancariaId],
-               fk_ClienteId_0.Id AS [ClienteId],
-               ctl.fn_Texto(CONVERT(nvarchar(400), m.[customer_id])) AS [o_ClienteId],
+               co.ClienteId AS [ClienteId],
+               CASE WHEN co.ClienteId IS NULL AND NOT EXISTS (SELECT 1 FROM core.Proveedor pv WHERE pv.ContactoBooksId = ctl.fn_Texto(m.customer_id)) THEN ctl.fn_Texto(m.customer_id) END AS [o_ClienteBooks],
                ctl.fn_Texto(CONVERT(nvarchar(400), m.[date])) AS [o_Fecha],
                ctl.fn_Texto(CONVERT(nvarchar(400), m.[amount])) AS [o_Monto],
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), m.[account_name])) AS [account_name], ctl.fn_Texto(CONVERT(nvarchar(max), m.[account_type])) AS [account_type], ctl.fn_Texto(CONVERT(nvarchar(max), m.[price_precision])) AS [price_precision], ctl.fn_Texto(CONVERT(nvarchar(max), m.[is_paid_via_print_check])) AS [is_paid_via_print_check], ctl.fn_Texto(CONVERT(nvarchar(max), m.[currency_id])) AS [currency_id], ctl.fn_Texto(CONVERT(nvarchar(max), m.[currency_symbol])) AS [currency_symbol], ctl.fn_Texto(CONVERT(nvarchar(max), m.[offset_account_name])) AS [offset_account_name], ctl.fn_Texto(CONVERT(nvarchar(max), m.[is_offsetaccount_matched])) AS [is_offsetaccount_matched], ctl.fn_Texto(CONVERT(nvarchar(max), m.[imported_transaction_id])) AS [imported_transaction_id], ctl.fn_Texto(CONVERT(nvarchar(max), m.[is_rule_exist])) AS [is_rule_exist], ctl.fn_Texto(CONVERT(nvarchar(max), m.[rule_details])) AS [rule_details], ctl.fn_Texto(CONVERT(nvarchar(max), m.[exclude_description])) AS [exclude_description], ctl.fn_Texto(CONVERT(nvarchar(max), m.[is_excluded_by_system])) AS [is_excluded_by_system], ctl.fn_Texto(CONVERT(nvarchar(max), m.[branch_id])) AS [branch_id] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos]
         FROM ZBooks_Mirror.dbo.[banktransactions] m
+        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId
+                     FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(m.customer_id)) co
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[CuentaBancariaId]) END AS Id FROM core.CuentaBancaria zref WHERE zref.[CuentaBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), m.[account_id]))) fk_CuentaBancariaId_0
-        OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ClienteId]) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), m.[customer_id]))) fk_ClienteId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.Fecha AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
@@ -145,13 +147,13 @@ BEGIN
     FROM #src s JOIN core.MovimientoBancario t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'IN-01', N'core.MovimientoBancario', t.[MovimientoBancarioId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteBooks), 400), N'Contacto de Books que no es cliente con correspondencia ni proveedor'
+    FROM #src s JOIN core.MovimientoBancario t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s.o_ClienteBooks IS NOT NULL;
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'IN-01', N'core.MovimientoBancario', t.[MovimientoBancarioId], N'CuentaBancariaId', LEFT(CONVERT(nvarchar(400), s.o_CuentaBancariaId), 400), N'Referencia sin correspondencia única en core.CuentaBancaria'
     FROM #src s JOIN core.MovimientoBancario t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_CuentaBancariaId IS NOT NULL AND s.[CuentaBancariaId] IS NULL;
-    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
-    SELECT @LoteId, 'IN-01', N'core.MovimientoBancario', t.[MovimientoBancarioId], N'ClienteId', LEFT(CONVERT(nvarchar(400), s.o_ClienteId), 400), N'Referencia sin correspondencia única en core.Cliente'
-    FROM #src s JOIN core.MovimientoBancario t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
-    WHERE s.o_ClienteId IS NOT NULL AND s.[ClienteId] IS NULL;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ES-02', N'core.MovimientoBancario', t.[MovimientoBancarioId], N'Fecha', LEFT(CONVERT(nvarchar(400), s.o_Fecha), 400), N'Fecha ilegible o ficticia; se conserva el texto original'
     FROM #src s JOIN core.MovimientoBancario t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

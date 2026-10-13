@@ -49,9 +49,9 @@ BEGIN
     INTO #src
     FROM (
         SELECT q.*,
-               CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN tc.Venta END AS TipoCambio,
-               COALESCE(q.[d_TotalCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tc.Venta AS decimal(19,4)) END) AS [TotalCRC],
-               COALESCE(q.[d_TotalSinImpuestoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[TotalSinImpuesto] WHEN 'USD' THEN CAST(q.[TotalSinImpuesto] * tc.Venta AS decimal(19,4)) END) AS [TotalSinImpuestoCRC]
+               tx.Tasa AS TipoCambio,
+               COALESCE(q.[d_TotalCRC], CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END) AS [TotalCRC],
+               COALESCE(q.[d_TotalSinImpuestoCRC], CASE q.Moneda WHEN 'CRC' THEN q.[TotalSinImpuesto] WHEN 'USD' THEN CAST(q.[TotalSinImpuesto] * tx.Tasa AS decimal(19,4)) END) AS [TotalSinImpuestoCRC]
         FROM (
         SELECT 'ZohoBooks' AS FuenteSistema,
                N'ZBooks_Mirror' AS FuenteBase,
@@ -85,12 +85,14 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), e.[last_modified_time])) AS [o_FechaModificacionOrigen],
                NULLIF((SELECT ctl.fn_Texto(CONVERT(nvarchar(max), e.[currency_id])) AS [currency_id], ctl.fn_Texto(CONVERT(nvarchar(max), e.[is_billable])) AS [is_billable], ctl.fn_Texto(CONVERT(nvarchar(max), e.[is_personal])) AS [is_personal], ctl.fn_Texto(CONVERT(nvarchar(max), e.[customer_name])) AS [customer_name], ctl.fn_Texto(CONVERT(nvarchar(max), e.[vendor_name])) AS [vendor_name], ctl.fn_Texto(CONVERT(nvarchar(max), e.[expense_receipt_name])) AS [expense_receipt_name], ctl.fn_Texto(CONVERT(nvarchar(max), e.[distance])) AS [distance], ctl.fn_Texto(CONVERT(nvarchar(max), e.[mileage_rate])) AS [mileage_rate], ctl.fn_Texto(CONVERT(nvarchar(max), e.[mileage_unit])) AS [mileage_unit], ctl.fn_Texto(CONVERT(nvarchar(max), e.[mileage_type])) AS [mileage_type], ctl.fn_Texto(CONVERT(nvarchar(max), e.[expense_type])) AS [expense_type], ctl.fn_Texto(CONVERT(nvarchar(max), e.[report_id])) AS [report_id], ctl.fn_Texto(CONVERT(nvarchar(max), e.[branch_id])) AS [branch_id], ctl.fn_Texto(CONVERT(nvarchar(max), e.[start_reading])) AS [start_reading], ctl.fn_Texto(CONVERT(nvarchar(max), e.[end_reading])) AS [end_reading], ctl.fn_Texto(CONVERT(nvarchar(max), e.[report_name])) AS [report_name], ctl.fn_Texto(CONVERT(nvarchar(max), e.[report_number])) AS [report_number], ctl.fn_Texto(CONVERT(nvarchar(max), e.[has_attachment])) AS [has_attachment], ctl.fn_Texto(CONVERT(nvarchar(max), e.[custom_fields_list])) AS [custom_fields_list] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER), N'{}') AS [AtributosExtendidos],
                ctl.fn_Monto(CONVERT(nvarchar(60), e.[bcy_total])) AS [d_TotalCRC],
-               ctl.fn_Monto(CONVERT(nvarchar(60), e.[bcy_total_without_tax])) AS [d_TotalSinImpuestoCRC]
+               ctl.fn_Monto(CONVERT(nvarchar(60), e.[bcy_total_without_tax])) AS [d_TotalSinImpuestoCRC],
+               TRY_CONVERT(decimal(19,6), TRY_CONVERT(decimal(19,6), ctl.fn_PrimerNumero(CONVERT(nvarchar(255), e.[exchange_rate])))) AS [d_TipoCambio]
         FROM ZBooks_Mirror.dbo.[expenses] e
         OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ClienteId]) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'ZohoBooks' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), e.[customer_id]))) fk_ClienteId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ProveedorId]) END AS Id FROM core.Proveedor zref WHERE zref.[ContactoBooksId] = ctl.fn_Texto(CONVERT(nvarchar(max), e.[vendor_id]))) fk_ProveedorId_0
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.Fecha AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, CASE WHEN q.d_TipoCambio > 1 THEN q.d_TipoCambio END) END AS Tasa) tx
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 

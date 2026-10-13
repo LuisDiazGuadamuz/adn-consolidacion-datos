@@ -13,29 +13,65 @@ from ..paso import Anomalia, Paso
 _B = "ZohoBooks"
 _FECHA_FACTURA = "TODATETIMEOFFSET(CAST(f.Fecha AS datetime2), '-06:00')"
 
+
+def _cliente_servicio(alias, col="customer_id"):
+    """Cliente y servicio de un documento de Books (ID-04, ID-06, ID-03).
+
+    El contacto de Books se busca en la tabla de correspondencia. Si el contacto quedó ligado por cédula (sin servicio)
+    y el cliente tiene UN solo servicio, el documento es de ese servicio. Solo se marca anomalía cuando el cliente tiene
+    varios servicios y el documento no indica a cuál corresponde, o cuando el contacto no está en la correspondencia.
+    Los clientes que solo existen en Books (D8) no tienen servicio y no son anomalía."""
+    v = f"ctl.fn_Texto({alias}.{col})"
+    extra = f"""OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                    CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = {v}) co
+OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc"""
+    override = {"ClienteId": "co.ClienteId",
+                "ServicioId": "COALESCE(co.ServicioId, CASE WHEN sc.n = 1 THEN sc.ServicioId END)",
+                "o_ServicioVarios": f"CASE WHEN co.ServicioId IS NULL AND sc.n > 1 THEN {v} END",
+                "o_ClienteBooks": f"CASE WHEN co.ClienteId IS NULL THEN {v} END"}
+    anomalias = [Anomalia("IN-01", "ServicioId", "s.o_ServicioVarios", "s.o_ServicioVarios IS NOT NULL",
+                          "Cliente con varios servicios: el documento de Books no indica a cuál corresponde (ID-03)"),
+                 Anomalia("IN-01", "ClienteId", "s.o_ClienteBooks", "s.o_ClienteBooks IS NOT NULL",
+                          "Contacto de Books sin correspondencia en core.ClienteOrigen")]
+    return dict(override=override, extra_from=extra, auxiliares_extra=["o_ServicioVarios", "o_ClienteBooks"],
+                anomalias_extra=anomalias)
+
 PASOS = [
     paso_matriz("core_CuentaBancaria", 400, "core.CuentaBancaria", _B, "ZBooks_Mirror", "bankaccounts", "b", llave="account_id",
                 descripcion="Cuentas bancarias de Books. El saldo en colones es el saldo en moneda base de Books (bcy_balance)."),
     paso_matriz("core_MovimientoBancario", 401, "core.MovimientoBancario", _B, "ZBooks_Mirror", "banktransactions", "m",
-                llave="transaction_id", fecha_dato="TODATETIMEOFFSET(CAST(ctl.fn_FechaDia(m.[date]) AS datetime2), '-06:00')",
-                fecha_tc="q.Fecha", depende=["core_CuentaBancaria", "core_ClienteOrigen"],
-                descripcion="Movimientos bancarios de Books. El cliente se liga por la tabla de correspondencia (ID-06)."),
+                llave="transaction_id",
+                override={"ClienteId": "co.ClienteId",
+                          "o_ClienteBooks": "CASE WHEN co.ClienteId IS NULL AND NOT EXISTS (SELECT 1 FROM core.Proveedor pv "
+                                            "WHERE pv.ContactoBooksId = ctl.fn_Texto(m.customer_id)) THEN ctl.fn_Texto(m.customer_id) END"},
+                extra_from="""OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId
+             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(m.customer_id)) co""",
+                auxiliares_extra=["o_ClienteBooks"],
+                anomalias_extra=[Anomalia("IN-01", "ClienteId", "s.o_ClienteBooks", "s.o_ClienteBooks IS NOT NULL",
+                                          "Contacto de Books que no es cliente con correspondencia ni proveedor")],
+                fecha_dato="TODATETIMEOFFSET(CAST(ctl.fn_FechaDia(m.[date]) AS datetime2), '-06:00')",
+                fecha_tc="q.Fecha", depende=["core_CuentaBancaria", "core_ClienteOrigen", "core_Proveedor"],
+                descripcion="Movimientos bancarios de Books. El cliente se liga por la tabla de correspondencia (ID-06). Los "
+                            "movimientos de proveedores no son anomalía (el contacto es un proveedor de core.Proveedor)."),
 
     paso_matriz("core_Factura", 410, "core.Factura", _B, "ZBooks_Mirror", "invoices", "f", llave="invoice_id",
+                **_cliente_servicio("f"),
                 fecha_tc="q.Fecha", excluir_atributos=("line_items",),
                 depende=["core_ClienteOrigen", "ref_TipoCambio"],
                 descripcion="Facturas de Books, depuradas por la versión más reciente (DD-02). Cliente y servicio por la tabla "
                             "de correspondencia (ID-06). El detalle de líneas va en core.FacturaLinea."),
     paso_matriz("core_FacturaLinea", 411, "core.FacturaLinea", _B, "ZBooks_Mirror", "invoices_items", "l", llave="line_item_id",
-                override={"Moneda": "f.Moneda"}, fecha_dato=_FECHA_FACTURA,
+                override={"Moneda": "f.Moneda"}, fecha_dato=_FECHA_FACTURA, tc_respaldo="f.TipoCambio",
                 extra_from="LEFT JOIN core.Factura f ON f.FacturaBooksId = ctl.fn_Texto(l.invoice_id)",
                 depende=["core_Factura", "core_Producto_BooksVinculo"],
                 descripcion="Líneas de factura de Books; heredan moneda y fecha de su factura (D5). Sin factura → descarte IN-01."),
     paso_matriz("core_FacturaRecurrente", 412, "core.FacturaRecurrente", _B, "ZBooks_Mirror", "recurringinvoices", "r",
-                llave="recurring_invoice_id", depende=["core_ClienteOrigen"],
+                llave="recurring_invoice_id", depende=["core_ClienteOrigen"], **_cliente_servicio("r"),
                 descripcion="Perfiles de facturación recurrente de Books."),
 
     paso_matriz("core_Pago", 420, "core.Pago", _B, "ZBooks_Mirror", "customerpayments", "p", llave="payment_id",
+                **_cliente_servicio("p"),
                 moneda="CASE WHEN ctl.fn_Monto(p.amount) IS NULL OR ctl.fn_Monto(p.bcy_amount) IS NULL THEN NULL "
                        "WHEN ctl.fn_Monto(p.amount) = ctl.fn_Monto(p.bcy_amount) THEN 'CRC' ELSE 'USD' END",
                 fecha_tc="q.Fecha", excluir_atributos=("invoice_numbers",),
