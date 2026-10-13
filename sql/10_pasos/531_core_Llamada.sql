@@ -13,6 +13,7 @@ BEGIN
     /* 0. Preparación */
     /* Corte entre fuentes (D1): primera fecha con llamadas en la copia de MongoDB; sin copia, todo sale de SQL Server */
     DECLARE @Corte datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM stg.mongo_Telephony_cdr), '9999-12-31');
+    DECLARE @CorteSQL datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM ADNApp.dbo.Telephony_cdr), '9999-12-31');
     /* Búsquedas precalculadas (una vez por ejecución, no por llamada) */
     DROP TABLE IF EXISTS #circ, #tron;
     SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;

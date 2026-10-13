@@ -1,10 +1,10 @@
 USE ADN_Unificado;
 GO
-/* Paso 530 · core_Llamada_Historico → core.Llamada
-   Llamadas anteriores a la primera fecha de la copia de MongoDB, desde la copia SQL Server de app.data.cr (D1). Cargar por período con --desde/--hasta.
+/* Paso 530 · core_Llamada_SQL → core.Llamada
+   Llamadas de ADNApp.Telephony_cdr (2026) anteriores a la primera fecha de la copia de MongoDB (D1). Cargar por período con --desde/--hasta.
    Reglas: D1, D4, D5, D6, D10, ID-01, ID-07, ES-01, ES-02, ES-04, DD-01, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
-CREATE OR ALTER PROCEDURE etl.usp_core_Llamada_Historico @LoteId int, @Desde date = NULL, @Hasta date = NULL
+CREATE OR ALTER PROCEDURE etl.usp_core_Llamada_SQL @LoteId int, @Desde date = NULL, @Hasta date = NULL
 AS
 BEGIN
     SET NOCOUNT ON; SET XACT_ABORT ON;
@@ -13,6 +13,7 @@ BEGIN
     /* 0. Preparación */
     /* Corte entre fuentes (D1): primera fecha con llamadas en la copia de MongoDB; sin copia, todo sale de SQL Server */
     DECLARE @Corte datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM stg.mongo_Telephony_cdr), '9999-12-31');
+    DECLARE @CorteSQL datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM ADNApp.dbo.Telephony_cdr), '9999-12-31');
     /* Búsquedas precalculadas (una vez por ejecución, no por llamada) */
     DROP TABLE IF EXISTS #circ, #tron;
     SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;

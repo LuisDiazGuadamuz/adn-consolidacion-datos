@@ -4,7 +4,10 @@
 Catálogos y configuración de app.data.cr (ADNApp, SQL Server) generados desde la matriz; las llamadas se escriben a mano
 por su volumen (millones de filas) y se cargan por período (--desde / --hasta):
 
-  D1   llamadas: MongoDB es la fuente mientras conserve los datos; ADNApp.Telephony_cdr para todo lo anterior.
+  D1   llamadas en tres fuentes encadenadas por fecha, sin solapes:
+         ADNApp.Telephony_cdr_historico (47,2 M, años anteriores) → hasta la primera fecha de ADNApp.Telephony_cdr
+         ADNApp.Telephony_cdr (10,3 M, 2026)                       → hasta la primera fecha de la copia de MongoDB
+         MongoDB (stg.mongo_Telephony_cdr, sep-oct 2026)           → desde su primera fecha
        La copia de MongoDB solo tiene sep-oct 2026 (se depura), así que el corte NO es fijo (2024-01-01): es la primera
        fecha presente en stg.mongo_Telephony_cdr (@Corte). Sin períodos vacíos ni llamadas duplicadas entre fuentes.
   D10  moneda de la llamada según el destino: 506 → CRC, otro → USD
@@ -119,6 +122,7 @@ _CONTENIDO = ["CDRTypeCode", "CDRTypeReason", "StartDateTime", "AnswerTimeOfDate
 _PREP_LLAMADAS = """
 /* Corte entre fuentes (D1): primera fecha con llamadas en la copia de MongoDB; sin copia, todo sale de SQL Server */
 DECLARE @Corte datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM stg.mongo_Telephony_cdr), '9999-12-31');
+DECLARE @CorteSQL datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM ADNApp.dbo.Telephony_cdr), '9999-12-31');
 /* Búsquedas precalculadas (una vez por ejecución, no por llamada) */
 DROP TABLE IF EXISTS #circ, #tron;
 SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;
@@ -137,7 +141,7 @@ def _fecha(x):
     return f"CASE WHEN {x} >= '1990-01-01' THEN TODATETIMEOFFSET(CAST({x} AS datetime2(0)), '-06:00') END"
 
 
-def _select_llamadas(origen, base, tabla_sql, llave, filtro_periodo):
+def _select_llamadas(origen, base, tabla_sql, llave, filtro_periodo, fuente_tabla="Telephony_cdr"):
     c = "c"
     atrib = ", ".join(f"{_t(f'{c}.[{a}]', 400)} AS [{a}]" for a in _ATRIBUTOS) or "CAST(NULL AS nvarchar(1)) AS x"
     return f"""
@@ -149,7 +153,7 @@ SELECT q.*,
        CASE q.Moneda WHEN 'CRC' THEN q.Costo WHEN 'USD' THEN CAST(q.Costo * COALESCE(CASE WHEN q.o_TipoCambio > 1 THEN q.o_TipoCambio END, tc.Venta) AS decimal(19,4)) END AS CostoCRC,
        CASE q.Moneda WHEN 'CRC' THEN q.CostoSinMargen WHEN 'USD' THEN CAST(q.CostoSinMargen * COALESCE(CASE WHEN q.o_TipoCambio > 1 THEN q.o_TipoCambio END, tc.Venta) AS decimal(19,4)) END AS CostoSinMargenCRC
 FROM (
-    SELECT 'AppDataCR' AS FuenteSistema, N'{base}' AS FuenteBase, N'Telephony_cdr' AS FuenteTabla,
+    SELECT 'AppDataCR' AS FuenteSistema, N'{base}' AS FuenteBase, N'{fuente_tabla}' AS FuenteTabla,
            CAST({llave} AS nvarchar(200)) AS FuenteLlave, {_fecha(f'{c}.StartDateTime')} AS FechaDato,
            ci.ServicioId, ti.TroncalId AS TroncalEntradaId, te.TroncalId AS TroncalSalidaId,
            v.Circuito, {c}.CDRTypeCode AS TipoCDR, {_t(f'{c}.CDRTypeReason', 100)} AS RazonCDR,
@@ -207,16 +211,26 @@ _REGLAS_LLAMADA = ["D1", "D4", "D5", "D6", "D10", "ID-01", "ID-07", "ES-01", "ES
 
 PASOS += [
     Paso(
-        nombre="core_Llamada_Historico", orden=530, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
+        nombre="core_Llamada_Historico", orden=529, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
+        fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr_historico"), llave_origen="id",
+        descripcion="Llamadas de años anteriores (ADNApp.Telephony_cdr_historico), hasta la primera fecha de ADNApp.Telephony_cdr (D1). "
+                    "Según D7 el modelo guarda 24 meses en línea: cargar solo el período necesario con --desde/--hasta.",
+        reglas=_REGLAS_LLAMADA + ["D7"], columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
+        preparacion=_PREP_LLAMADAS, dedup_orden="s.FuenteLlave",
+        filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
+        select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr_historico", "c.id",
+                                "c.StartDateTime < @CorteSQL AND c.StartDateTime < @Corte", "Telephony_cdr_historico")),
+    Paso(
+        nombre="core_Llamada_SQL", orden=530, destino="core.Llamada", depende=["core_Llamada_Historico"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr"), llave_origen="id",
-        descripcion="Llamadas anteriores a la primera fecha de la copia de MongoDB, desde la copia SQL Server de app.data.cr (D1). "
+        descripcion="Llamadas de ADNApp.Telephony_cdr (2026) anteriores a la primera fecha de la copia de MongoDB (D1). "
                     "Cargar por período con --desde/--hasta.",
         reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
         preparacion=_PREP_LLAMADAS, dedup_orden="s.FuenteLlave",
         filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
         select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr", "c.id", "c.StartDateTime < @Corte")),
     Paso(
-        nombre="core_Llamada", orden=531, destino="core.Llamada", depende=["core_Llamada_Historico"],
+        nombre="core_Llamada", orden=531, destino="core.Llamada", depende=["core_Llamada_SQL"],
         fuente=(_A, "MongoDB", "developer_adn_app_db", "Telephony_cdr"), llave_origen="_id",
         descripcion="Llamadas desde la primera fecha de la copia de MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. "
                     "Cargar por período con --desde/--hasta.",
