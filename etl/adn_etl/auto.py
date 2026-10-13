@@ -23,6 +23,10 @@ NUMERICOS = ("int", "bigint", "smallint", "tinyint", "decimal", "numeric", "floa
 FECHAS = ("datetime", "datetime2", "date", "smalldatetime", "datetimeoffset")
 TEXTO_LARGO = ("text", "ntext")
 
+# Catálogos que se buscan por su llave de origen (FuenteBase + FuenteLlave)
+POR_LLAVE = {"core.Direccion": "ADNPayV2", "ref.Distrito": "ADNPayV2", "ref.ProveedorTelefonia": "ADNApp",
+             "ref.PaqueteMinutos": "ADNApp", "core.Troncal": "ADNApp", "core.CorteVoIP": "ADNApp"}
+
 # Tabla del modelo → (llave del modelo, columnas por las que se busca, en orden de preferencia)
 BUSQUEDA = {
     "core.Servicio": ("ServicioId", ["CuentaCrmId"]),
@@ -187,8 +191,11 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
             if ref == "core.Servicio" and "ircuit" in col_o:
                 cond = f"zref.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), {x}))"
                 pkr = "ServicioId"
-            elif ref in ("core.Direccion", "ref.Distrito"):          # catálogos de ADNPayV2: por su llave de origen
-                cond = f"zref.FuenteBase = N'ADNPayV2' AND zref.FuenteLlave = {v}"
+            elif ref == "core.Cliente" and any(k in col_o.lower() for k in ("legal", "idcard", "id_card")):
+                cond = f"zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), {x}))"
+                pkr = "ClienteId"
+            elif ref in POR_LLAVE:                                     # catálogos por su llave de origen
+                cond = f"zref.FuenteBase = N'{POR_LLAVE[ref]}' AND zref.FuenteLlave = {v}"
                 pkr = modelo.TABLAS[ref].get("pkcol") or next(c["name"] for c in modelo.TABLAS[ref]["cols"] if c.get("pk"))
             elif ref in BUSQUEDA:
                 pkr, claves = BUSQUEDA[ref]
