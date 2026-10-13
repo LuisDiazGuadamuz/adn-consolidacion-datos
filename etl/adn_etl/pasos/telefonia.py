@@ -48,10 +48,15 @@ PASOS = [
     # ------------------------------------------------------------------ configuración por servicio
     paso_matriz("core_Troncal", 510, "core.Troncal", _A, "ADNApp", "Telephony_trunk", "t",
                 override={"SinRestriccion": "(SELECT TOP 1 tp.NoRestriction FROM ADNApp.dbo.Telephony_trunkpermissions tp "
-                                            "WHERE tp.TrunkID_id = t.id ORDER BY tp.id DESC)"},
+                                            "WHERE tp.TrunkID_id = t.id ORDER BY tp.id DESC)",
+                          "o_Repetido": "ROW_NUMBER() OVER (PARTITION BY ctl.fn_Texto(t.TrunkID) ORDER BY t.id DESC)"},
+                auxiliares_extra=["o_Repetido"],
+                filtros_extra=[("s.o_Repetido > 1", "DD-04",
+                                "Código de troncal repetido en Telephony_trunk: se conserva el registro más reciente (id mayor)")],
                 depende=["core_ClienteOrigen"],
                 descripcion="Troncales de los clientes VoIP. El servicio se toma del cliente VoIP en la tabla de correspondencia "
-                            "(ID-07). El permiso SinRestriccion viene de Telephony_trunkpermissions (se fusiona aquí)."),
+                            "(ID-07). El permiso SinRestriccion viene de Telephony_trunkpermissions (se fusiona aquí). El código de "
+                            "troncal es único en el modelo: si se repite en el origen se conserva el registro más reciente (DD-04)."),
     paso_matriz("core_TroncalPermisoCodigo", 511, "core.TroncalPermisoCodigo", _A, "ADNApp", "Telephony_trunkpermissiondialcode", "d",
                 depende=["core_Troncal"], descripcion="Códigos de marcación permitidos por troncal."),
     paso_matriz("core_AlertaTroncal", 512, "core.AlertaTroncal", _A, "ADNApp", "Telephony_alertblockedtrunk", "a",

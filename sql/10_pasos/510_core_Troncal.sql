@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 510 · core_Troncal → core.Troncal
-   Troncales de los clientes VoIP. El servicio se toma del cliente VoIP en la tabla de correspondencia (ID-07). El permiso SinRestriccion viene de Telephony_trunkpermissions (se fusiona aquí).
+   Troncales de los clientes VoIP. El servicio se toma del cliente VoIP en la tabla de correspondencia (ID-07). El permiso SinRestriccion viene de Telephony_trunkpermissions (se fusiona aquí). El código de troncal es único en el modelo: si se repite en el origen se conserva el registro más reciente (DD-04).
    Reglas: ID-07, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_Troncal @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -27,6 +27,7 @@ BEGIN
            CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
            q.[FechaDato],
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[CodigoTroncal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Tipo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TollFreeEntrante]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[DIDEntrante]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[CodigoEstadoPredeterminado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoSIP]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[SinRestriccion]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           q.[o_Repetido],
            q.[o_ServicioId],
            CONCAT_WS(N',', CASE WHEN LEN(q.[CodigoTroncal]) > 50 THEN N'CodigoTroncal' END, CASE WHEN LEN(q.[Tipo]) > 30 THEN N'Tipo' END, CASE WHEN LEN(q.[Estado]) > 30 THEN N'Estado' END, CASE WHEN LEN(q.[CodigoEstadoPredeterminado]) > 30 THEN N'CodigoEstadoPredeterminado' END, CASE WHEN LEN(q.[EstadoSIP]) > 30 THEN N'EstadoSIP' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
@@ -45,12 +46,19 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(max), t.[StateSIP])) AS [EstadoSIP],
                fk_ServicioId_0.Id AS [ServicioId],
                ctl.fn_Texto(CONVERT(nvarchar(400), t.[CustomerID_id])) AS [o_ServicioId],
-               (SELECT TOP 1 tp.NoRestriction FROM ADNApp.dbo.Telephony_trunkpermissions tp WHERE tp.TrunkID_id = t.id ORDER BY tp.id DESC) AS [SinRestriccion]
+               (SELECT TOP 1 tp.NoRestriction FROM ADNApp.dbo.Telephony_trunkpermissions tp WHERE tp.TrunkID_id = t.id ORDER BY tp.id DESC) AS [SinRestriccion],
+               ROW_NUMBER() OVER (PARTITION BY ctl.fn_Texto(t.TrunkID) ORDER BY t.id DESC) AS [o_Repetido]
         FROM ADNApp.dbo.[Telephony_trunk] t
         OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT zref.[ServicioId]) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.ClienteOrigen zref WHERE zref.Sistema = 'AppDataCR' AND zref.LlaveOrigen = ctl.fn_Texto(CONVERT(nvarchar(max), t.[CustomerID_id]))) fk_ServicioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
 
+    /* 2. Filtros de carga: filas excluidas con la regla que las excluye (DD-06) */
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'DD-04', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'Código de troncal repetido en Telephony_trunk: se conserva el registro más reciente (id mayor)', @Ahora FROM #src s WHERE s.o_Repetido > 1
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'DD-04' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    DELETE s FROM #src s WHERE s.o_Repetido > 1;
     /* 2a. Filas sin datos obligatorios (IN-01 si es una referencia, ES-05 si es un dato) */
     INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
     SELECT @LoteId, 'ES-05', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'CodigoTroncal obligatorio vacío o sin correspondencia', @Ahora
