@@ -65,7 +65,9 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
             if hasta:
                 rango["$lt"] = dt.datetime.fromisoformat(hasta)
             filtro[spec["fecha"]] = rango
+        print(f"Contando documentos de {coleccion} en MongoDB (puede tardar un par de minutos)...", flush=True)
         total_origen = bdm[coleccion].count_documents(filtro)
+        print(f"  {total_origen:,} documentos a copiar", flush=True)
         cur = conn.cursor()
         cur.execute("""SET NOCOUNT ON; DECLARE @L int;
                        EXEC ctl.usp_IniciarLote @Paso = %s, @Sistema = 'AppDataCR', @Motor = 'MongoDB',
@@ -95,7 +97,7 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
                     conn.bulk_copy(spec["tabla"], filas, column_ids=list(range(1, len(cols) + 1)), batch_size=len(filas))
                     return
                 except Exception as e:  # FreeTDS sin BCP o tipos no soportados: se usa INSERT por lotes
-                    print(f"  (copia masiva no disponible: {e}; se usa INSERT por lotes)")
+                    print(f"  (copia masiva no disponible: {e}; se usa INSERT por lotes)", flush=True)
                     usar_bcp = False
             cur.execute("BEGIN TRANSACTION")
             cur.executemany(sql, filas)
@@ -106,7 +108,8 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
             buf.append(tuple([str(doc["_id"])] + [_valor(c, doc.get(c)) for c in spec["campos"]] + [lote]))
             if len(buf) >= lote_tamano:
                 volcar(buf); n += len(buf); buf = []
-                print(f"  {coleccion}: {n:,} / {total_origen:,}", end="\r")
+                if n % 100000 < lote_tamano:
+                    print(f"  {coleccion}: {n:,} / {total_origen:,}", flush=True)
         if buf:
             volcar(buf); n += len(buf)
         cur.execute("""UPDATE ctl.Lote SET Estado = 'Exitoso', FechaFin = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'),
