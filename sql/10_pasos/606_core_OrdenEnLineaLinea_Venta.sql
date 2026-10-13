@@ -1,0 +1,131 @@
+USE ADN_Unificado;
+GO
+/* Paso 606 · core_OrdenEnLineaLinea_Venta → core.OrdenEnLineaLinea
+   Líneas de las órdenes de venta en línea. Sin orden → descarte IN-01.
+   Reglas: D5, ES-04, IN-05
+   GENERADO por adn_etl.generador: no editar a mano. */
+CREATE OR ALTER PROCEDURE etl.usp_core_OrdenEnLineaLinea_Venta @LoteId int, @Desde date = NULL, @Hasta date = NULL
+AS
+BEGIN
+    SET NOCOUNT ON; SET XACT_ABORT ON;
+    DECLARE @Ahora datetimeoffset(0) = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00');
+
+    /* 1. Origen normalizado */
+    DROP TABLE IF EXISTS #src;
+    SELECT q.[Cantidad],
+           q.[PrecioUnitario],
+           q.[Total],
+           CAST(q.[Nombre] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [Nombre],
+           CAST(q.[Descripcion] AS nvarchar(1000)) COLLATE DATABASE_DEFAULT AS [Descripcion],
+           q.[TotalSinImpuesto],
+           q.[PrecioUnitarioSinImpuesto],
+           q.[OrdenEnLineaId],
+           q.[ProductoId],
+           CAST(q.[Moneda] AS char(3)) COLLATE DATABASE_DEFAULT AS [Moneda],
+           q.[PrecioUnitarioCRC],
+           q.[PrecioUnitarioSinImpuestoCRC],
+           q.[TotalCRC],
+           q.[TotalSinImpuestoCRC],
+           q.[TipoCambio],
+           CAST(q.[FuenteSistema] AS varchar(20)) COLLATE DATABASE_DEFAULT AS [FuenteSistema],
+           CAST(q.[FuenteBase] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteBase],
+           CAST(q.[FuenteTabla] AS nvarchar(128)) COLLATE DATABASE_DEFAULT AS [FuenteTabla],
+           CAST(q.[FuenteLlave] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [FuenteLlave],
+           q.[FechaDato],
+           HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cantidad]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitario]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Total]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Descripcion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TotalSinImpuesto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitarioSinImpuesto]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OrdenEnLineaId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ProductoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Moneda]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitarioCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[PrecioUnitarioSinImpuestoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TotalCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TotalSinImpuestoCRC]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoCambio]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Nombre]) > 200 THEN N'Nombre' END, CASE WHEN LEN(q.[Descripcion]) > 1000 THEN N'Descripcion' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+    INTO #src
+    FROM (
+        SELECT q.*,
+               tx.Tasa AS TipoCambio,
+               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitario] WHEN 'USD' THEN CAST(q.[PrecioUnitario] * tx.Tasa AS decimal(19,4)) END AS [PrecioUnitarioCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[PrecioUnitarioSinImpuesto] WHEN 'USD' THEN CAST(q.[PrecioUnitarioSinImpuesto] * tx.Tasa AS decimal(19,4)) END AS [PrecioUnitarioSinImpuestoCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[Total] WHEN 'USD' THEN CAST(q.[Total] * tx.Tasa AS decimal(19,4)) END AS [TotalCRC],
+               CASE q.Moneda WHEN 'CRC' THEN q.[TotalSinImpuesto] WHEN 'USD' THEN CAST(q.[TotalSinImpuesto] * tx.Tasa AS decimal(19,4)) END AS [TotalSinImpuestoCRC]
+        FROM (
+        SELECT 'ADNPayV2' AS FuenteSistema,
+               N'ADNPayV2' AS FuenteBase,
+               N'SaleOrderLine' AS FuenteTabla,
+               ctl.fn_Texto(CONVERT(nvarchar(200), l.[line_id])) AS FuenteLlave,
+               CAST(NULL AS datetimeoffset(0)) AS FechaDato,
+               TRY_CONVERT(int, l.[quantity]) AS [Cantidad],
+               TRY_CONVERT(decimal(19,4), l.[unit_price_crc]) AS [PrecioUnitario],
+               TRY_CONVERT(decimal(19,4), l.[line_total_crc]) AS [Total],
+               ctl.fn_Texto(CONVERT(nvarchar(max), l.[product_name])) AS [Nombre],
+               ctl.fn_Texto(CONVERT(nvarchar(max), l.[product_description])) AS [Descripcion],
+               TRY_CONVERT(decimal(19,4), l.[line_total_without_tax]) AS [TotalSinImpuesto],
+               TRY_CONVERT(decimal(19,4), l.[unit_price_without_tax]) AS [PrecioUnitarioSinImpuesto],
+               (SELECT MIN(o.OrdenEnLineaId) FROM core.OrdenEnLinea o WHERE o.FuenteBase = N'ADNPayV2' AND o.FuenteTabla = N'SaleOrder' AND o.FuenteLlave = CAST(l.order_id AS nvarchar(200))) AS [OrdenEnLineaId],
+               (SELECT MIN(pr.ProductoId) FROM core.Producto pr WHERE pr.FuenteBase = N'ADNPayV2' AND pr.FuenteTabla = N'Product' AND pr.FuenteLlave = CAST(l.product_id AS nvarchar(200))) AS [ProductoId],
+               'CRC' AS [Moneda]
+        FROM ADNPayV2.dbo.[SaleOrderLine] l
+        ) q
+        OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaDato AS date) ORDER BY t.Fecha DESC) tc
+        CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx
+    ) AS q;
+    DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
+
+    /* 2a. Filas sin datos obligatorios (IN-01 si es una referencia, ES-05 si es un dato) */
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'IN-01', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'OrdenEnLineaId obligatorio vacío o sin correspondencia', @Ahora
+    FROM #src s WHERE s.[OrdenEnLineaId] IS NULL
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'IN-01' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
+    SELECT @LoteId, 'ES-05', s.FuenteSistema, s.FuenteTabla, s.FuenteLlave, N'FuenteLlave obligatorio vacío o sin correspondencia', @Ahora
+    FROM #src s WHERE s.[FuenteLlave] IS NULL
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'ES-05' AND x.FuenteTabla = s.FuenteTabla AND x.FuenteLlave = s.FuenteLlave);
+    DELETE FROM #src WHERE [OrdenEnLineaId] IS NULL OR [FuenteLlave] IS NULL;
+
+    /* 2b. Duplicados por la llave del paso (DD-04); el orden es determinista */
+    ;WITH r AS (
+        SELECT s.FuenteSistema, s.FuenteTabla, s.FuenteLlave,
+               ROW_NUMBER() OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave) AS rn,
+               FIRST_VALUE(s.FuenteLlave) OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave ROWS UNBOUNDED PRECEDING) AS Conservada
+        FROM #src s)
+    INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, LlaveConservada, Motivo, FechaDescarte)
+    SELECT @LoteId, 'DD-04', r.FuenteSistema, r.FuenteTabla, r.FuenteLlave, r.Conservada, N'Registro repetido por la llave del paso; se conserva uno según el orden definido', @Ahora
+    FROM r WHERE r.rn > 1
+      AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x JOIN ctl.Lote l ON l.LoteId = x.LoteId AND l.Estado = 'Exitoso'
+                      WHERE x.ReglaId = 'DD-04' AND x.FuenteTabla = r.FuenteTabla AND x.FuenteLlave = r.FuenteLlave);
+    ;WITH r AS (
+        SELECT ROW_NUMBER() OVER (PARTITION BY s.[FuenteSistema], s.[FuenteTabla], s.[FuenteLlave] ORDER BY s.HashContenido, s.FuenteLlave) AS rn FROM #src s)
+    DELETE FROM r WHERE rn > 1;
+    DECLARE @Validas bigint = (SELECT COUNT_BIG(*) FROM #src);
+
+    /* 3. Imagen previa de las filas que van a cambiar (para el rollback) */
+    DROP TABLE IF EXISTS #antes;
+    SELECT t.[OrdenEnLineaLineaId] AS RegistroId, t.FuenteLlave, (SELECT t.[OrdenEnLineaId], t.[ProductoId], t.[Nombre], t.[Descripcion], t.[Cantidad], t.[Moneda], t.[TipoCambio], t.[PrecioUnitario], t.[PrecioUnitarioCRC], t.[PrecioUnitarioSinImpuesto], t.[PrecioUnitarioSinImpuestoCRC], t.[Total], t.[TotalCRC], t.[TotalSinImpuesto], t.[TotalSinImpuestoCRC], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
+    INTO #antes FROM core.OrdenEnLineaLinea t JOIN #src s ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido;
+
+    /* 4. MERGE: inserta lo nuevo y actualiza solo lo que cambió */
+    DROP TABLE IF EXISTS #cambios;
+    CREATE TABLE #cambios (Accion nvarchar(10) NOT NULL, RegistroId bigint NOT NULL, FuenteLlave nvarchar(200) NULL);
+    MERGE core.OrdenEnLineaLinea WITH (HOLDLOCK) AS t
+    USING #src AS s
+       ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHEN MATCHED AND (t.HashContenido IS NULL OR t.HashContenido <> s.HashContenido) THEN
+        UPDATE SET t.[Cantidad] = s.[Cantidad], t.[PrecioUnitario] = s.[PrecioUnitario], t.[Total] = s.[Total], t.[Nombre] = s.[Nombre], t.[Descripcion] = s.[Descripcion], t.[TotalSinImpuesto] = s.[TotalSinImpuesto], t.[PrecioUnitarioSinImpuesto] = s.[PrecioUnitarioSinImpuesto], t.[OrdenEnLineaId] = s.[OrdenEnLineaId], t.[ProductoId] = s.[ProductoId], t.[Moneda] = s.[Moneda], t.[PrecioUnitarioCRC] = s.[PrecioUnitarioCRC], t.[PrecioUnitarioSinImpuestoCRC] = s.[PrecioUnitarioSinImpuestoCRC], t.[TotalCRC] = s.[TotalCRC], t.[TotalSinImpuestoCRC] = s.[TotalSinImpuestoCRC], t.[TipoCambio] = s.[TipoCambio], t.[FuenteSistema] = s.[FuenteSistema], t.[FuenteBase] = s.[FuenteBase], t.[FuenteTabla] = s.[FuenteTabla], t.[FuenteLlave] = s.[FuenteLlave], t.[FechaDato] = s.[FechaDato], t.[HashContenido] = s.[HashContenido], t.LoteId = @LoteId, t.FechaCarga = @Ahora
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT ([Cantidad], [PrecioUnitario], [Total], [Nombre], [Descripcion], [TotalSinImpuesto], [PrecioUnitarioSinImpuesto], [OrdenEnLineaId], [ProductoId], [Moneda], [PrecioUnitarioCRC], [PrecioUnitarioSinImpuestoCRC], [TotalCRC], [TotalSinImpuestoCRC], [TipoCambio], [FuenteSistema], [FuenteBase], [FuenteTabla], [FuenteLlave], [FechaDato], [HashContenido], LoteId, FechaCarga)
+        VALUES (s.[Cantidad], s.[PrecioUnitario], s.[Total], s.[Nombre], s.[Descripcion], s.[TotalSinImpuesto], s.[PrecioUnitarioSinImpuesto], s.[OrdenEnLineaId], s.[ProductoId], s.[Moneda], s.[PrecioUnitarioCRC], s.[PrecioUnitarioSinImpuestoCRC], s.[TotalCRC], s.[TotalSinImpuestoCRC], s.[TipoCambio], s.[FuenteSistema], s.[FuenteBase], s.[FuenteTabla], s.[FuenteLlave], s.[FechaDato], s.[HashContenido], @LoteId, @Ahora)
+    OUTPUT $action, inserted.[OrdenEnLineaLineaId], inserted.FuenteLlave INTO #cambios;
+
+    /* 5. Bitácora por registro */
+    INSERT ctl.Bitacora (LoteId, TablaModelo, RegistroId, Accion, FuenteLlave, ValoresAnteriores)
+    SELECT @LoteId, N'core.OrdenEnLineaLinea', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
+    FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
+
+    /* 6. Anomalías vigentes: se evalúan sobre todas las filas válidas del origen (no solo las que cambiaron),
+       así el último lote confirmado de cada paso tiene el estado actual completo (vista ctl.vw_AnomaliaVigente) */
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'ES-05', N'core.OrdenEnLineaLinea', t.[OrdenEnLineaLineaId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
+    FROM #src s JOIN core.OrdenEnLineaLinea t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s._Recortadas <> N'';
+    -- sin reglas de anomalía en este paso
+
+    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
+END;
+GO

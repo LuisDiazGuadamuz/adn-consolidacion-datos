@@ -25,7 +25,8 @@ TEXTO_LARGO = ("text", "ntext")
 
 # Catálogos que se buscan por su llave de origen (FuenteBase + FuenteLlave)
 POR_LLAVE = {"core.Direccion": "ADNPayV2", "ref.Distrito": "ADNPayV2", "ref.ProveedorTelefonia": "ADNApp",
-             "ref.PaqueteMinutos": "ADNApp", "core.Troncal": "ADNApp", "core.CorteVoIP": "ADNApp"}
+             "ref.PaqueteMinutos": "ADNApp", "core.Troncal": "ADNApp", "core.CorteVoIP": "ADNApp",
+             "core.SolicitudEnLinea": "ADNPayV2"}
 
 # Tabla del modelo → (llave del modelo, columnas por las que se busca, en orden de preferencia)
 BUSQUEDA = {
@@ -41,6 +42,7 @@ BUSQUEDA = {
     "core.Proveedor": ("ProveedorId", ["ContactoBooksId"]),
     "core.Factura": ("FacturaId", ["FacturaBooksId"]),
     "core.Pago": ("PagoId", ["PagoBooksId"]),
+    "ref.UnidadFlota": ("UnidadFlotaId", ["Dispositivo"]),
     "core.Nodo": ("NodoId", ["NodoCrmId", "Nombre"]),
     "core.Condominio": ("CondominioId", ["CondominioCrmId", "Nombre"]),
     "ref.Impuesto": ("ImpuestoId", ["ImpuestoBooksId", "Nombre"]),
