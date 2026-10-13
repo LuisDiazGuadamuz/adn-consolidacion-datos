@@ -4,7 +4,9 @@
 Catálogos y configuración de app.data.cr (ADNApp, SQL Server) generados desde la matriz; las llamadas se escriben a mano
 por su volumen (millones de filas) y se cargan por período (--desde / --hasta):
 
-  D1   llamadas: MongoDB (stg.mongo_Telephony_cdr) desde 2024-01-01; ADNApp.Telephony_cdr para 2022-2023
+  D1   llamadas: MongoDB es la fuente mientras conserve los datos; ADNApp.Telephony_cdr para todo lo anterior.
+       La copia de MongoDB solo tiene sep-oct 2026 (se depura), así que el corte NO es fijo (2024-01-01): es la primera
+       fecha presente en stg.mongo_Telephony_cdr (@Corte). Sin períodos vacíos ni llamadas duplicadas entre fuentes.
   D10  moneda de la llamada según el destino: 506 → CRC, otro → USD
   D5   tipo de cambio: el que registró la central (usd_exchange); si falta, el del día (ref.TipoCambio)
   ID-07 la llamada se asigna al servicio por CustomerCircuitNumber (circuito con un único servicio)
@@ -110,6 +112,8 @@ _CONTENIDO = ["CDRTypeCode", "CDRTypeReason", "StartDateTime", "AnswerTimeOfDate
               "CustomerIncrement", "CustomerPorcentage", "CustomerCircuitNumber", "RoutingDigits"]
 
 _PREP_LLAMADAS = """
+/* Corte entre fuentes (D1): primera fecha con llamadas en la copia de MongoDB; sin copia, todo sale de SQL Server */
+DECLARE @Corte datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM stg.mongo_Telephony_cdr), '9999-12-31');
 /* Búsquedas precalculadas (una vez por ejecución, no por llamada) */
 DROP TABLE IF EXISTS #circ, #tron;
 SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;
@@ -200,18 +204,19 @@ PASOS += [
     Paso(
         nombre="core_Llamada_Historico", orden=530, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr"), llave_origen="id",
-        descripcion="Llamadas de 2022-2023 desde la copia SQL Server de app.data.cr (D1). Cargar por período con --desde/--hasta.",
-        reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
-        preparacion=_PREP_LLAMADAS, dedup_orden="s.FuenteLlave",
-        filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
-        select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr", "c.id", "c.StartDateTime < '2024-01-01'")),
-    Paso(
-        nombre="core_Llamada", orden=531, destino="core.Llamada", depende=["core_Llamada_Historico"],
-        fuente=(_A, "MongoDB", "developer_adn_app_db", "Telephony_cdr"), llave_origen="_id",
-        descripcion="Llamadas desde 2024 desde MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. "
+        descripcion="Llamadas anteriores a la primera fecha de la copia de MongoDB, desde la copia SQL Server de app.data.cr (D1). "
                     "Cargar por período con --desde/--hasta.",
         reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
         preparacion=_PREP_LLAMADAS, dedup_orden="s.FuenteLlave",
         filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
-        select=_select_llamadas("mongo", "developer_adn_app_db", "stg.mongo_Telephony_cdr", "c._id", "c.StartDateTime >= '2024-01-01'")),
+        select=_select_llamadas("sql", "ADNApp", "ADNApp.dbo.Telephony_cdr", "c.id", "c.StartDateTime < @Corte")),
+    Paso(
+        nombre="core_Llamada", orden=531, destino="core.Llamada", depende=["core_Llamada_Historico"],
+        fuente=(_A, "MongoDB", "developer_adn_app_db", "Telephony_cdr"), llave_origen="_id",
+        descripcion="Llamadas desde la primera fecha de la copia de MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. "
+                    "Cargar por período con --desde/--hasta.",
+        reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
+        preparacion=_PREP_LLAMADAS, dedup_orden="s.FuenteLlave",
+        filtros=[("s.o_Repetida > 1", "DD-01", "Llamada idéntica a otra del mismo período (todas las columnas salvo el id)")],
+        select=_select_llamadas("mongo", "developer_adn_app_db", "stg.mongo_Telephony_cdr", "c._id", "c.StartDateTime >= @Corte")),
 ]

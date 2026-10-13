@@ -5,6 +5,7 @@ Solo lectura sobre MongoDB (find). La recarga es reproducible: borra en stg el p
 copiar completo, así dos ejecuciones sobre la misma copia dejan exactamente las mismas filas.
 """
 import datetime as dt
+import math
 import os
 
 from pymongo import MongoClient
@@ -47,6 +48,44 @@ def _valor(campo, v):
     return v
 
 
+_RANGO = {"int": (-2**31, 2**31 - 1), "bigint": (-2**63, 2**63 - 1), "smallint": (-2**15, 2**15 - 1), "tinyint": (0, 255)}
+
+
+def _tipos(cur, tabla):
+    """Tipo y largo de cada columna de la tabla de paso (para ajustar los valores antes de copiarlos)."""
+    esquema, nombre = tabla.split(".")
+    cur.execute("""SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS
+                   WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s""", (esquema, nombre))
+    return {r[0]: (r[1].lower(), r[2]) for r in cur.fetchall()}
+
+
+def _ajustar(v, tipo, largo):
+    """Ajusta un valor de MongoDB al tipo de la columna: números fuera de rango o ilegibles → NULL, texto recortado
+    al largo de la columna. Un documento con un campo raro no debe tumbar la copia (el original sigue en MongoDB)."""
+    if v is None:
+        return None
+    try:
+        if tipo in _RANGO:
+            if isinstance(v, bool):
+                v = int(v)
+            n = int(float(v)) if not isinstance(v, int) else v
+            lo, hi = _RANGO[tipo]
+            return n if lo <= n <= hi else None
+        if tipo in ("float", "real"):
+            f = float(v)
+            return None if math.isnan(f) or math.isinf(f) else f
+        if tipo == "bit":
+            return 1 if v in (1, True, "1", "true", "True") else 0 if v in (0, False, "0", "false", "False") else None
+        if tipo in ("datetime2", "datetime", "date"):
+            return v if isinstance(v, dt.datetime) else None
+        if tipo in ("nvarchar", "varchar", "nchar", "char"):
+            t = v if isinstance(v, str) else str(v)
+            return t[:largo] if largo and largo > 0 else t
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return v
+
+
 def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
     if coleccion not in COLECCIONES:
         raise SystemExit(f"Colección no soportada: {coleccion}. Opciones: {sorted(COLECCIONES)}")
@@ -85,7 +124,9 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
         else:
             cur.execute(f"TRUNCATE TABLE {spec['tabla']}")
         cols = ["_id"] + spec["campos"] + ["StgLoteId"]
-        sql = f"INSERT INTO {spec['tabla']} ({', '.join('[' + c + ']' for c in cols)}) VALUES ({', '.join(['%s'] * len(cols))})"
+        tipos = _tipos(cur, spec["tabla"])
+        por_sentencia = max(1, 2000 // len(cols))       # límite de 2100 parámetros por sentencia
+        fila_sql = "(" + ", ".join(["%s"] * len(cols)) + ")"
         proy = {c: 1 for c in spec["campos"]}
         buf, n = [], 0
         usar_bcp = hasattr(conn, "bulk_copy")
@@ -96,16 +137,23 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
                 try:
                     conn.bulk_copy(spec["tabla"], filas, column_ids=list(range(1, len(cols) + 1)), batch_size=len(filas))
                     return
-                except Exception as e:  # FreeTDS sin BCP o tipos no soportados: se usa INSERT por lotes
-                    print(f"  (copia masiva no disponible: {e}; se usa INSERT por lotes)", flush=True)
+                except Exception as e:  # FreeTDS sin BCP o un valor que no encaja: se usa INSERT de varias filas
+                    print(f"  (copia masiva no disponible: {e}; se usa INSERT de varias filas)", flush=True)
                     usar_bcp = False
+                    # la copia masiva pudo dejar parte del bloque: se borra el rango de _id del bloque antes de reintentar
+                    cur.execute(f"DELETE FROM {spec['tabla']} WHERE StgLoteId = %s AND _id BETWEEN %s AND %s",
+                                (lote, filas[0][0], filas[-1][0]))
             cur.execute("BEGIN TRANSACTION")
-            cur.executemany(sql, filas)
+            for i in range(0, len(filas), por_sentencia):
+                parte = filas[i:i + por_sentencia]
+                cur.execute(f"INSERT INTO {spec['tabla']} ({', '.join('[' + c + ']' for c in cols)}) VALUES "
+                            + ", ".join([fila_sql] * len(parte)), tuple(x for f in parte for x in f))
             cur.execute("COMMIT TRANSACTION")
 
         cursor_m = bdm[coleccion].find(filtro, proy, no_cursor_timeout=False).sort("_id", 1).batch_size(lote_tamano)
         for doc in cursor_m:
-            buf.append(tuple([str(doc["_id"])] + [_valor(c, doc.get(c)) for c in spec["campos"]] + [lote]))
+            buf.append(tuple([str(doc["_id"])] + [_ajustar(_valor(c, doc.get(c)), *tipos.get(c, ("", None)))
+                                                  for c in spec["campos"]] + [lote]))
             if len(buf) >= lote_tamano:
                 volcar(buf); n += len(buf); buf = []
                 if n % 100000 < lote_tamano:

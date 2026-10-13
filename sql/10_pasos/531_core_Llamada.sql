@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 531 · core_Llamada → core.Llamada
-   Llamadas desde 2024 desde MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. Cargar por período con --desde/--hasta.
+   Llamadas desde la primera fecha de la copia de MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. Cargar por período con --desde/--hasta.
    Reglas: D1, D4, D5, D6, D10, ID-01, ID-07, ES-01, ES-02, ES-04, DD-01, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_Llamada @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -11,6 +11,8 @@ BEGIN
     DECLARE @Ahora datetimeoffset(0) = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00');
 
     /* 0. Preparación */
+    /* Corte entre fuentes (D1): primera fecha con llamadas en la copia de MongoDB; sin copia, todo sale de SQL Server */
+    DECLARE @Corte datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM stg.mongo_Telephony_cdr), '9999-12-31');
     /* Búsquedas precalculadas (una vez por ejecución, no por llamada) */
     DROP TABLE IF EXISTS #circ, #tron;
     SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;
@@ -110,7 +112,7 @@ BEGIN
             OUTER APPLY (SELECT CASE WHEN ci0.n = 1 THEN ci0.ServicioId END AS ServicioId) ci
             LEFT JOIN #tron ti ON ti.Codigo = c.IngressTrunk AND ti.n = 1
             LEFT JOIN #tron te ON te.Codigo = c.EgressTrunk AND te.n = 1
-            WHERE c.StartDateTime IS NOT NULL AND c.StartDateTime >= '2024-01-01'
+            WHERE c.StartDateTime IS NOT NULL AND c.StartDateTime >= @Corte
               AND (@Desde IS NULL OR c.StartDateTime >= @Desde) AND (@Hasta IS NULL OR c.StartDateTime < @Hasta)
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(q.FechaInicio AS date) ORDER BY t.Fecha DESC) tc
