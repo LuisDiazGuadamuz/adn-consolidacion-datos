@@ -14,7 +14,9 @@ Scripts reproducibles de limpieza, deduplicación, transformación y carga hacia
 | `sql/00_modelo` | DDL del modelo unificado v1.2 y correcciones del Sprint 2 |
 | `sql/01_control` | Objetos de control del ETL: bitácora por registro, lote, funciones de normalización |
 | `sql/10_pasos` | Un procedimiento por paso de carga (**generados**, no se editan a mano) |
-| `sql/90_verificacion` | Pruebas del modelo |
+| `sql/90_verificacion` | Verificaciones de solo lectura: pruebas del modelo, pruebas de funciones de limpieza, diagnósticos por grupo |
+| `sql/95_mantenimiento` | Mantenimiento del sandbox (p. ej. cerrar lotes colgados tras una caída) |
+| `docs` | [Runbook del ETL](docs/Runbook_ETL.md): orden de carga, 24 meses de llamadas, verificaciones del DoD, recuperación |
 | `etl/adn_etl` | Runner en Python: especificaciones de los pasos, generador, dry-run/confirm/rollback, verificaciones |
 | `etl/adn_etl/datos` | Matriz de correspondencia aprobada (Sprint 2), que los pasos siguen al pie de la letra |
 | `docker` | Imagen del ETL y preparación de la red aislada |
@@ -63,8 +65,12 @@ Copy-Item config/entorno.ejemplo.env config/entorno.env   # completar las claves
 ./etl.ps1 ejecutar --todos --modo confirm --si     # segunda ejecución: 0 insertadas / 0 actualizadas
 ./etl.ps1 instantanea --nombre corrida2
 ./etl.ps1 comparar --a corrida1 --b corrida2       # IDÉNTICAS
-./etl.ps1 muestreo --n 10                          # trazabilidad a fuente y período
+./etl.ps1 muestreo --n 10                          # trazabilidad a fuente y período (reporte .txt y .csv)
 ```
+
+Cada corrida incluye además la **conciliación** del lote (leídas = válidas + excluidas; toda llave excluida con su
+motivo en `ctl.Descarte`), y `sql/90_verificacion/pruebas_funciones.sql` prueba las funciones de limpieza con casos
+sintéticos. Detalle en el [runbook](docs/Runbook_ETL.md).
 
 ## Agregar o cambiar un paso
 
