@@ -75,6 +75,7 @@ BEGIN
     WHERE s._Recortadas <> N'';
     -- sin reglas de anomalía en este paso
 
-    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
+    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio,
+           CAST(NULL AS bigint) AS FilasExcluidas, CAST(NULL AS bigint) AS LlavesSinMotivo;
 END;
 GO

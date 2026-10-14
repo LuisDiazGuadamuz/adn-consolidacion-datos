@@ -189,6 +189,10 @@ class Paso:
             w("        " + line)
         w("    ) AS q;")
         w("    DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);")
+        if not self.solo_actualizar:
+            w("    /* Conciliación: llaves leídas, para comprobar al final que toda fila excluida tiene su motivo en ctl.Descarte */")
+            w("    DROP TABLE IF EXISTS #leidas;")
+            w("    SELECT DISTINCT FuenteTabla, FuenteLlave INTO #leidas FROM #src;")
         w("")
         # obligatorias
         oblig = [c for c in src_cols if c in d and not d[c]["null"] and c != pk
@@ -299,6 +303,21 @@ class Paso:
         else:
             w("    -- sin reglas de anomalía en este paso")
         w("")
-        w("    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;")
+        if self.solo_actualizar:
+            w("    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio,")
+            w("           CAST(NULL AS bigint) AS FilasExcluidas, CAST(NULL AS bigint) AS LlavesSinMotivo;")
+        else:
+            w("    /* 7. Conciliación: leídas = válidas + excluidas; cada llave excluida debe tener su motivo en ctl.Descarte")
+            w("       (de este lote o de un lote exitoso anterior). Las repetidas (DD) conservan su llave en una fila válida. */")
+            w("    DECLARE @SinMotivo bigint = (")
+            w("        SELECT COUNT_BIG(*) FROM #leidas r")
+            w("        WHERE NOT EXISTS (SELECT 1 FROM #src s WHERE s.FuenteTabla = r.FuenteTabla")
+            w("                          AND (s.FuenteLlave = r.FuenteLlave OR (s.FuenteLlave IS NULL AND r.FuenteLlave IS NULL)))")
+            w("          AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x LEFT JOIN ctl.Lote l ON l.LoteId = x.LoteId")
+            w("                          WHERE x.FuenteTabla = r.FuenteTabla")
+            w("                            AND (x.FuenteLlave = r.FuenteLlave OR (x.FuenteLlave IS NULL AND r.FuenteLlave IS NULL AND x.LoteId = @LoteId))")
+            w("                            AND (x.LoteId = @LoteId OR l.Estado = 'Exitoso')));")
+            w("    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio,")
+            w("           @Leidas - @Validas AS FilasExcluidas, @SinMotivo AS LlavesSinMotivo;")
         w("END;")
         return "\n".join(L) + "\nGO\n"

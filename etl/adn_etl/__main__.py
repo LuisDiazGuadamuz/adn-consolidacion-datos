@@ -130,11 +130,14 @@ def main(argv=None):
         try:
             cur = conn.cursor()
             cur.execute("""SELECT TOP (%s) LoteId, Paso, Modo, Estado, FilasLeidas, FilasCargadas, FilasActualizadas,
-                                  FilasSinCambio, FilasDescartadas, Anomalias, CONVERT(varchar(19), FechaInicio, 120), ArchivoRollback
+                                  FilasSinCambio, FilasDescartadas, Anomalias, CONVERT(varchar(19), FechaInicio, 120), ArchivoRollback,
+                                  FilasExcluidas, LlavesSinMotivo
                            FROM ctl.Lote WHERE Paso IS NOT NULL ORDER BY LoteId DESC""", (a.ultimos,))
-            print(f"{'Lote':>5} {'Paso':28s} {'Modo':7s} {'Estado':10s} {'Leídas':>8} {'Ins':>7} {'Act':>6} {'Igual':>7} {'Desc':>6} {'Anom':>5}  Inicio")
+            print(f"{'Lote':>5} {'Paso':28s} {'Modo':7s} {'Estado':10s} {'Leídas':>8} {'Ins':>7} {'Act':>6} {'Igual':>7} {'Desc':>6} {'Anom':>5} {'Excl':>7} {'SinMot':>6}  Inicio")
             for r in cur.fetchall():
-                print(f"{r[0]:>5} {r[1]:28s} {r[2] or '':7s} {r[3]:10s} {r[4] or 0:>8} {r[5] or 0:>7} {r[6] or 0:>6} {r[7] or 0:>7} {r[8] or 0:>6} {r[9] or 0:>5}  {r[10]}")
+                sm = "" if r[13] is None else str(r[13])
+                ex = "" if r[12] is None else str(r[12])
+                print(f"{r[0]:>5} {r[1]:28s} {r[2] or '':7s} {r[3]:10s} {r[4] or 0:>8} {r[5] or 0:>7} {r[6] or 0:>6} {r[7] or 0:>7} {r[8] or 0:>6} {r[9] or 0:>5} {ex:>7} {sm:>6}  {r[10]}")
         finally:
             conn.close()
     elif a.cmd == "instantanea":

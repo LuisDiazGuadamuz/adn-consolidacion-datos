@@ -54,10 +54,16 @@ def _correr(conn, cfg, paso, modo, desde, hasta):
     lote = _iniciar(cur, paso, modo, cfg, params)
     res = bd.filas(cur, f"EXEC {paso.proc} @LoteId = %s, @Desde = %s, @Hasta = %s", (lote, desde, hasta))
     leidas, sin_cambio = (int(res[-1][0]), int(res[-1][1])) if res else (0, 0)
+    excl = sin_motivo = None
+    if res and len(res[-1]) >= 4 and res[-1][2] is not None:
+        excl, sin_motivo = int(res[-1][2]), int(res[-1][3])
     estado = "Exitoso" if modo == "CONFIRM" else "Simulado"
     cur.execute("EXEC ctl.usp_CerrarLote @LoteId = %s, @Estado = %s, @FilasLeidas = %s, @FilasSinCambio = %s",
                 (lote, estado, leidas, sin_cambio))
+    cur.execute("UPDATE ctl.Lote SET FilasExcluidas = %s, LlavesSinMotivo = %s WHERE LoteId = %s", (excl, sin_motivo, lote))
     resumen = [tuple(r) for r in bd.filas(cur, "EXEC ctl.usp_ResumenLote @LoteId = %s", (lote,))]
+    if excl is not None:
+        resumen.append(("Conciliación", "C", (excl, sin_motivo)))
     return lote, leidas, sin_cambio, resumen
 
 
@@ -66,6 +72,11 @@ def _texto_resumen(paso, modo, lote, leidas, sin_cambio, resumen):
     lineas = [f"Paso {paso.nombre} ({paso.destino}) · modo {modo} · lote {lote}",
               f"  Filas leídas del origen: {leidas}", f"  Filas sin cambio: {sin_cambio}"]
     for tabla, a, n in resumen:
+        if a == "C":
+            excl, sin_motivo = n
+            lineas.append(f"  Conciliación: {leidas} leídas = {leidas - excl} válidas + {excl} excluidas; "
+                          f"llaves excluidas sin motivo registrado: {sin_motivo}" + ("" if sin_motivo == 0 else "  ← REVISAR"))
+            continue
         lineas.append(f"  {tabla}: {n} {acc.get(a, a)}")
     return lineas
 
@@ -75,11 +86,12 @@ def _registrar_simulacion(conn, cfg, paso, leidas, sin_cambio, resumen, params):
     cur = conn.cursor()
     lote = _iniciar(cur, paso, "DRYRUN", cfg, params)
     cnt = {a: sum(n for _, x, n in resumen if x == a) for a in "IUDA"}
+    conc = next((n for _, x, n in resumen if x == "C"), (None, None))
     cur.execute("""UPDATE ctl.Lote SET Estado = 'Simulado', FechaFin = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'),
                    FilasLeidas = %s, FilasSinCambio = %s, FilasCargadas = %s, FilasActualizadas = %s,
-                   FilasDescartadas = %s, Anomalias = %s,
+                   FilasDescartadas = %s, Anomalias = %s, FilasExcluidas = %s, LlavesSinMotivo = %s,
                    Mensaje = N'Ensayo (dry-run): todos los cambios se revirtieron.' WHERE LoteId = %s""",
-                (leidas, sin_cambio, cnt["I"], cnt["U"], cnt["D"], cnt["A"], lote))
+                (leidas, sin_cambio, cnt["I"], cnt["U"], cnt["D"], cnt["A"], conc[0], conc[1], lote))
     return lote
 
 

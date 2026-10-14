@@ -54,6 +54,9 @@ BEGIN
         WHERE v.contact_type = 'vendor'
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
+    /* Conciliación: llaves leídas, para comprobar al final que toda fila excluida tiene su motivo en ctl.Descarte */
+    DROP TABLE IF EXISTS #leidas;
+    SELECT DISTINCT FuenteTabla, FuenteLlave INTO #leidas FROM #src;
 
     /* 2a. Filas sin datos obligatorios (IN-01 si es una referencia, ES-05 si es un dato) */
     INSERT ctl.Descarte (LoteId, ReglaId, FuenteSistema, FuenteTabla, FuenteLlave, Motivo, FechaDescarte)
@@ -123,6 +126,17 @@ BEGIN
     FROM #src s JOIN core.Proveedor t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_FechaModificacionOrigen IS NOT NULL AND s.[FechaModificacionOrigen] IS NULL;
 
-    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio;
+    /* 7. Conciliación: leídas = válidas + excluidas; cada llave excluida debe tener su motivo en ctl.Descarte
+       (de este lote o de un lote exitoso anterior). Las repetidas (DD) conservan su llave en una fila válida. */
+    DECLARE @SinMotivo bigint = (
+        SELECT COUNT_BIG(*) FROM #leidas r
+        WHERE NOT EXISTS (SELECT 1 FROM #src s WHERE s.FuenteTabla = r.FuenteTabla
+                          AND (s.FuenteLlave = r.FuenteLlave OR (s.FuenteLlave IS NULL AND r.FuenteLlave IS NULL)))
+          AND NOT EXISTS (SELECT 1 FROM ctl.Descarte x LEFT JOIN ctl.Lote l ON l.LoteId = x.LoteId
+                          WHERE x.FuenteTabla = r.FuenteTabla
+                            AND (x.FuenteLlave = r.FuenteLlave OR (x.FuenteLlave IS NULL AND r.FuenteLlave IS NULL AND x.LoteId = @LoteId))
+                            AND (x.LoteId = @LoteId OR l.Estado = 'Exitoso')));
+    SELECT @Leidas AS FilasLeidas, @Validas - (SELECT COUNT_BIG(*) FROM #cambios) AS FilasSinCambio,
+           @Leidas - @Validas AS FilasExcluidas, @SinMotivo AS LlavesSinMotivo;
 END;
 GO

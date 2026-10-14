@@ -24,6 +24,8 @@ IF COL_LENGTH(N'ctl.Lote', N'Parametros') IS NULL        ALTER TABLE ctl.Lote AD
 IF COL_LENGTH(N'ctl.Lote', N'ArchivoRollback') IS NULL   ALTER TABLE ctl.Lote ADD ArchivoRollback nvarchar(400) NULL;
 IF COL_LENGTH(N'ctl.Lote', N'Mensaje') IS NULL           ALTER TABLE ctl.Lote ADD Mensaje nvarchar(2000) NULL;
 IF COL_LENGTH(N'ctl.Lote', N'Equipo') IS NULL            ALTER TABLE ctl.Lote ADD Equipo nvarchar(128) NULL;
+IF COL_LENGTH(N'ctl.Lote', N'FilasExcluidas') IS NULL    ALTER TABLE ctl.Lote ADD FilasExcluidas bigint NULL;   -- leídas - válidas (conciliación)
+IF COL_LENGTH(N'ctl.Lote', N'LlavesSinMotivo') IS NULL   ALTER TABLE ctl.Lote ADD LlavesSinMotivo bigint NULL;  -- llaves excluidas sin registro en ctl.Descarte (debe ser 0)
 GO
 
 /* ---------------- ctl.Bitacora: una fila por registro afectado ---------------- */
@@ -38,6 +40,10 @@ CREATE TABLE ctl.Bitacora (
     ValoresAnteriores   nvarchar(max) NULL CONSTRAINT CK_Bitacora_JSON CHECK (ValoresAnteriores IS NULL OR ISJSON(ValoresAnteriores) = 1),
     Fecha               datetimeoffset(0) NOT NULL CONSTRAINT DF_Bitacora_Fecha DEFAULT (SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'))
 );
+GO
+/* Búsqueda de descartes previos por llave (filtros, obligatorios y conciliación de cada paso) */
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Descarte_Llave' AND object_id = OBJECT_ID(N'ctl.Descarte'))
+    CREATE INDEX IX_Descarte_Llave ON ctl.Descarte (FuenteTabla, FuenteLlave) INCLUDE (ReglaId, LoteId);
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Bitacora_Lote' AND object_id = OBJECT_ID(N'ctl.Bitacora'))
     CREATE INDEX IX_Bitacora_Lote ON ctl.Bitacora (LoteId, TablaModelo, Accion) INCLUDE (RegistroId);
