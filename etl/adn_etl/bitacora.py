@@ -11,6 +11,7 @@ cuándo, con qué resultado y qué evidencia de verificación existe. Genera en 
 Solo contiene conteos, fechas y nombres técnicos: ningún dato de clientes.
 """
 import csv
+import datetime as dt
 import glob
 import os
 import re
@@ -56,6 +57,7 @@ def generar(cfg):
         ev = runner.evidencia_entorno(cfg, conn)
         cur = conn.cursor()
         ts = runner._ahora()
+        hora_cr = dt.datetime.now(dt.timezone(dt.timedelta(hours=-6))).strftime("%Y-%m-%d %H:%M")
         carpeta = os.path.join(runner.DIR_REPORTES, f"bitacora_{ts}")
         os.makedirs(carpeta, exist_ok=True)
         pasos = registro.todos()
@@ -79,6 +81,10 @@ def generar(cfg):
                        FROM ctl.Lote l
                        WHERE l.LoteId IN (SELECT MAX(LoteId) FROM ctl.Lote WHERE Modo = 'CONFIRM' AND Estado = 'Exitoso' GROUP BY Paso)""")
         ultimo = {r[0]: r for r in cur.fetchall()}
+        cur.execute("""SELECT l.Paso, l.LoteId, l.Modo, l.FilasExcluidas, l.LlavesSinMotivo FROM ctl.Lote l
+                       WHERE l.LoteId IN (SELECT MAX(LoteId) FROM ctl.Lote WHERE LlavesSinMotivo IS NOT NULL
+                                          AND Estado IN ('Exitoso', 'Simulado') GROUP BY Paso)""")
+        concil = {r[0]: r for r in cur.fetchall()}
         cur.execute("""SELECT Paso, COUNT_BIG(*) FROM ctl.vw_AnomaliaVigente GROUP BY Paso""")
         anom_paso = dict(cur.fetchall())
         cur.execute("""SELECT s.name + '.' + t.name, SUM(p.rows) FROM sys.tables t JOIN sys.schemas s ON s.schema_id = t.schema_id
@@ -90,17 +96,32 @@ def generar(cfg):
             u = ultimo.get(p.nombre)
             estado.append([p.orden, p.nombre, p.destino, f"{p.fuente[2]}.{p.fuente[3]}",
                            u[1] if u else "", u[2] if u else "", u[3] if u else "", u[4] if u else "", u[5] if u else "",
-                           u[6] if u else "", u[7] if u else "", u[8] if u else "", anom_paso.get(p.nombre, 0),
-                           (u[9] or "") if u else "", filas_tabla.get(p.destino, "")])
+                           u[6] if u else "", (concil[p.nombre][3] if p.nombre in concil else ""),
+                           (concil[p.nombre][4] if p.nombre in concil else ""), anom_paso.get(p.nombre, 0),
+                           (u[9] or "") if u else "", filas_tabla.get(p.destino, ""),
+                           (f"{concil[p.nombre][1]} ({concil[p.nombre][2]})" if p.nombre in concil else "")])
         cab_estado = ["Orden", "Paso", "TablaModelo", "Origen", "UltimoLote", "Fecha", "Leidas", "Insertadas", "Actualizadas",
-                      "SinCambio", "Excluidas", "LlavesSinMotivo", "AnomaliasVigentes", "Periodo", "FilasTablaModelo"]
+                      "SinCambio", "Excluidas", "LlavesSinMotivo", "AnomaliasVigentes", "Periodo", "FilasTablaModelo", "LoteConciliacion"]
         _csv(os.path.join(carpeta, "estado_por_paso.csv"), cab_estado, estado)
 
-        # ---- descartes (cada llave se registra una vez, en el primer lote exitoso que la excluyó)
-        cur.execute("""SELECT l.Paso, d.ReglaId, LEFT(d.Motivo, 120), COUNT(DISTINCT d.FuenteLlave), COUNT_BIG(*)
-                       FROM ctl.Descarte d JOIN ctl.Lote l ON l.LoteId = d.LoteId AND l.Estado = 'Exitoso' AND l.Modo = 'CONFIRM'
-                       GROUP BY l.Paso, d.ReglaId, LEFT(d.Motivo, 120) ORDER BY l.Paso, COUNT_BIG(*) DESC""")
-        desc = cur.fetchall()
+        # ---- descartes vigentes. Cada llave se registra una vez (primer lote exitoso que la excluyó). No cuentan:
+        #      las llaves vacías de lotes anteriores al último confirmado (se registran de nuevo en cada corrida) ni las
+        #      llaves que hoy sí están cargadas en el modelo (la regla o el paso cambió después). Las repetidas (DD-01/02/04/05)
+        #      comparten la llave con la fila que se conservó, por eso no se comparan con el modelo.
+        desc = []
+        for p in pasos:
+            u = ultimo.get(p.nombre)
+            if not u or p.solo_actualizar:
+                continue
+            cur.execute(f"""SELECT d.ReglaId, LEFT(d.Motivo, 120), COUNT(DISTINCT d.FuenteLlave), COUNT_BIG(*)
+                            FROM ctl.Descarte d JOIN ctl.Lote l ON l.LoteId = d.LoteId AND l.Estado = 'Exitoso' AND l.Modo = 'CONFIRM'
+                            WHERE l.Paso = %s AND (d.FuenteLlave IS NOT NULL OR d.LoteId = %s)
+                              AND (d.ReglaId IN ('DD-01', 'DD-02', 'DD-04', 'DD-05')
+                                   OR NOT EXISTS (SELECT 1 FROM {p.destino} t WHERE t.FuenteSistema = d.FuenteSistema
+                                                  AND t.FuenteTabla = d.FuenteTabla AND t.FuenteLlave = d.FuenteLlave))
+                            GROUP BY d.ReglaId, LEFT(d.Motivo, 120)""", (p.nombre, u[1]))
+            desc += [(p.nombre,) + tuple(r) for r in cur.fetchall()]
+        desc.sort(key=lambda r: (r[0], -int(r[4])))
         _csv(os.path.join(carpeta, "descartes.csv"), ["Paso", "Regla", "Motivo", "LlavesDistintas", "Registros"], desc)
 
         # ---- anomalías vigentes
@@ -127,7 +148,7 @@ def generar(cfg):
     sin_motivo = [r for r in lotes if r[14] not in (None, 0)]
     md = [f"# Bitácora técnica de ejecución del ETL · ADN_Unificado",
           "",
-          f"Generada: {ts[:4]}-{ts[4:6]}-{ts[6:8]} {ts[9:11]}:{ts[11:13]} · desde los objetos de control del modelo "
+          f"Generada: {hora_cr} (hora de Costa Rica) · desde los objetos de control del modelo "
           "(ctl.Lote, ctl.Bitacora, ctl.Descarte, ctl.Anomalia). Solo conteos y nombres técnicos; ningún dato de clientes.",
           "",
           "## 1. Entorno verificado",
@@ -153,8 +174,9 @@ def generar(cfg):
            "",
            "## 3. Estado vigente por paso",
            "",
-           "Último lote confirmado de cada paso. *Excluidas* = leídas − válidas (descartes y repetidas); "
-           "*Sin motivo* debe ser 0. Los pasos de llamadas y ubicaciones se cargan por período (columna *Período*).",
+           "Último lote confirmado de cada paso. *Excluidas* y *Sin motivo* vienen de la conciliación más reciente del paso "
+           "(lote indicado en `estado_por_paso.csv`; puede ser un dry-run): excluidas = leídas − válidas, y *Sin motivo* debe ser 0. "
+           "Los pasos de llamadas y ubicaciones se cargan por período (columna *Período*).",
            ""]
     filas_md = []
     for e in estado:
@@ -171,7 +193,9 @@ def generar(cfg):
 
     # descartes: top por paso
     md += ["", "## 4. Filas excluidas por regla", "",
-           "Cada llave excluida se registra una vez, en el primer lote exitoso que la excluyó (detalle completo en `descartes.csv`).", ""]
+           "Filas que hoy no están en el modelo y por qué. Cada llave se registra una vez, en el primer lote exitoso que la excluyó; "
+           "no se cuentan los descartes que quedaron obsoletos porque la regla o el paso cambió después y la fila ya se carga "
+           "(detalle completo en `descartes.csv`).", ""]
     agg = {}
     for paso, regla, motivo, llaves, n in desc:
         agg.setdefault(regla, [0, 0])
