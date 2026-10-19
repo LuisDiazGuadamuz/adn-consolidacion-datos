@@ -23,7 +23,7 @@ BEGIN
 
     /* 1. Origen normalizado */
     DROP TABLE IF EXISTS #src;
-    SELECT CAST(q.[Circuito] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Circuito],
+    SELECT CAST(q.[Circuito] AS varchar(14)) COLLATE DATABASE_DEFAULT AS [Circuito],
            CAST(q.[CuentaCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [CuentaCrmId],
            CAST(q.[NombreCuenta] AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS [NombreCuenta],
            CAST(q.[TipoCuenta] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [TipoCuenta],
@@ -67,7 +67,7 @@ BEGIN
            q.[o_Condominio],
            q.[o_Ejecutivo],
            q.[o_CircuitoCuentas],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Circuito]) > 12 THEN N'Circuito' END, CASE WHEN LEN(q.[CuentaCrmId]) > 30 THEN N'CuentaCrmId' END, CASE WHEN LEN(q.[NombreCuenta]) > 200 THEN N'NombreCuenta' END, CASE WHEN LEN(q.[TipoCuenta]) > 50 THEN N'TipoCuenta' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[Plataforma]) > 100 THEN N'Plataforma' END, CASE WHEN LEN(q.[NumeroTroncal]) > 50 THEN N'NumeroTroncal' END, CASE WHEN LEN(q.[LineaDID]) > 50 THEN N'LineaDID' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CASE WHEN LEN(q.[Provincia]) > 60 THEN N'Provincia' END, CASE WHEN LEN(q.[Canton]) > 80 THEN N'Canton' END, CASE WHEN LEN(q.[DistritoTexto]) > 80 THEN N'DistritoTexto' END, CASE WHEN LEN(q.[DireccionExacta]) > 1000 THEN N'DireccionExacta' END, CASE WHEN LEN(q.[EstadoCorrespondencia]) > 20 THEN N'EstadoCorrespondencia' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Circuito]) > 14 THEN N'Circuito' END, CASE WHEN LEN(q.[CuentaCrmId]) > 30 THEN N'CuentaCrmId' END, CASE WHEN LEN(q.[NombreCuenta]) > 200 THEN N'NombreCuenta' END, CASE WHEN LEN(q.[TipoCuenta]) > 50 THEN N'TipoCuenta' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[Plataforma]) > 100 THEN N'Plataforma' END, CASE WHEN LEN(q.[NumeroTroncal]) > 50 THEN N'NumeroTroncal' END, CASE WHEN LEN(q.[LineaDID]) > 50 THEN N'LineaDID' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CASE WHEN LEN(q.[Provincia]) > 60 THEN N'Provincia' END, CASE WHEN LEN(q.[Canton]) > 80 THEN N'Canton' END, CASE WHEN LEN(q.[DistritoTexto]) > 80 THEN N'DistritoTexto' END, CASE WHEN LEN(q.[DireccionExacta]) > 1000 THEN N'DireccionExacta' END, CASE WHEN LEN(q.[EstadoCorrespondencia]) > 20 THEN N'EstadoCorrespondencia' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT q.*,

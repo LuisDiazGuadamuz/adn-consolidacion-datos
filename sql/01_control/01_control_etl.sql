@@ -97,17 +97,24 @@ AS BEGIN
 END;
 GO
 
-/* ID-01: circuito normalizado (mayúsculas, sin espacios, guiones ni puntos; 3 letras + 4 a 9 dígitos).
-   Si no cumple el patrón devuelve NULL (el original se conserva aparte, ES-08). */
+/* ID-01 v1.1 (José Hernández: 1A el 13/10/2026 y 2B el 19/10/2026): circuito en mayúsculas, sin espacios ni tabulaciones,
+   CONSERVANDO los guiones. Patrón: 3 letras, guion, bloque de 1 a 6 dígitos y, opcionalmente, guion y bloque de 1 a 3
+   dígitos; 2 a 9 dígitos en total (p. ej. SJO-1234-567, SJO-123456-789, SJO-1234). Así lo escriben todas las fuentes
+   (diagnóstico sql/90_verificacion/circuitos_formas.sql). Si no cumple devuelve NULL (el original se conserva aparte, ES-08). */
 CREATE OR ALTER FUNCTION ctl.fn_Circuito (@v nvarchar(100))
-RETURNS varchar(12) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
+RETURNS varchar(14) WITH SCHEMABINDING, RETURNS NULL ON NULL INPUT
 AS BEGIN
-    DECLARE @c nvarchar(100) = UPPER(REPLACE(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(@v)), N' ', N''), N'-', N''), N'.', N''), N'_', N''));
-    IF LEN(@c) BETWEEN 7 AND 12
-       AND LEFT(@c, 3) COLLATE Latin1_General_BIN LIKE N'[A-Z][A-Z][A-Z]'
-       AND SUBSTRING(@c, 4, 20) NOT LIKE N'%[^0-9]%'
-        RETURN CAST(@c AS varchar(12));
-    RETURN NULL;
+    DECLARE @c nvarchar(100) = UPPER(REPLACE(REPLACE(REPLACE(REPLACE(@v, N' ', N''), NCHAR(9), N''), NCHAR(13), N''), NCHAR(10), N''));
+    IF LEN(@c) NOT BETWEEN 6 AND 14 OR LEFT(@c, 3) COLLATE Latin1_General_BIN NOT LIKE N'[A-Z][A-Z][A-Z]' OR SUBSTRING(@c, 4, 1) <> N'-'
+        RETURN NULL;
+    DECLARE @r nvarchar(100) = SUBSTRING(@c, 5, 100);
+    DECLARE @g int = CHARINDEX(N'-', @r);
+    DECLARE @b1 nvarchar(100) = CASE WHEN @g = 0 THEN @r ELSE LEFT(@r, @g - 1) END;
+    DECLARE @b2 nvarchar(100) = CASE WHEN @g = 0 THEN NULL ELSE SUBSTRING(@r, @g + 1, 100) END;
+    IF @b1 = N'' OR @b1 COLLATE Latin1_General_BIN LIKE N'%[^0-9]%' OR LEN(@b1) > 6 RETURN NULL;
+    IF @b2 IS NOT NULL AND (@b2 = N'' OR @b2 COLLATE Latin1_General_BIN LIKE N'%[^0-9]%' OR LEN(@b2) > 3) RETURN NULL;
+    IF LEN(@b1) + ISNULL(LEN(@b2), 0) NOT BETWEEN 2 AND 9 RETURN NULL;
+    RETURN CAST(@c AS varchar(14));
 END;
 GO
 

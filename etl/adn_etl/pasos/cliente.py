@@ -57,7 +57,7 @@ CREATE UNIQUE CLUSTERED INDEX ix_circ ON #circ (Circ);
 /* Todas las fuentes de cliente con su llave de identidad (ID-05: circuito > cédula > sin correspondencia) */
 DROP TABLE IF EXISTS #f;
 CREATE TABLE #f (Sis varchar(20) COLLATE DATABASE_DEFAULT NOT NULL, Base nvarchar(128) COLLATE DATABASE_DEFAULT NOT NULL, Tab nvarchar(128) COLLATE DATABASE_DEFAULT NOT NULL, Llave nvarchar(200) COLLATE DATABASE_DEFAULT NOT NULL,
-                 CedO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Ced varchar(12) COLLATE DATABASE_DEFAULT NULL, CircO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Circ varchar(12) COLLATE DATABASE_DEFAULT NULL,
+                 CedO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Ced varchar(12) COLLATE DATABASE_DEFAULT NULL, CircO nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Circ varchar(14) COLLATE DATABASE_DEFAULT NULL,
                  CuentaCircuito nvarchar(200) COLLATE DATABASE_DEFAULT NULL, CuentasDelCircuito int NULL,
                  Nombre nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Razon nvarchar(255) COLLATE DATABASE_DEFAULT NULL, TipoFis nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Exon bit NULL,
                  Correo nvarchar(255) COLLATE DATABASE_DEFAULT NULL, Tel nvarchar(60) COLLATE DATABASE_DEFAULT NULL, Segmento nvarchar(120) COLLATE DATABASE_DEFAULT NULL, Industria nvarchar(120) COLLATE DATABASE_DEFAULT NULL,

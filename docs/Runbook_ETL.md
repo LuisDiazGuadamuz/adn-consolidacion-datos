@@ -20,6 +20,7 @@ red Docker interna `etl-red`). Nunca sobre producción.
    | `04_correccion_decisiones.sql` | Decisiones aprobadas |
    | `05_correccion_circuito_no_unico.sql` | Circuito no único |
    | `06_correccion_linaje_por_lote.sql` | Linaje por lote |
+   | `07_correccion_regla_circuito.sql` | ID-01 v1.1: circuito con guiones (varchar(14)); se ejecuta antes y después de recargar |
 
    ```powershell
    docker cp sql\00_modelo\03_correccion_evento_conexion.sql sandbox-sql:/tmp/c.sql
@@ -94,6 +95,25 @@ for ($i = 0; $i -lt 24; $i++) {
 - En el sandbox se cargó un mes por fuente (oct-2026 MongoDB, abr-2026 Telephony_cdr, abr-2025 histórico).
 
 ---
+
+## 3b. Cambio de una regla de identidad (p. ej. ID-01)
+
+Un cambio en la normalización del circuito o de la cédula cambia qué servicio y qué cliente corresponde a cada
+registro, así que se recarga desde el servicio hacia adelante:
+
+```powershell
+git pull
+./etl.ps1 instalar                                   # nueva ctl.fn_Circuito y pasos regenerados
+# corrección del modelo (sqlcmd): sql/00_modelo/07_correccion_regla_circuito.sql  (antes de recargar)
+./etl.ps1 ejecutar --desde-paso core_Servicio --modo confirm --si
+# llamadas: repetir los meses cargados (el circuito liga cada llamada a su servicio)
+./etl.ps1 ejecutar --paso core_Llamada_Historico --modo confirm --si --desde 2025-04-01 --hasta 2025-05-01
+./etl.ps1 ejecutar --paso core_Llamada_SQL --modo confirm --si --desde 2026-04-01 --hasta 2026-05-01
+./etl.ps1 ejecutar --paso core_Llamada --modo confirm --si --desde 2026-10-01 --hasta 2026-11-01
+# corrección del modelo otra vez (valida CK_Servicio_Circuito contra los circuitos nuevos)
+```
+
+Después: `pruebas_funciones.sql`, `muestreo`, la comparación de instantáneas y la `bitacora` como evidencia.
 
 ## 4. Verificaciones del DoD
 

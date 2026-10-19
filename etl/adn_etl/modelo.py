@@ -155,7 +155,7 @@ tabla("core", "ClienteOrigen", "Cliente y servicio", "Tabla de correspondencia: 
       uniques=[["Sistema", "TablaOrigen", "LlaveOrigen"]], origen="Generada en la carga")
 tabla("core", "Servicio", "Cliente y servicio", "Servicio contratado, identificado por el número de circuito; corresponde a una cuenta del CRM", "Una fila por cuenta del CRM o circuito",
       [pk("ServicioId"), fk("ClienteId", "core.Cliente", True, "Titular del servicio", "ID-03"),
-       c("Circuito", V(12), True, "Número de circuito normalizado", "ID-01"), c("CuentaCrmId", N(30), True, "ID de la cuenta en Zoho CRM", "ID-04"),
+       c("Circuito", V(14), True, "Número de circuito normalizado con guiones (ID-01 v1.1: AAA-9…[-9…], 2 a 9 dígitos)", "ID-01"), c("CuentaCrmId", N(30), True, "ID de la cuenta en Zoho CRM", "ID-04"),
        c("NombreCuenta", N(200), True, ""), c("TipoCuenta", N(50), True, ""), c("Estado", N(50), True, ""),
        c("Plataforma", N(100), True, "Plataforma o tecnología del servicio"), c("CapacidadMbps", "decimal(9,2)", True, ""),
        c("TieneIPTV", B, True, "", "ES-07"), c("TieneVoIP", B, True, "", "ES-07"), c("NumeroTroncal", N(50), True, ""), c("LineaDID", N(50), True, ""),
@@ -220,7 +220,7 @@ tabla("core", "Cotizacion", "Comercial", "Cotizaciones del CRM", "Una fila por c
 tabla("core", "OrdenVenta", "Comercial", "Órdenes de venta y contratos del CRM", "Una fila por orden de venta",
       [pk("OrdenVentaId"), c("OrdenVentaCrmId", N(30), False, ""), fk("ServicioId", "core.Servicio", True, "Por cuenta o circuito", "ID-01"),
        fk("ContactoId", "core.Contacto", True, ""), fk("OportunidadId", "core.Oportunidad", True, ""), fk("CotizacionId", "core.Cotizacion", True, ""),
-       c("Circuito", V(12), True, "", "ID-01"), c("Asunto", N(300), True, ""), c("Estado", N(50), True, ""), c("TipoContrato", N(100), True, ""),
+       c("Circuito", V(14), True, "", "ID-01"), c("Asunto", N(300), True, ""), c("Estado", N(50), True, ""), c("TipoContrato", N(100), True, ""),
        c("PlazoMeses", I, True, ""), c("CapacidadDescargaMbps", "decimal(9,2)", True, ""), c("CapacidadCargaMbps", "decimal(9,2)", True, ""),
        *MONEDA, *dinero("SubTotal", "Subtotal"), *dinero("Impuesto", "Impuesto"), *dinero("Descuento", "Descuento"), *dinero("Total", "Total"),
        *dinero("Mensualidad", "Mensualidad contratada"), c("FechaFirma", D, True, "", "ES-01"), c("FechaInactivacion", D, True, "", "ES-01"),
@@ -258,7 +258,7 @@ tabla("core", "OrdenServicioVoIP", "Operación y soporte", "Órdenes de instalac
       uniques=[["OrdenCrmId"]], origen="Zoho_Mirror.Orden_de_Servicio_Voz_IP")
 tabla("core", "Caso", "Operación y soporte", "Casos de soporte y mantenimiento", "Una fila por caso",
       [pk("CasoId"), c("CasoCrmId", N(30), False, ""), fk("ServicioId", "core.Servicio", True, "Cuenta del caso", "IN-01"),
-       c("Circuito", V(12), True, "", "ID-01"), c("NumeroTicket", N(50), True, ""), c("Asunto", N(500), True, ""), c("Descripcion", TXT, True, ""),
+       c("Circuito", V(14), True, "", "ID-01"), c("NumeroTicket", N(50), True, ""), c("Asunto", N(500), True, ""), c("Descripcion", TXT, True, ""),
        c("Estado", N(50), True, ""), c("Origen", N(50), True, ""), c("Segmento", N(50), True, ""), c("TipoMantenimiento", N(100), True, ""),
        c("DepartamentoOrigen", N(100), True, ""), c("ProveedorExterno", N(100), True, ""), c("VisitaTecnica", B, True, "", "ES-07"),
        c("Escalado", B, True, "", "ES-07"), fk("PropietarioUsuarioId", "ref.Usuario", True, ""),
@@ -384,7 +384,7 @@ tabla("core", "ArchivoCDR", "Telefonía", "Archivos de llamadas procesados", "Un
 tabla("core", "Llamada", "Telefonía", "Registros de llamadas (CDR) sin duplicados", "Una fila por llamada única (DD-01)",
       [pk("LlamadaId", BI), fk("ServicioId", "core.Servicio", True, "Por CustomerCircuitNumber", "ID-07"),
        fk("TroncalEntradaId", "core.Troncal", True, ""), fk("TroncalSalidaId", "core.Troncal", True, ""),
-       c("Circuito", V(12), True, "", "ID-01"), c("TipoCDR", I, True, "CDRTypeCode"), c("RazonCDR", N(100), True, ""),
+       c("Circuito", V(14), True, "", "ID-01"), c("TipoCDR", I, True, "CDRTypeCode"), c("RazonCDR", N(100), True, ""),
        c("FechaInicio", DT, False, "", "ES-01"), c("FechaRespuesta", DT, True, "Vacía si la llamada no fue contestada", "ES-02"),
        c("FechaFin", DT, True, "", "ES-01"), c("NumeroOrigen", N(50), True, "", "D6"), c("NumeroMarcado", N(50), True, "", "D6"),
        c("NumeroFacturacion", N(50), True, "", "D6"), c("DigitosRuteo", N(50), True, ""), c("Destino", N(150), True, ""),
@@ -447,7 +447,7 @@ tabla("core", "OrdenEnLineaLinea", "Venta en línea", "Productos de cada carrito
 tabla("core", "AprovisionamientoOdoo", "Venta en línea", "Envío de clientes nuevos a Odoo", "Una fila por intento",
       [pk("AprovisionamientoOdooId"), fk("SolicitudEnLineaId", "core.SolicitudEnLinea", True, ""), c("Estado", N(30), True, ""),
        c("OdooLeadId", I, True, ""), c("OdooPartnerId", I, True, ""), c("OdooSitioId", I, True, ""), c("OdooOrdenId", I, True, ""),
-       c("OdooContratoId", I, True, ""), c("OdooTareaId", I, True, ""), c("Circuito", V(12), True, "", "ID-01"), c("Intentos", I, True, ""),
+       c("OdooContratoId", I, True, ""), c("OdooTareaId", I, True, ""), c("Circuito", V(14), True, "", "ID-01"), c("Intentos", I, True, ""),
        c("UltimoError", N(2000), True, "")] + AUD, origen="ADNPayV2.OdooProvisioning")
 
 # ---------------------------------------------------------------- FLOTA (Navsat)

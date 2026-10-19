@@ -481,7 +481,7 @@ GO
 CREATE TABLE core.Servicio (
     [ServicioId] int IDENTITY(1,1) NOT NULL,
     [ClienteId] int NULL,
-    [Circuito] varchar(12) NULL,
+    [Circuito] varchar(14) NULL,
     [CuentaCrmId] nvarchar(30) NULL,
     [NombreCuenta] nvarchar(200) NULL,
     [TipoCuenta] nvarchar(50) NULL,
@@ -523,7 +523,7 @@ CREATE TABLE core.Servicio (
     [HashContenido] binary(32) NULL,
     CONSTRAINT [PK_core_Servicio] PRIMARY KEY CLUSTERED ([ServicioId]),
     CONSTRAINT [CK_Servicio_AtributosJSON] CHECK ([AtributosExtendidos] IS NULL OR ISJSON([AtributosExtendidos]) = 1),
-    CONSTRAINT [CK_Servicio_Circuito] CHECK ([Circuito] IS NULL OR [Circuito] LIKE '[A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]%'),
+    CONSTRAINT [CK_Servicio_Circuito] CHECK ([Circuito] IS NULL OR [Circuito] LIKE '[A-Z][A-Z][A-Z]-[0-9]%'),
     CONSTRAINT [CK_Servicio_Moneda] CHECK ([Moneda] IS NULL OR [Moneda] IN ('CRC','USD','EUR'))
 );
 CREATE UNIQUE INDEX [UX_Servicio_CuentaCrmId] ON core.Servicio ([CuentaCrmId]) WHERE CuentaCrmId IS NOT NULL;
@@ -813,7 +813,7 @@ CREATE TABLE core.OrdenVenta (
     [ContactoId] int NULL,
     [OportunidadId] int NULL,
     [CotizacionId] int NULL,
-    [Circuito] varchar(12) NULL,
+    [Circuito] varchar(14) NULL,
     [Asunto] nvarchar(300) NULL,
     [Estado] nvarchar(50) NULL,
     [TipoContrato] nvarchar(100) NULL,
@@ -1013,7 +1013,7 @@ CREATE TABLE core.Caso (
     [CasoId] int IDENTITY(1,1) NOT NULL,
     [CasoCrmId] nvarchar(30) NOT NULL,
     [ServicioId] int NULL,
-    [Circuito] varchar(12) NULL,
+    [Circuito] varchar(14) NULL,
     [NumeroTicket] nvarchar(50) NULL,
     [Asunto] nvarchar(500) NULL,
     [Descripcion] nvarchar(max) NULL,
@@ -1719,7 +1719,7 @@ CREATE TABLE core.Llamada (
     [ServicioId] int NULL,
     [TroncalEntradaId] int NULL,
     [TroncalSalidaId] int NULL,
-    [Circuito] varchar(12) NULL,
+    [Circuito] varchar(14) NULL,
     [TipoCDR] int NULL,
     [RazonCDR] nvarchar(100) NULL,
     [FechaInicio] datetimeoffset(0) NOT NULL,
@@ -2034,7 +2034,7 @@ CREATE TABLE core.AprovisionamientoOdoo (
     [OdooOrdenId] int NULL,
     [OdooContratoId] int NULL,
     [OdooTareaId] int NULL,
-    [Circuito] varchar(12) NULL,
+    [Circuito] varchar(14) NULL,
     [Intentos] int NULL,
     [UltimoError] nvarchar(2000) NULL,
     [FechaCreacionOrigen] datetimeoffset(0) NULL,
@@ -2479,7 +2479,7 @@ ALTER TABLE core.EventoConexion ADD CONSTRAINT [FK_EventoConexion_LoteId] FOREIG
 GO
 
 /* ---------------- Catálogo de reglas aprobado (v1.0) ---------------- */
-INSERT INTO ctl.Regla (ReglaId, Tipo, Descripcion, Criticidad, OpcionAprobada, Version, FechaAprobacion, AprobadoPor) VALUES (N'ID-01', N'Identidad', N'El servicio se identifica por el número de circuito normalizado (mayúsculas, sin espacios, guiones ni puntos; 3 letras + 4 a 9 dígitos).', N'Crítica', NULL, N'1.0', '2026-10-06', N'José Hernández');
+INSERT INTO ctl.Regla (ReglaId, Tipo, Descripcion, Criticidad, OpcionAprobada, Version, FechaAprobacion, AprobadoPor) VALUES (N'ID-01', N'Identidad', N'El servicio se identifica por el número de circuito normalizado (v1.1: mayúsculas, sin espacios, conservando los guiones; 3 letras, guion, bloque de dígitos y bloque opcional tras guion; 2 a 9 dígitos).', N'Crítica', NULL, N'1.0', '2026-10-06', N'José Hernández');
 INSERT INTO ctl.Regla (ReglaId, Tipo, Descripcion, Criticidad, OpcionAprobada, Version, FechaAprobacion, AprobadoPor) VALUES (N'ID-02', N'Identidad', N'El cliente se identifica por su cédula con solo dígitos: 9 física, 10 jurídica, 12 DIMEX; otra longitud es inválida.', N'Crítica', NULL, N'1.0', '2026-10-06', N'José Hernández');
 INSERT INTO ctl.Regla (ReglaId, Tipo, Descripcion, Criticidad, OpcionAprobada, Version, FechaAprobacion, AprobadoPor) VALUES (N'ID-03', N'Identidad', N'Un cliente puede tener varios servicios.', N'Crítica', NULL, N'1.0', '2026-10-06', N'José Hernández');
 INSERT INTO ctl.Regla (ReglaId, Tipo, Descripcion, Criticidad, OpcionAprobada, Version, FechaAprobacion, AprobadoPor) VALUES (N'ID-04', N'Identidad', N'Los IDs de cada sistema se conservan como llaves de origen en la tabla de correspondencia.', N'Crítica', NULL, N'1.0', '2026-10-06', N'José Hernández');

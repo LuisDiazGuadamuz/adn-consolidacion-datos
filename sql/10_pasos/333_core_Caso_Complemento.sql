@@ -27,7 +27,7 @@ BEGIN
            CAST(q.[Estado] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [Estado],
            q.[FechaSolicitud],
            CAST(q.[CasoCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [CasoCrmId],
-           CAST(q.[Circuito] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Circuito],
+           CAST(q.[Circuito] AS varchar(14)) COLLATE DATABASE_DEFAULT AS [Circuito],
            q.[VisitaTecnica],
            q.[FechaAfectacion],
            q.[ServicioId],
@@ -49,7 +49,7 @@ BEGIN
            q.[o_Circuito],
            q.[o_FechaAfectacion],
            q.[o_Eliminado],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Segmento]) > 50 THEN N'Segmento' END, CASE WHEN LEN(q.[Asunto]) > 500 THEN N'Asunto' END, CASE WHEN LEN(q.[NumeroTicket]) > 50 THEN N'NumeroTicket' END, CASE WHEN LEN(q.[Origen]) > 50 THEN N'Origen' END, CASE WHEN LEN(q.[ProveedorExterno]) > 100 THEN N'ProveedorExterno' END, CASE WHEN LEN(q.[TipoMantenimiento]) > 100 THEN N'TipoMantenimiento' END, CASE WHEN LEN(q.[DepartamentoOrigen]) > 100 THEN N'DepartamentoOrigen' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[CasoCrmId]) > 30 THEN N'CasoCrmId' END, CASE WHEN LEN(q.[Circuito]) > 12 THEN N'Circuito' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Segmento]) > 50 THEN N'Segmento' END, CASE WHEN LEN(q.[Asunto]) > 500 THEN N'Asunto' END, CASE WHEN LEN(q.[NumeroTicket]) > 50 THEN N'NumeroTicket' END, CASE WHEN LEN(q.[Origen]) > 50 THEN N'Origen' END, CASE WHEN LEN(q.[ProveedorExterno]) > 100 THEN N'ProveedorExterno' END, CASE WHEN LEN(q.[TipoMantenimiento]) > 100 THEN N'TipoMantenimiento' END, CASE WHEN LEN(q.[DepartamentoOrigen]) > 100 THEN N'DepartamentoOrigen' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[CasoCrmId]) > 30 THEN N'CasoCrmId' END, CASE WHEN LEN(q.[Circuito]) > 14 THEN N'Circuito' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ZohoCRM' AS FuenteSistema,

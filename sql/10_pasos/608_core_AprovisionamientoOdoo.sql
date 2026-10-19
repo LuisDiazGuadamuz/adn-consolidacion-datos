@@ -19,7 +19,7 @@ BEGIN
            q.[OdooOrdenId],
            q.[OdooContratoId],
            q.[OdooTareaId],
-           CAST(q.[Circuito] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Circuito],
+           CAST(q.[Circuito] AS varchar(14)) COLLATE DATABASE_DEFAULT AS [Circuito],
            q.[Intentos],
            CAST(q.[UltimoError] AS nvarchar(2000)) COLLATE DATABASE_DEFAULT AS [UltimoError],
            q.[FechaCreacionOrigen],
@@ -33,7 +33,7 @@ BEGIN
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Estado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooLeadId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooPartnerId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooSitioId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooOrdenId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooContratoId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[OdooTareaId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Circuito]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Intentos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[UltimoError]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaCreacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaModificacionOrigen], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[SolicitudEnLineaId]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_SolicitudEnLineaId],
            q.[o_Circuito],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Estado]) > 30 THEN N'Estado' END, CASE WHEN LEN(q.[Circuito]) > 12 THEN N'Circuito' END, CASE WHEN LEN(q.[UltimoError]) > 2000 THEN N'UltimoError' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Estado]) > 30 THEN N'Estado' END, CASE WHEN LEN(q.[Circuito]) > 14 THEN N'Circuito' END, CASE WHEN LEN(q.[UltimoError]) > 2000 THEN N'UltimoError' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'ADNPayV2' AS FuenteSistema,

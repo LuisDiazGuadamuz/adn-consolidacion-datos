@@ -29,7 +29,7 @@ BEGIN
            CAST(q.[Estado] AS nvarchar(50)) COLLATE DATABASE_DEFAULT AS [Estado],
            CAST(q.[OrdenVentaCrmId] AS nvarchar(30)) COLLATE DATABASE_DEFAULT AS [OrdenVentaCrmId],
            CAST(q.[Moneda] AS char(3)) COLLATE DATABASE_DEFAULT AS [Moneda],
-           CAST(q.[Circuito] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Circuito],
+           CAST(q.[Circuito] AS varchar(14)) COLLATE DATABASE_DEFAULT AS [Circuito],
            q.[CotizacionId],
            q.[OportunidadId],
            q.[ContactoId],
@@ -64,7 +64,7 @@ BEGIN
            q.[o_FechaCreacionOrigen],
            q.[o_Circuito],
            q.[o_Eliminado],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Asunto]) > 300 THEN N'Asunto' END, CASE WHEN LEN(q.[TipoContrato]) > 100 THEN N'TipoContrato' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[OrdenVentaCrmId]) > 30 THEN N'OrdenVentaCrmId' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CASE WHEN LEN(q.[Circuito]) > 12 THEN N'Circuito' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Asunto]) > 300 THEN N'Asunto' END, CASE WHEN LEN(q.[TipoContrato]) > 100 THEN N'TipoContrato' END, CASE WHEN LEN(q.[Estado]) > 50 THEN N'Estado' END, CASE WHEN LEN(q.[OrdenVentaCrmId]) > 30 THEN N'OrdenVentaCrmId' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CASE WHEN LEN(q.[Circuito]) > 14 THEN N'Circuito' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT q.*,

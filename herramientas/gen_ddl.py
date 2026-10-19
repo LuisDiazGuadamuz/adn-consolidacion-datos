@@ -6,7 +6,7 @@ from adn_etl import modelo as model
 from adn_etl.modelo import T, LINAJE, TABLAS
 
 REGLAS = [
- ("ID-01","Identidad","El servicio se identifica por el número de circuito normalizado (mayúsculas, sin espacios, guiones ni puntos; 3 letras + 4 a 9 dígitos).","Crítica",None),
+ ("ID-01","Identidad","El servicio se identifica por el número de circuito normalizado (v1.1: mayúsculas, sin espacios, conservando los guiones; 3 letras, guion, bloque de dígitos y bloque opcional tras guion; 2 a 9 dígitos).","Crítica",None),
  ("ID-02","Identidad","El cliente se identifica por su cédula con solo dígitos: 9 física, 10 jurídica, 12 DIMEX; otra longitud es inválida.","Crítica",None),
  ("ID-03","Identidad","Un cliente puede tener varios servicios.","Crítica",None),
  ("ID-04","Identidad","Los IDs de cada sistema se conservan como llaves de origen en la tabla de correspondencia.","Crítica",None),
@@ -109,7 +109,7 @@ def build():
         if t["name"] == "Cliente":
             lines.append("    CONSTRAINT [CK_Cliente_Cedula] CHECK ([Cedula] IS NULL OR ([Cedula] NOT LIKE '%[^0-9]%' AND LEN([Cedula]) IN (9,10,12)))")
         if t["name"] == "Servicio":
-            lines.append("    CONSTRAINT [CK_Servicio_Circuito] CHECK ([Circuito] IS NULL OR [Circuito] LIKE '[A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9]%')")
+            lines.append("    CONSTRAINT [CK_Servicio_Circuito] CHECK ([Circuito] IS NULL OR [Circuito] LIKE '[A-Z][A-Z][A-Z]-[0-9]%')")
         if any(c["name"] == "Moneda" for c in cols):
             lines.append(f"    CONSTRAINT [CK_{t['name']}_Moneda] CHECK ([Moneda] IS NULL OR [Moneda] IN ('CRC','USD','EUR'))")
         w(f"CREATE TABLE {full} (")

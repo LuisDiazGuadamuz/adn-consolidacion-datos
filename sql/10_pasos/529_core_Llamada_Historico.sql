@@ -31,7 +31,7 @@ BEGIN
     SELECT q.[ServicioId],
            q.[TroncalEntradaId],
            q.[TroncalSalidaId],
-           CAST(q.[Circuito] AS varchar(12)) COLLATE DATABASE_DEFAULT AS [Circuito],
+           CAST(q.[Circuito] AS varchar(14)) COLLATE DATABASE_DEFAULT AS [Circuito],
            q.[TipoCDR],
            CAST(q.[RazonCDR] AS nvarchar(100)) COLLATE DATABASE_DEFAULT AS [RazonCDR],
            q.[FechaInicio],
@@ -73,7 +73,7 @@ BEGIN
            q.[o_TroncalEntrada],
            q.[o_TroncalSalida],
            q.[o_Repetida],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[Circuito]) > 12 THEN N'Circuito' END, CASE WHEN LEN(q.[RazonCDR]) > 100 THEN N'RazonCDR' END, CASE WHEN LEN(q.[NumeroOrigen]) > 50 THEN N'NumeroOrigen' END, CASE WHEN LEN(q.[NumeroMarcado]) > 50 THEN N'NumeroMarcado' END, CASE WHEN LEN(q.[NumeroFacturacion]) > 50 THEN N'NumeroFacturacion' END, CASE WHEN LEN(q.[DigitosRuteo]) > 50 THEN N'DigitosRuteo' END, CASE WHEN LEN(q.[Destino]) > 150 THEN N'Destino' END, CASE WHEN LEN(q.[CodigoDestino]) > 20 THEN N'CodigoDestino' END, CASE WHEN LEN(q.[Dispositivo]) > 100 THEN N'Dispositivo' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[Circuito]) > 14 THEN N'Circuito' END, CASE WHEN LEN(q.[RazonCDR]) > 100 THEN N'RazonCDR' END, CASE WHEN LEN(q.[NumeroOrigen]) > 50 THEN N'NumeroOrigen' END, CASE WHEN LEN(q.[NumeroMarcado]) > 50 THEN N'NumeroMarcado' END, CASE WHEN LEN(q.[NumeroFacturacion]) > 50 THEN N'NumeroFacturacion' END, CASE WHEN LEN(q.[DigitosRuteo]) > 50 THEN N'DigitosRuteo' END, CASE WHEN LEN(q.[Destino]) > 150 THEN N'Destino' END, CASE WHEN LEN(q.[CodigoDestino]) > 20 THEN N'CodigoDestino' END, CASE WHEN LEN(q.[Dispositivo]) > 100 THEN N'Dispositivo' END, CASE WHEN LEN(q.[Moneda]) > 3 THEN N'Moneda' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT q.*,
