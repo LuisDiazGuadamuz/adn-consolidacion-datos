@@ -12,7 +12,10 @@ por su volumen (millones de filas) y se cargan por período (--desde / --hasta):
        fecha presente en stg.mongo_Telephony_cdr (@Corte). Sin períodos vacíos ni llamadas duplicadas entre fuentes.
   D10  moneda de la llamada según el destino: 506 → CRC, otro → USD
   D5   tipo de cambio: el que registró la central (usd_exchange); si falta, el del día (ref.TipoCambio)
-  ID-07 la llamada se asigna al servicio por CustomerCircuitNumber (circuito con un único servicio)
+  ID-07 la llamada se asigna al servicio por CustomerCircuitNumber (circuito con un único servicio). Si no trae circuito
+        válido (MongoDB no tiene el campo), respaldo por troncal aprobado el 19/10 (opción A): el servicio de la troncal
+        del cliente cuando es uno solo; queda marcado ServicioPor=Troncal en AtributosExtendidos. Si la entrada y la
+        salida son de servicios distintos la llamada queda sin servicio con anomalía ID-07 (troncal ambigua).
   IN-01 troncales: TroncalEntradaId/SalidaId solo para troncales de clientes (core.Troncal); las de proveedores (carriers,
         ref.TroncalProveedor) no son anomalía. Los números originales quedan siempre en AtributosExtendidos.
   DD-01 llamadas idénticas (todas las columnas salvo el id) dentro del período: se carga una
@@ -129,7 +132,9 @@ DECLARE @CorteSQL datetime2 = ISNULL((SELECT MIN(StartDateTime) FROM ADNApp.dbo.
 DROP TABLE IF EXISTS #circ, #tron;
 SELECT Circuito, MIN(ServicioId) AS ServicioId, COUNT(*) AS n INTO #circ FROM core.Servicio WHERE Circuito IS NOT NULL GROUP BY Circuito;
 CREATE UNIQUE CLUSTERED INDEX ix ON #circ (Circuito);
-SELECT TRY_CONVERT(int, CodigoTroncal) AS Codigo, MIN(TroncalId) AS TroncalId, COUNT(*) AS n INTO #tron
+/* Servicio por troncal (aprobado 19/10, opción A): solo como respaldo cuando la llamada no trae circuito válido */
+SELECT TRY_CONVERT(int, CodigoTroncal) AS Codigo, MIN(TroncalId) AS TroncalId, COUNT(*) AS n,
+       CASE WHEN COUNT(*) = 1 THEN MIN(ServicioId) END AS ServicioId INTO #tron
 FROM core.Troncal WHERE TRY_CONVERT(int, CodigoTroncal) IS NOT NULL GROUP BY TRY_CONVERT(int, CodigoTroncal);
 CREATE UNIQUE CLUSTERED INDEX ix ON #tron (Codigo);
 /* Troncales de proveedores (carriers): no son troncales de clientes, pero tampoco son anomalía */
@@ -149,7 +154,8 @@ def _fecha(x):
 
 def _select_llamadas(origen, base, tabla_sql, llave, filtro_periodo, fuente_tabla="Telephony_cdr"):
     c = "c"
-    atrib = ", ".join([f"{c}.IngressTrunk AS [IngressTrunk]", f"{c}.EgressTrunk AS [EgressTrunk]"]
+    atrib = ", ".join([f"{c}.IngressTrunk AS [IngressTrunk]", f"{c}.EgressTrunk AS [EgressTrunk]",
+                       "CASE WHEN ci.ServicioId IS NULL AND st.ServicioId IS NOT NULL THEN N'Troncal' END AS [ServicioPor]"]
                       + [f"{_t(f'{c}.[{a}]', 400)} AS [{a}]" for a in _ATRIBUTOS])
     return f"""
 SELECT q.*,
@@ -162,7 +168,7 @@ SELECT q.*,
 FROM (
     SELECT 'AppDataCR' AS FuenteSistema, N'{base}' AS FuenteBase, N'{fuente_tabla}' AS FuenteTabla,
            CAST({llave} AS nvarchar(200)) AS FuenteLlave, {_fecha(f'{c}.StartDateTime')} AS FechaDato,
-           ci.ServicioId, ti.TroncalId AS TroncalEntradaId, te.TroncalId AS TroncalSalidaId,
+           COALESCE(ci.ServicioId, st.ServicioId) AS ServicioId, ti.TroncalId AS TroncalEntradaId, te.TroncalId AS TroncalSalidaId,
            v.Circuito, {c}.CDRTypeCode AS TipoCDR, {_t(f'{c}.CDRTypeReason', 100)} AS RazonCDR,
            {_fecha(f'{c}.StartDateTime')} AS FechaInicio, {_fecha(f'{c}.AnswerTimeOfDate')} AS FechaRespuesta,
            {_fecha(f'{c}.DisconnectDateTime')} AS FechaFin,
@@ -186,6 +192,7 @@ FROM (
            CASE WHEN v.Circuito IS NOT NULL AND ci.ServicioId IS NULL THEN v.Circuito END AS o_ServicioCircuito,
            CASE WHEN {c}.IngressTrunk IS NOT NULL AND ti.TroncalId IS NULL AND pi.Codigo IS NULL THEN CAST({c}.IngressTrunk AS nvarchar(20)) END AS o_TroncalEntrada,
            CASE WHEN {c}.EgressTrunk IS NOT NULL AND te.TroncalId IS NULL AND pe.Codigo IS NULL THEN CAST({c}.EgressTrunk AS nvarchar(20)) END AS o_TroncalSalida,
+           CASE WHEN st.Ambigua = 1 THEN CONCAT(N'troncales ', {c}.IngressTrunk, N'/', {c}.EgressTrunk) END AS o_TroncalAmbigua,
            ROW_NUMBER() OVER (PARTITION BY {_huella_fila(c, _CONTENIDO)} ORDER BY CAST({llave} AS nvarchar(200))) AS o_Repetida
     FROM {tabla_sql} {c}
     CROSS APPLY (SELECT ctl.fn_Circuito(CONVERT(nvarchar(100), {c}.CustomerCircuitNumber)) AS Circuito) v
@@ -193,6 +200,12 @@ FROM (
     OUTER APPLY (SELECT CASE WHEN ci0.n = 1 THEN ci0.ServicioId END AS ServicioId) ci
     LEFT JOIN #tron ti ON ti.Codigo = {c}.IngressTrunk AND ti.n = 1
     LEFT JOIN #tron te ON te.Codigo = {c}.EgressTrunk AND te.n = 1
+    /* Respaldo por troncal: sin circuito válido, el servicio de la troncal del cliente si es uno solo; si la entrada y la
+       salida son de servicios distintos la llamada queda sin servicio (ID-07, troncal ambigua) */
+    OUTER APPLY (SELECT CASE WHEN v.Circuito IS NULL AND NOT (ti.ServicioId IS NOT NULL AND te.ServicioId IS NOT NULL
+                                  AND ti.ServicioId <> te.ServicioId) THEN COALESCE(ti.ServicioId, te.ServicioId) END AS ServicioId,
+                        CASE WHEN v.Circuito IS NULL AND ti.ServicioId IS NOT NULL AND te.ServicioId IS NOT NULL
+                                  AND ti.ServicioId <> te.ServicioId THEN 1 END AS Ambigua) st
     LEFT JOIN #tprov pi ON pi.Codigo = {c}.IngressTrunk
     LEFT JOIN #tprov pe ON pe.Codigo = {c}.EgressTrunk
     WHERE {c}.StartDateTime IS NOT NULL AND {filtro_periodo}
@@ -208,11 +221,14 @@ _COLS_LLAMADA = ["ServicioId", "TroncalEntradaId", "TroncalSalidaId", "Circuito"
                  "DuracionMinutos", "RedondeoDestino", "IncrementoCliente", "PorcentajeCliente", "Moneda", "TipoCambio",
                  "TarifaDestino", "TarifaDestinoCRC", "TarifaSinMargen", "TarifaSinMargenCRC", "Costo", "CostoCRC",
                  "CostoSinMargen", "CostoSinMargenCRC", "AtributosExtendidos"]
-_AUX_LLAMADA = ["o_TipoCambio", "o_Circuito", "o_ServicioCircuito", "o_TroncalEntrada", "o_TroncalSalida", "o_Repetida"]
+_AUX_LLAMADA = ["o_TipoCambio", "o_Circuito", "o_ServicioCircuito", "o_TroncalEntrada", "o_TroncalSalida", "o_TroncalAmbigua",
+                "o_Repetida"]
 _ANOM_LLAMADA = [
     Anomalia("ID-01", "Circuito", "s.o_Circuito", "s.o_Circuito IS NOT NULL AND s.Circuito IS NULL", "Circuito que no cumple el patrón aprobado"),
     Anomalia("ID-07", "ServicioId", "s.o_ServicioCircuito", "s.o_ServicioCircuito IS NOT NULL",
              "Circuito de la llamada sin un único servicio en el modelo"),
+    Anomalia("ID-07", "ServicioId", "s.o_TroncalAmbigua", "s.o_TroncalAmbigua IS NOT NULL",
+             "Llamada sin circuito cuya troncal de entrada y de salida son de servicios distintos: queda sin servicio"),
     Anomalia("IN-01", "TroncalEntradaId", "s.o_TroncalEntrada", "s.o_TroncalEntrada IS NOT NULL",
              "Troncal de entrada que no es de un cliente ni de un proveedor"),
     Anomalia("IN-01", "TroncalSalidaId", "s.o_TroncalSalida", "s.o_TroncalSalida IS NOT NULL",
