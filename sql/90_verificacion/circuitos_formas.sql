@@ -31,23 +31,39 @@ SELECT Fuente, COUNT_BIG(*) AS Valores,
        MAX(LEN(Valor)) AS LargoMaximo
 FROM #v GROUP BY Fuente ORDER BY Fuente;
 
-PRINT '== 3. Patrón aprobado (3 letras + 2 a 9 dígitos), con y sin quitar separadores';
-SELECT Fuente, COUNT_BIG(*) AS Valores,
-       SUM(CASE WHEN Forma LIKE N'AAA9%' AND SUBSTRING(Forma, 4, 100) NOT LIKE N'%[^9]%' AND LEN(Valor) BETWEEN 5 AND 12 THEN 1 ELSE 0 END) AS CumpleSinSeparador,
-       SUM(CASE WHEN Forma LIKE N'AAA-9%' AND SUBSTRING(Forma, 5, 100) NOT LIKE N'%[^9]%' AND LEN(Valor) BETWEEN 6 AND 13 THEN 1 ELSE 0 END) AS CumpleConGuion,
-       SUM(CASE WHEN SinSep COLLATE Latin1_General_BIN LIKE N'[A-Z][A-Z][A-Z][0-9][0-9]%' AND SUBSTRING(SinSep, 4, 100) NOT LIKE N'%[^0-9]%'
-                 AND LEN(SinSep) BETWEEN 5 AND 12 THEN 1 ELSE 0 END) AS CumpleQuitandoSeparadores
+/* Normalización propuesta para la opción B: mayúsculas, sin espacios, CONSERVANDO los guiones.
+   Patrón propuesto: 3 letras - bloque de 2 a 6 dígitos [- bloque de 1 a 3 dígitos], 2 a 9 dígitos en total (1A). */
+ALTER TABLE #v ADD NormB nvarchar(100) COLLATE DATABASE_DEFAULT NULL, CumpleB bit NULL, CumpleA bit NULL;
+UPDATE #v SET NormB = REPLACE(Valor, N' ', N'');
+UPDATE #v SET CumpleB = CASE WHEN TRANSLATE(NormB COLLATE Latin1_General_BIN, N'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', N'9999999999AAAAAAAAAAAAAAAAAAAAAAAAAA')
+                                  IN (N'AAA-99', N'AAA-999', N'AAA-9999', N'AAA-99999', N'AAA-999999',
+                                      N'AAA-99-9', N'AAA-99-99', N'AAA-99-999', N'AAA-999-9', N'AAA-999-99', N'AAA-999-999',
+                                      N'AAA-9999-9', N'AAA-9999-99', N'AAA-9999-999', N'AAA-99999-9', N'AAA-99999-99', N'AAA-99999-999',
+                                      N'AAA-999999-9', N'AAA-999999-99', N'AAA-999999-999') THEN 1 ELSE 0 END,
+              CumpleA = CASE WHEN SinSep COLLATE Latin1_General_BIN LIKE N'[A-Z][A-Z][A-Z][0-9][0-9]%' AND SUBSTRING(SinSep, 4, 100) NOT LIKE N'%[^0-9]%'
+                                  AND LEN(SinSep) BETWEEN 5 AND 12 THEN 1 ELSE 0 END;
+
+PRINT '== 3. Valores que cumplen: opción B (con guiones) vs quitando separadores (A)';
+SELECT Fuente, COUNT_BIG(*) AS Valores, SUM(CAST(CumpleB AS int)) AS CumpleOpcionB, SUM(CAST(CumpleA AS int)) AS CumpleQuitandoSeparadores,
+       MAX(CASE WHEN CumpleB = 1 THEN LEN(NormB) END) AS LargoMaximoValido
 FROM #v GROUP BY Fuente ORDER BY Fuente;
 
-PRINT '== 4. Emparejamiento con las cuentas del CRM (valores distintos): exacto vs quitando separadores';
-;WITH crm AS (SELECT DISTINCT Valor, SinSep FROM #v WHERE Fuente LIKE 'CRM%'),
-      otr AS (SELECT Fuente, Valor, SinSep, COUNT_BIG(*) AS n FROM #v WHERE Fuente NOT LIKE 'CRM%' GROUP BY Fuente, Valor, SinSep)
-SELECT o.Fuente, SUM(o.n) AS Filas,
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM crm c WHERE c.Valor = o.Valor) THEN o.n ELSE 0 END) AS EmparejaExacto,
-       SUM(CASE WHEN EXISTS (SELECT 1 FROM crm c WHERE c.SinSep = o.SinSep) THEN o.n ELSE 0 END) AS EmparejaSinSeparadores
-FROM otr o GROUP BY o.Fuente ORDER BY o.Fuente;
+PRINT '== 4. Formas que cumplirían quitando separadores pero NO la opción B (top 15)';
+SELECT TOP 15 Forma, COUNT_BIG(*) AS Valores FROM #v WHERE CumpleA = 1 AND CumpleB = 0 GROUP BY Forma ORDER BY COUNT_BIG(*) DESC;
 
-PRINT '== 5. Circuitos del CRM que solo difieren por separadores (choques al quitarlos)';
+PRINT '== 5. Emparejamiento con las cuentas del CRM: opción B (exacto con guiones) vs quitando separadores';
+DROP TABLE IF EXISTS #crmB; DROP TABLE IF EXISTS #crmA;
+SELECT DISTINCT NormB AS k INTO #crmB FROM #v WHERE Fuente LIKE 'CRM%' AND CumpleB = 1;
+SELECT DISTINCT SinSep AS k INTO #crmA FROM #v WHERE Fuente LIKE 'CRM%' AND CumpleA = 1;
+CREATE UNIQUE CLUSTERED INDEX i ON #crmB (k); CREATE UNIQUE CLUSTERED INDEX i ON #crmA (k);
+SELECT v.Fuente, COUNT_BIG(*) AS Filas,
+       SUM(CASE WHEN b.k IS NOT NULL AND v.CumpleB = 1 THEN 1 ELSE 0 END) AS EmparejaOpcionB,
+       SUM(CASE WHEN a.k IS NOT NULL AND v.CumpleA = 1 THEN 1 ELSE 0 END) AS EmparejaQuitandoSeparadores
+FROM #v v LEFT JOIN #crmB b ON b.k = v.NormB LEFT JOIN #crmA a ON a.k = v.SinSep
+WHERE v.Fuente NOT LIKE 'CRM%'
+GROUP BY v.Fuente ORDER BY v.Fuente;
+
+PRINT '== 6. Circuitos distintos del CRM que quedarían iguales al quitar los separadores (choques que la opción B evita)';
 SELECT COUNT(*) AS CircuitosSinSeparadorConVariasFormas, SUM(Formas) AS FormasInvolucradas
-FROM (SELECT SinSep, COUNT(DISTINCT Valor) AS Formas FROM #v WHERE Fuente LIKE 'CRM%' GROUP BY SinSep HAVING COUNT(DISTINCT Valor) > 1) x;
+FROM (SELECT SinSep, COUNT(DISTINCT NormB) AS Formas FROM #v WHERE Fuente LIKE 'CRM%' AND CumpleA = 1 GROUP BY SinSep HAVING COUNT(DISTINCT NormB) > 1) x;
 DROP TABLE #v;
