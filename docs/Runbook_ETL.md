@@ -104,6 +104,7 @@ for ($i = 0; $i -lt 24; $i++) {
 | Trazabilidad a fuente y período | `./etl.ps1 muestreo --n 10` → `reportes/*_muestreo_trazabilidad.txt/.csv` | origen y lote+bitácora al 100 %; período en toda tabla con fecha |
 | Reproducibilidad | `instantanea` → segunda corrida → `instantanea` → `comparar` | `IDÉNTICAS`; la segunda corrida da 0 insertadas / 0 actualizadas |
 | Rollback | `./etl.ps1 rollback --lote N --ensayo` y luego sin `--ensayo` | el lote queda `Revertido` y la tabla vuelve a su estado anterior |
+| Bitácora técnica de ejecución | `./etl.ps1 bitacora` → `reportes/bitacora_<fecha>/` (`bitacora_ejecucion.md` + CSV) | historial de lotes, estado vigente por paso, descartes, anomalías, rollbacks y fallidos |
 
 ```powershell
 ./etl.ps1 instantanea --nombre corrida1
