@@ -35,11 +35,17 @@ CREATE TABLE ctl.Bitacora (
     LoteId              int NOT NULL CONSTRAINT FK_Bitacora_LoteId REFERENCES ctl.Lote (LoteId),
     TablaModelo         nvarchar(128) NOT NULL,
     RegistroId          bigint NOT NULL,
-    Accion              char(1) NOT NULL CONSTRAINT CK_Bitacora_Accion CHECK (Accion IN ('I', 'U')),
+    Accion              char(1) NOT NULL CONSTRAINT CK_Bitacora_Accion CHECK (Accion IN ('I', 'U', 'R')),
     FuenteLlave         nvarchar(200) NULL,
     ValoresAnteriores   nvarchar(max) NULL CONSTRAINT CK_Bitacora_JSON CHECK (ValoresAnteriores IS NULL OR ISJSON(ValoresAnteriores) = 1),
     Fecha               datetimeoffset(0) NOT NULL CONSTRAINT DF_Bitacora_Fecha DEFAULT (SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'))
 );
+GO
+/* Acción 'R' = fila retirada porque su origen ya no la produce (el rollback la vuelve a insertar) */
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_Bitacora_Accion' AND definition NOT LIKE N'%''R''%')
+    ALTER TABLE ctl.Bitacora DROP CONSTRAINT CK_Bitacora_Accion;
+IF OBJECT_ID(N'ctl.CK_Bitacora_Accion', N'C') IS NULL
+    ALTER TABLE ctl.Bitacora WITH CHECK ADD CONSTRAINT CK_Bitacora_Accion CHECK (Accion IN ('I', 'U', 'R'));
 GO
 /* Búsqueda de descartes previos por llave (filtros, obligatorios y conciliación de cada paso) */
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Descarte_Llave' AND object_id = OBJECT_ID(N'ctl.Descarte'))

@@ -172,3 +172,23 @@ def copiar(cfg, coleccion, desde=None, hasta=None, lote_tamano=5000):
     finally:
         cli.close()
         conn.close()
+
+
+def campos(cfg, coleccion, muestra=5000):
+    """Inventario de campos de una colección (solo lectura): nombre del campo, tipo y en cuántos documentos de una
+    muestra aleatoria trae valor. No muestra ningún valor. Sirve para ver si un campo esperado viene con otro nombre."""
+    seguridad.verificar_configuracion(cfg)
+    cli = MongoClient(cfg.mongo_uri, serverSelectionTimeoutMS=10000, readPreference="secondaryPreferred")
+    try:
+        bdm = cli[os.environ.get("ETL_MONGO_BD", "developer_adn_app_db")]
+        tubo = [{"$sample": {"size": int(muestra)}},
+                {"$project": {"k": {"$objectToArray": "$$ROOT"}}}, {"$unwind": "$k"},
+                {"$group": {"_id": {"campo": "$k.k", "tipo": {"$type": "$k.v"}}, "docs": {"$sum": 1}}},
+                {"$sort": {"_id.campo": 1}}]
+        filas = list(bdm[coleccion].aggregate(tubo, allowDiskUse=True))
+        print(f"Campos de {bdm.name}.{coleccion} en una muestra de {muestra} documentos (sin valores):")
+        print(f"{'Campo':40s} {'Tipo':12s} {'Docs':>6s}")
+        for f in filas:
+            print(f"{f['_id']['campo']:40s} {f['_id']['tipo']:12s} {f['docs']:>6d}")
+    finally:
+        cli.close()

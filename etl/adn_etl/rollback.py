@@ -4,6 +4,7 @@
 El archivo es un solo lote T-SQL que se puede revisar y ejecutar desde SSMS o con el runner:
   - restaura los valores anteriores de las filas actualizadas (ctl.Bitacora.ValoresAnteriores),
   - elimina las filas insertadas por el lote,
+  - vuelve a insertar, con su mismo id, las filas que el lote retiró por no tener origen vigente (Accion 'R'),
   - elimina descartes, anomalías y linaje de campo del lote,
   - marca el lote como Revertido.
 Se niega a ejecutar si el lote no está Exitoso o si un lote posterior modificó los mismos registros
@@ -42,7 +43,7 @@ def generar(cur, lote_id):
     w(f"/* ROLLBACK del lote {lote_id} · paso {paso}")
     w(f"   Generado {dt.datetime.now().strftime('%Y-%m-%d %H:%M')} desde ctl.Bitacora por adn_etl.rollback.")
     for t, a, n in conteos:
-        w(f"   {t}: {n} filas {'insertadas (se eliminan)' if a == 'I' else 'actualizadas (se restauran)'}")
+        w(f"   {t}: {n} filas " + {'I': 'insertadas (se eliminan)', 'U': 'actualizadas (se restauran)', 'R': 'retiradas (se vuelven a insertar)'}.get(a, a))
     w("   Ensayo: cambie @Simular a 1 para ejecutar todo y revertir al final. */")
     w("SET XACT_ABORT ON; SET NOCOUNT ON;")
     w("DECLARE @Simular bit = 0;")
@@ -86,6 +87,28 @@ def generar(cur, lote_id):
             w(f"DELETE t FROM {tabla} t")
             w(f"JOIN ctl.Bitacora b ON b.LoteId = @LoteId AND b.TablaModelo = N'{tabla}' AND b.Accion = 'I' AND b.RegistroId = t.[{pk}];")
             w("SET @Eliminadas += @@ROWCOUNT;")
+    for tabla in tablas:
+        if not any(t == tabla and a == "R" for t, a, _ in conteos):
+            continue
+        d, pk = _columnas(tabla)
+        cols = [pk] + [c for c in d if c not in (pk, "HashContenido") and d[c]["type"] != "computed"] + ["HashContenido"]
+        con, sel = [], []
+        for k in cols:
+            tipo = "binary(32)" if k == "HashContenido" else d[k]["type"]
+            if tipo.startswith("binary"):
+                con.append(f"[{k}] varchar(66) '$.{k}'")
+                sel.append(f"CONVERT({tipo}, j.[{k}], 1)")
+            else:
+                con.append(f"[{k}] {tipo} '$.{k}'")
+                sel.append(f"j.[{k}]")
+        w(f"/* {tabla}: volver a insertar las filas retiradas por el lote (mismo id) */")
+        w(f"SET IDENTITY_INSERT {tabla} ON;")
+        w(f"INSERT {tabla} ({', '.join('[' + c + ']' for c in cols)})")
+        w(f"SELECT {', '.join(sel)}")
+        w(f"FROM ctl.Bitacora b CROSS APPLY OPENJSON(b.ValoresAnteriores) WITH ({', '.join(con)}) j")
+        w(f"WHERE b.LoteId = @LoteId AND b.TablaModelo = N'{tabla}' AND b.Accion = 'R';")
+        w("SET @Restauradas += @@ROWCOUNT;")
+        w(f"SET IDENTITY_INSERT {tabla} OFF;")
     w("DELETE FROM ctl.LinajeCampo WHERE LoteId = @LoteId;")
     w("DELETE FROM ctl.Anomalia WHERE LoteId = @LoteId;")
     w("DELETE FROM ctl.Descarte WHERE LoteId = @LoteId;")

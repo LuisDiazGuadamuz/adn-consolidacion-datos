@@ -68,7 +68,7 @@ def _correr(conn, cfg, paso, modo, desde, hasta):
 
 
 def _texto_resumen(paso, modo, lote, leidas, sin_cambio, resumen):
-    acc = {"I": "insertadas", "U": "actualizadas", "D": "descartadas", "A": "anomalías"}
+    acc = {"I": "insertadas", "U": "actualizadas", "R": "retiradas (sin origen vigente)", "D": "descartadas", "A": "anomalías"}
     lineas = [f"Paso {paso.nombre} ({paso.destino}) · modo {modo} · lote {lote}",
               f"  Filas leídas del origen: {leidas}", f"  Filas sin cambio: {sin_cambio}"]
     for tabla, a, n in resumen:

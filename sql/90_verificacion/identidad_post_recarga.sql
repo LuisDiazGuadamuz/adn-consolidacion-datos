@@ -29,3 +29,9 @@ PRINT '== 5. Llamadas cargadas por mes con y sin servicio';
 SELECT CONVERT(char(7), FechaInicio, 120) AS Mes, COUNT_BIG(*) AS Llamadas,
        SUM(CASE WHEN ServicioId IS NOT NULL THEN 1 ELSE 0 END) AS ConServicio
 FROM core.Llamada GROUP BY CONVERT(char(7), FechaInicio, 120) ORDER BY 1;
+
+PRINT '== 6. Copia de MongoDB (stg): llamadas con número de circuito';
+SELECT CONVERT(char(7), StartDateTime, 120) AS Mes, COUNT_BIG(*) AS Llamadas,
+       SUM(CASE WHEN NULLIF(LTRIM(RTRIM(CustomerCircuitNumber)), N'') IS NOT NULL THEN 1 ELSE 0 END) AS ConCircuito,
+       SUM(CASE WHEN NULLIF(LTRIM(RTRIM(CustomerName)), N'') IS NOT NULL THEN 1 ELSE 0 END) AS ConNombreCliente
+FROM stg.mongo_Telephony_cdr GROUP BY CONVERT(char(7), StartDateTime, 120) ORDER BY 1;

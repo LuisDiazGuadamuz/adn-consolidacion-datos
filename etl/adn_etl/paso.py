@@ -64,6 +64,7 @@ class Paso:
     traza_llave: str = ""                    # expresión de FuenteLlave sobre ese FROM
     traza_columna: str = ""                  # columna simple del origen para la búsqueda rápida (índice)
     linaje_tabla: str = ""                   # FuenteTabla que escribe el paso, si no es la tabla de origen (p. ej. 'Dispositivo')
+    retirar_sin_origen: bool = False         # retira (Accion 'R' en la bitácora) filas cuya llave ya no produce el origen
 
     # ------------------------------------------------------------------ utilidades
     @property
@@ -280,6 +281,24 @@ class Paso:
         w(f"    SELECT @LoteId, N'{destino}', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json")
         w("    FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';")
         w("")
+        if self.retirar_sin_origen and not self.solo_actualizar:
+            refs = [(f"{t['schema']}.{t['name']}", c["name"]) for t in modelo.T for c in t["cols"] if c.get("fk") == destino]
+            todas_cols = [pk] + [c for c in d if c not in (pk, "HashContenido") and d[c]["type"] != "computed"] + ["HashContenido"]
+            sel_json = ", ".join(f"CONVERT(varchar(66), t.[{c}], 1) AS [{c}]" if (c == "HashContenido" or d.get(c, {}).get("type", "").startswith("binary"))
+                                 else f"t.[{c}]" for c in todas_cols)
+            libre = "".join(f"\n      AND NOT EXISTS (SELECT 1 FROM {rt} x WHERE x.[{rc}] = t.[{pk}])" for rt, rc in refs)
+            w("    /* 5c. Retiro de filas sin origen vigente: su llave ya no la produce el origen (p. ej. cambió una regla de")
+            w("       identidad). Solo se retiran las que ningún otro registro referencia; la fila completa queda en la bitácora")
+            w("       (Accion 'R') y el rollback la vuelve a insertar con su mismo id. Las referenciadas quedan con anomalía ID-04. */")
+            w("    DROP TABLE IF EXISTS #sinorigen;")
+            w(f"    SELECT t.[{pk}] AS RegistroId, t.FuenteLlave, CAST(CASE WHEN 1 = 1{libre} THEN 1 ELSE 0 END AS bit) AS Libre,")
+            w(f"           (SELECT {sel_json} FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json")
+            w(f"    INTO #sinorigen FROM {destino} t")
+            w("    WHERE NOT EXISTS (SELECT 1 FROM #leidas r WHERE r.FuenteTabla = t.FuenteTabla AND r.FuenteLlave = t.FuenteLlave);")
+            w("    INSERT ctl.Bitacora (LoteId, TablaModelo, RegistroId, Accion, FuenteLlave, ValoresAnteriores)")
+            w(f"    SELECT @LoteId, N'{destino}', RegistroId, 'R', FuenteLlave, Json FROM #sinorigen WHERE Libre = 1;")
+            w(f"    DELETE t FROM {destino} t JOIN #sinorigen r ON r.RegistroId = t.[{pk}] AND r.Libre = 1;")
+            w("")
         if self.linaje_campos:
             w("    /* 5b. Linaje por campo (D9): qué sistema aportó cada valor de las filas afectadas */")
             for c in self.linaje_campos:
@@ -294,6 +313,11 @@ class Paso:
         w(f"    SELECT @LoteId, 'ES-05', N'{destino}', t.[{pk}], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'")
         w(f"    FROM #src s JOIN {destino} t ON {self._match()}")
         w("    WHERE s._Recortadas <> N'';")
+        if self.retirar_sin_origen and not self.solo_actualizar:
+            w("    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)")
+            w(f"    SELECT @LoteId, 'ID-04', N'{destino}', r.RegistroId, N'FuenteLlave', NULL,")
+            w("           N'Registro sin origen vigente (cambió la regla de identidad) que otros registros todavía referencian: no se retiró'")
+            w("    FROM #sinorigen r WHERE r.Libre = 0;")
         if self.anomalias:
             for an in self.anomalias:
                 w("    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)")

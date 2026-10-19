@@ -274,6 +274,34 @@ BEGIN
     SELECT @LoteId, N'core.Cliente', c.RegistroId, CASE c.Accion WHEN N'INSERT' THEN 'I' ELSE 'U' END, c.FuenteLlave, a.Json
     FROM #cambios c LEFT JOIN #antes a ON a.RegistroId = c.RegistroId AND c.Accion = N'UPDATE';
 
+    /* 5c. Retiro de filas sin origen vigente: su llave ya no la produce el origen (p. ej. cambió una regla de
+       identidad). Solo se retiran las que ningún otro registro referencia; la fila completa queda en la bitácora
+       (Accion 'R') y el rollback la vuelve a insertar con su mismo id. Las referenciadas quedan con anomalía ID-04. */
+    DROP TABLE IF EXISTS #sinorigen;
+    SELECT t.[ClienteId] AS RegistroId, t.FuenteLlave, CAST(CASE WHEN 1 = 1
+      AND NOT EXISTS (SELECT 1 FROM core.ClienteOrigen x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Servicio x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Contacto x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Prospecto x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Nota x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Factura x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.FacturaRecurrente x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Pago x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.MovimientoBancario x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.Gasto x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.HistorialEstadoCliente x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.MinutosContratadosHistorico x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.CorteVoIP x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.ConsumoVoIP x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.SolicitudEnLinea x WHERE x.[ClienteId] = t.[ClienteId])
+      AND NOT EXISTS (SELECT 1 FROM core.EventoConexion x WHERE x.[ClienteId] = t.[ClienteId]) THEN 1 ELSE 0 END AS bit) AS Libre,
+           (SELECT t.[ClienteId], t.[Cedula], t.[TipoIdentificacion], t.[Nombre], t.[RazonSocial], t.[TipoFiscal], t.[Exonerado], t.[Correo], t.[Telefono], t.[Segmento], t.[Industria], t.[EstadoCorrespondencia], t.[FuenteSistema], t.[FuenteBase], t.[FuenteTabla], t.[FuenteLlave], t.[FechaDato], t.[LoteId], t.[FechaCarga], CONVERT(varchar(66), t.[HashContenido], 1) AS [HashContenido] FOR JSON PATH, WITHOUT_ARRAY_WRAPPER, INCLUDE_NULL_VALUES) AS Json
+    INTO #sinorigen FROM core.Cliente t
+    WHERE NOT EXISTS (SELECT 1 FROM #leidas r WHERE r.FuenteTabla = t.FuenteTabla AND r.FuenteLlave = t.FuenteLlave);
+    INSERT ctl.Bitacora (LoteId, TablaModelo, RegistroId, Accion, FuenteLlave, ValoresAnteriores)
+    SELECT @LoteId, N'core.Cliente', RegistroId, 'R', FuenteLlave, Json FROM #sinorigen WHERE Libre = 1;
+    DELETE t FROM core.Cliente t JOIN #sinorigen r ON r.RegistroId = t.[ClienteId] AND r.Libre = 1;
+
     /* 5b. Linaje por campo (D9): qué sistema aportó cada valor de las filas afectadas */
     INSERT ctl.LinajeCampo (TablaModelo, RegistroId, Columna, FuenteSistema, FuenteTabla, FuenteLlave, FechaDato, LoteId)
     SELECT N'core.Cliente', c.RegistroId, N'Nombre', s.lf_Nombre_sis, s.lf_Nombre_tab, s.lf_Nombre_llave, s.lf_Nombre_fecha, @LoteId
@@ -314,6 +342,10 @@ BEGIN
     SELECT @LoteId, 'ES-05', N'core.Cliente', t.[ClienteId], LEFT(s._Recortadas, 128), NULL, N'Texto más largo que la columna del modelo: se recortó'
     FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s._Recortadas <> N'';
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'ID-04', N'core.Cliente', r.RegistroId, N'FuenteLlave', NULL,
+           N'Registro sin origen vigente (cambió la regla de identidad) que otros registros todavía referencian: no se retiró'
+    FROM #sinorigen r WHERE r.Libre = 0;
     INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
     SELECT @LoteId, 'ID-02', N'core.Cliente', t.[ClienteId], N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen'
     FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]

@@ -74,6 +74,9 @@ def main(argv=None):
     st.add_argument("--coleccion", required=True)
     st.add_argument("--desde")
     st.add_argument("--hasta")
+    mc = sub.add_parser("mongo-campos", help="inventario de campos de una colección de MongoDB (solo lectura, sin valores)")
+    mc.add_argument("--coleccion", required=True)
+    mc.add_argument("--muestra", type=int, default=5000)
     m = sub.add_parser("muestreo")
     m.add_argument("--n", type=int, default=10)
     m.add_argument("--paso", help="solo este paso")
@@ -147,6 +150,9 @@ def main(argv=None):
     elif a.cmd == "stage-mongo":
         from . import mongo_stage
         mongo_stage.copiar(cfg, a.coleccion, a.desde, a.hasta)
+    elif a.cmd == "mongo-campos":
+        from . import mongo_stage
+        mongo_stage.campos(cfg, a.coleccion, a.muestra)
     elif a.cmd == "bitacora":
         from . import bitacora
         bitacora.generar(cfg)

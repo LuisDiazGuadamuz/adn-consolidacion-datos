@@ -376,6 +376,7 @@ OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(u1.UsuarioId) END AS Usuario
 """),
     Paso(
         nombre="core_Cliente", orden=230, destino="core.Cliente", depende=["core_Servicio"],
+        retirar_sin_origen=True,   # p. ej. cliente por cédula que quedó sin registros al aplicar la decisión 2C
         fuente=("Consolidado", "SQLServer", "ADN_Unificado", "Cedula"), llave_origen="",
         descripcion="Clientes consolidados de CRM, Books y ADNPayV2. Con cédula válida: un cliente por cédula (FuenteTabla = Cedula). "
                     "Sin cédula: un cliente por registro de origen sin correspondencia (D8). Cada campo toma el valor según D9 "
