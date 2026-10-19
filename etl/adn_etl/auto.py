@@ -203,7 +203,8 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
                 cond = f"zref.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), {x}))"
                 pkr = "ServicioId"
             elif ref == "core.Cliente" and any(k in col_o.lower() for k in ("legal", "idcard", "id_card")):
-                cond = f"zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), {x}))"
+                cond = (f"zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), {x}))"
+                        " AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = zref.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))")  # solo clientes vigentes (con origen en CRM, Books o ADNPayV2)
                 pkr = "ClienteId"
             elif ref in POR_LLAVE:                                     # catálogos por su llave de origen
                 cond = f"zref.FuenteBase = N'{POR_LLAVE[ref]}' AND zref.FuenteLlave = {v}"

@@ -39,7 +39,7 @@ BEGIN
                ctl.fn_Texto(CONVERT(nvarchar(400), m.[IDCard])) AS [o_ClienteId],
                'MinutosLegalId' AS [TablaOrigen]
         FROM ADNApp.dbo.[MinutosLegalId] m
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.Cliente zref WHERE zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), m.[IDCard]))) fk_ClienteId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.Cliente zref WHERE zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), m.[IDCard])) AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = zref.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))) fk_ClienteId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
     /* Conciliación: llaves leídas, para comprobar al final que toda fila excluida tiene su motivo en ctl.Descarte */

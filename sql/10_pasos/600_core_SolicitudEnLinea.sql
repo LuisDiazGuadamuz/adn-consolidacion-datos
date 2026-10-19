@@ -102,6 +102,7 @@ BEGIN
         OUTER APPLY (SELECT MIN(o.ClienteId) AS ClienteId FROM core.ClienteOrigen o
                      WHERE o.Sistema = 'ADNPayV2' AND o.LlaveOrigen = CAST(c.[index] AS nvarchar(200))) co
         LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl.fn_Cedula(c.id)
+            AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = cl.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))
         ) q
         OUTER APPLY (SELECT TOP 1 t.Venta FROM ref.TipoCambio t WHERE t.Fecha <= CAST(CAST(q.FechaSolicitud AS date) AS date) ORDER BY t.Fecha DESC) tc
         CROSS APPLY (SELECT CASE q.Moneda WHEN 'CRC' THEN CAST(1 AS decimal(19,6)) WHEN 'USD' THEN COALESCE(tc.Venta, NULL) END AS Tasa) tx

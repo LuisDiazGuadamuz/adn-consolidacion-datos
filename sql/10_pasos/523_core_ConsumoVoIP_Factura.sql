@@ -51,7 +51,7 @@ BEGIN
                fk_ServicioId_0.Id AS [ServicioId],
                ctl.fn_Texto(CONVERT(nvarchar(400), i.[circuit_number])) AS [o_ServicioId]
         FROM ADNApp.dbo.[ZohoEngine_invoicevoip] i
-        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.Cliente zref WHERE zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), i.[legal_id]))) fk_ClienteId_0
+        OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ClienteId]) END AS Id FROM core.Cliente zref WHERE zref.FuenteTabla = N'Cedula' AND zref.FuenteLlave = ctl.fn_Cedula(CONVERT(nvarchar(100), i.[legal_id])) AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = zref.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))) fk_ClienteId_0
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(zref.[ServicioId]) END AS Id FROM core.Servicio zref WHERE zref.Circuito = ctl.fn_Circuito(CONVERT(nvarchar(100), i.[circuit_number]))) fk_ServicioId_0
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);

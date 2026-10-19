@@ -52,7 +52,8 @@ PASOS = [
                           "CodigoPromocion": "COALESCE(ctl.fn_Texto(c.promotion_code), ctl.fn_Texto(c.promcode))"},
                 extra_from="""OUTER APPLY (SELECT MIN(o.ClienteId) AS ClienteId FROM core.ClienteOrigen o
              WHERE o.Sistema = 'ADNPayV2' AND o.LlaveOrigen = CAST(c.[index] AS nvarchar(200))) co
-LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl.fn_Cedula(c.id)""",
+LEFT JOIN core.Cliente cl ON cl.FuenteTabla = N'Cedula' AND cl.FuenteLlave = ctl.fn_Cedula(c.id)
+    AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = cl.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))""",
                 moneda="'CRC'", fecha_tc="CAST(q.FechaSolicitud AS date)",
                 depende=["core_ClienteOrigen", "core_Producto_ADNPayServicio"],
                 descripcion="Solicitudes de contratación en línea (ADNPayV2.Customer). Cliente por la tabla de correspondencia "

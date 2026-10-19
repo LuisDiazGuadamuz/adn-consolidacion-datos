@@ -431,6 +431,7 @@ CROSS APPLY (SELECT COALESCE(svz.ServicioId, svc.ServicioId) AS ServicioId, COAL
 LEFT JOIN #f fa ON fa.Sis = 'ZohoCRM' AND fa.Llave = sv.Cuenta
 LEFT JOIN core.Cliente cla ON cla.FuenteSistema = fa.KSis AND cla.FuenteTabla = fa.KTab AND cla.FuenteLlave = fa.KLlave
 LEFT JOIN core.Cliente clc ON sv.ServicioId IS NULL AND clc.FuenteTabla = N'Cedula' AND clc.FuenteLlave = ctl.fn_Cedula(z.IDCard)
+    AND EXISTS (SELECT 1 FROM core.ClienteOrigen vo WHERE vo.ClienteId = clc.ClienteId AND vo.Sistema IN ('ZohoCRM', 'ZohoBooks', 'ADNPayV2'))
 """),
     Paso(
         nombre="core_Servicio_Cliente", orden=250, destino="core.Servicio", depende=["core_ClienteOrigen"],
