@@ -54,6 +54,7 @@ BEGIN
                      Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
                      RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
                      CedLigada bit NOT NULL DEFAULT 0,
+                     CedConflicto bit NOT NULL DEFAULT 0,
                      KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
     INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
     SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
@@ -92,6 +93,13 @@ BEGIN
         SELECT ctl.fn_Texto(z.ZohoID) FROM ADNApp.dbo.ZohoEngine_zohocustomer z
         WHERE ctl.fn_Texto(z.ZohoID) IS NOT NULL AND ctl.fn_Cedula(z.IDCard) IS NOT NULL) x;
     UPDATE f SET f.CedLigada = 1 FROM #f f JOIN #lig l ON l.Cuenta = f.Llave WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NULL;
+    /* Cédulas en conflicto: la cuenta del CRM trae una cédula válida y el contacto de Books ligado por su circuito trae
+       otra cédula válida distinta. Decisión de José (19/10/2026, 2C): ninguna de las dos identifica al cliente; la cuenta
+       queda como su propio cliente (llave por cuenta, sin cédula) y se marca (ID-02) para revisión manual. */
+    UPDATE f SET f.CedConflicto = 1, f.Clave = N'A:' + f.Tab + N':' + f.Llave
+    FROM #f f
+    WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NOT NULL
+      AND EXISTS (SELECT 1 FROM #f b WHERE b.Sis = 'ZohoBooks' AND b.CuentaCircuito = f.Llave AND b.Ced IS NOT NULL AND b.Ced <> f.Ced);
     UPDATE f SET f.Clave = k.Clave, f.Metodo = 'CIRCUITO'
     FROM #f f JOIN #f k ON k.Sis = 'ZohoCRM' AND k.Llave = f.CuentaCircuito
     WHERE f.Sis <> 'ZohoCRM' AND f.CuentaCircuito IS NOT NULL;

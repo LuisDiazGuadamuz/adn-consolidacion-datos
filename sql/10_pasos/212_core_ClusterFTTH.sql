@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 212 · core_ClusterFTTH → core.ClusterFTTH
-   Clústeres FTTH. El nodo se vincula por id del CRM o por nombre, solo si corresponde a un único nodo.
+   Clústeres FTTH. El nodo se vincula por id del CRM, por nombre o por las equivalencias aprobadas (Heredia, Llorente, Tres Ríos), solo si corresponde a un único nodo; Belén, El Alto y Concepción quedan sin nodo (IN-01).
    Reglas: ES-01, ES-05, DD-02, DD-06, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_ClusterFTTH @LoteId int, @Desde date = NULL, @Hasta date = NULL
@@ -48,8 +48,12 @@ BEGIN
                ctl.fn_FechaCR(f.Created_Time) AS FechaCreacionOrigen, ctl.fn_FechaCR(f.Modified_Time) AS FechaModificacionOrigen,
                CAST(ISNULL(f.deleted, 0) AS int) AS o_Eliminado, ctl.fn_Texto(f.Nodo) AS o_Nodo
         FROM Zoho_Mirror.dbo.FTTHs f
+        /* Equivalencias aprobadas por José (19/10/2026) para nodos escritos en el clúster con un nombre corto */
+        OUTER APPLY (SELECT CASE ctl.fn_Texto(f.Nodo) WHEN N'Heredia' THEN 'HER' WHEN N'Llorente' THEN 'LLF'
+                                                      WHEN N'Tres Ríos' THEN 'CTR' END AS Nomenclatura) eq
         OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(n.NodoId) END AS NodoId FROM core.Nodo n
-                     WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo) OR n.Nombre = ctl.fn_Texto(f.Nodo)) nd
+                     WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo) OR n.Nombre = ctl.fn_Texto(f.Nodo)
+                        OR (eq.Nomenclatura IS NOT NULL AND n.Nomenclatura = eq.Nomenclatura)) nd
     ) AS q;
     DECLARE @Leidas bigint = (SELECT COUNT_BIG(*) FROM #src);
     /* Conciliación: llaves leídas, para comprobar al final que toda fila excluida tiene su motivo en ctl.Descarte */

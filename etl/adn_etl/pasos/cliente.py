@@ -64,6 +64,7 @@ CREATE TABLE #f (Sis varchar(20) COLLATE DATABASE_DEFAULT NOT NULL, Base nvarcha
                  Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
                  RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
                  CedLigada bit NOT NULL DEFAULT 0,
+                 CedConflicto bit NOT NULL DEFAULT 0,
                  KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
 INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
 SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
@@ -102,6 +103,13 @@ SELECT DISTINCT Cuenta INTO #lig FROM (
     SELECT ctl.fn_Texto(z.ZohoID) FROM ADNApp.dbo.ZohoEngine_zohocustomer z
     WHERE ctl.fn_Texto(z.ZohoID) IS NOT NULL AND ctl.fn_Cedula(z.IDCard) IS NOT NULL) x;
 UPDATE f SET f.CedLigada = 1 FROM #f f JOIN #lig l ON l.Cuenta = f.Llave WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NULL;
+/* Cédulas en conflicto: la cuenta del CRM trae una cédula válida y el contacto de Books ligado por su circuito trae
+   otra cédula válida distinta. Decisión de José (19/10/2026, 2C): ninguna de las dos identifica al cliente; la cuenta
+   queda como su propio cliente (llave por cuenta, sin cédula) y se marca (ID-02) para revisión manual. */
+UPDATE f SET f.CedConflicto = 1, f.Clave = N'A:' + f.Tab + N':' + f.Llave
+FROM #f f
+WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NOT NULL
+  AND EXISTS (SELECT 1 FROM #f b WHERE b.Sis = 'ZohoBooks' AND b.CuentaCircuito = f.Llave AND b.Ced IS NOT NULL AND b.Ced <> f.Ced);
 UPDATE f SET f.Clave = k.Clave, f.Metodo = 'CIRCUITO'
 FROM #f f JOIN #f k ON k.Sis = 'ZohoCRM' AND k.Llave = f.CuentaCircuito
 WHERE f.Sis <> 'ZohoCRM' AND f.CuentaCircuito IS NOT NULL;
@@ -143,10 +151,10 @@ SELECT_CLIENTE = (
     + "       CASE WHEN k.ConCrm = 1 THEN 'CRM' WHEN k.ConBooks = 1 THEN 'SOLO_BOOKS' ELSE 'SOLO_ADNPAY' END AS EstadoCorrespondencia,\n"
     + ",\n".join(f"       x_{f}.Sis AS lf_{m}_sis, x_{f}.Tab AS lf_{m}_tab, x_{f}.Llave AS lf_{m}_llave, x_{f}.Modificada AS lf_{m}_fecha"
                  for m, f, _ in CAMPOS_CLIENTE)
-    + ",\n       p.CedO AS o_Cedula, k.Ligada AS o_CedLigada\n"
+    + ",\n       p.CedO AS o_Cedula, k.Ligada AS o_CedLigada, k.Conflicto AS o_CedConflicto\n"
     "FROM (SELECT Clave, MIN(Creada) AS Desde, MAX(CASE WHEN Sis = 'ZohoCRM' THEN 1 ELSE 0 END) AS ConCrm,\n"
     "             MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas,\n"
-    "             MAX(CAST(CedLigada AS int)) AS Ligada\n"
+    "             MAX(CAST(CedLigada AS int)) AS Ligada, MAX(CAST(CedConflicto AS int)) AS Conflicto\n"
     "      FROM #f GROUP BY Clave) k\n"
     "CROSS APPLY (SELECT TOP 1 f.KSis, f.KBase, f.KTab, f.KLlave, f.CedO FROM #f f WHERE f.Clave = k.Clave ORDER BY f.RankCom, f.Modificada DESC, f.Llave) p\n"
     + "\n".join(_campo(f, r) for _, f, r in CAMPOS_CLIENTE)
@@ -247,7 +255,8 @@ FROM Zoho_Mirror.dbo.Nodos n
     Paso(
         nombre="core_ClusterFTTH", orden=212, destino="core.ClusterFTTH", depende=["core_Nodo"],
         fuente=("ZohoCRM", "SQLServer", "Zoho_Mirror", "FTTHs"), llave_origen="id",
-        descripcion="Clústeres FTTH. El nodo se vincula por id del CRM o por nombre, solo si corresponde a un único nodo.",
+        descripcion="Clústeres FTTH. El nodo se vincula por id del CRM, por nombre o por las equivalencias aprobadas (Heredia, "
+                    "Llorente, Tres Ríos), solo si corresponde a un único nodo; Belén, El Alto y Concepción quedan sin nodo (IN-01).",
         reglas=["ES-01", "ES-05", "DD-02", "DD-06", "IN-01", "IN-05"],
         dedup_regla="DD-02", dedup_orden="s.FechaModificacionOrigen DESC, s.HashContenido",
         dedup_motivo="Versión anterior del mismo clúster en el espejo de Zoho",
@@ -268,8 +277,12 @@ SELECT 'ZohoCRM' AS FuenteSistema, N'Zoho_Mirror' AS FuenteBase, N'FTTHs' AS Fue
        ctl.fn_FechaCR(f.Created_Time) AS FechaCreacionOrigen, ctl.fn_FechaCR(f.Modified_Time) AS FechaModificacionOrigen,
        CAST(ISNULL(f.deleted, 0) AS int) AS o_Eliminado, ctl.fn_Texto(f.Nodo) AS o_Nodo
 FROM Zoho_Mirror.dbo.FTTHs f
+/* Equivalencias aprobadas por José (19/10/2026) para nodos escritos en el clúster con un nombre corto */
+OUTER APPLY (SELECT CASE ctl.fn_Texto(f.Nodo) WHEN N'Heredia' THEN 'HER' WHEN N'Llorente' THEN 'LLF'
+                                              WHEN N'Tres Ríos' THEN 'CTR' END AS Nomenclatura) eq
 OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(n.NodoId) END AS NodoId FROM core.Nodo n
-             WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo) OR n.Nombre = ctl.fn_Texto(f.Nodo)) nd
+             WHERE n.NodoCrmId = ctl.fn_Texto(f.Nodo) OR n.Nombre = ctl.fn_Texto(f.Nodo)
+                OR (eq.Nomenclatura IS NOT NULL AND n.Nomenclatura = eq.Nomenclatura)) nd
 """),
     Paso(
         nombre="core_Servicio", orden=220, destino="core.Servicio",
@@ -371,11 +384,13 @@ OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(u1.UsuarioId) END AS Usuario
         preparacion=IDENTIDAD,
         columnas=["Cedula", "TipoIdentificacion"] + [m for m, _, _ in CAMPOS_CLIENTE] + ["EstadoCorrespondencia"],
         linaje_campos=[m for m, _, _ in CAMPOS_CLIENTE],
-        auxiliares=["o_Cedula", "o_CedLigada"],
+        auxiliares=["o_Cedula", "o_CedLigada", "o_CedConflicto"],
         anomalias=[Anomalia("ID-02", "Cedula", "s.o_Cedula", "s.Cedula IS NULL AND s.TipoIdentificacion = 'INVALIDA'",
                             "Identificación con formato inválido; se conserva el valor original en core.ClienteOrigen"),
                    Anomalia("ID-02", "Cedula", "s.o_Cedula", "s.o_CedLigada = 1 AND s.Cedula IS NULL",
-                            "Cuenta del CRM sin cédula; Books o app.data.cr ligados sí traen cédula (no se hereda, decisión 1B)")],
+                            "Cuenta del CRM sin cédula; Books o app.data.cr ligados sí traen cédula (no se hereda, decisión 1B)"),
+                   Anomalia("ID-02", "Cedula", "s.o_Cedula", "s.o_CedConflicto = 1",
+                            "Cédula de la cuenta del CRM distinta de la del contacto de Books ligado por circuito: queda sin cédula hasta revisión manual (decisión 2C)")],
         select=SELECT_CLIENTE,
     ),
     Paso(

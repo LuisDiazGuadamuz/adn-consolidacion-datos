@@ -54,6 +54,7 @@ BEGIN
                      Creada datetimeoffset(0) NULL, Modificada datetimeoffset(0) NULL,
                      RankCom tinyint NOT NULL, RankFis tinyint NOT NULL, Clave nvarchar(220) COLLATE DATABASE_DEFAULT NULL, Metodo varchar(20) COLLATE DATABASE_DEFAULT NULL,
                      CedLigada bit NOT NULL DEFAULT 0,
+                     CedConflicto bit NOT NULL DEFAULT 0,
                      KSis varchar(20) COLLATE DATABASE_DEFAULT NULL, KBase nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KTab nvarchar(128) COLLATE DATABASE_DEFAULT NULL, KLlave nvarchar(200) COLLATE DATABASE_DEFAULT NULL);
     INSERT #f (Sis, Base, Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, RankCom, RankFis, Clave, Metodo)
     SELECT 'ZohoCRM', N'Zoho_Mirror', Tab, Llave, CedO, Ced, CircO, Circ, Nombre, Razon, TipoFis, Exon, Segmento, Industria, Creada, Modificada, 1, 2,
@@ -92,6 +93,13 @@ BEGIN
         SELECT ctl.fn_Texto(z.ZohoID) FROM ADNApp.dbo.ZohoEngine_zohocustomer z
         WHERE ctl.fn_Texto(z.ZohoID) IS NOT NULL AND ctl.fn_Cedula(z.IDCard) IS NOT NULL) x;
     UPDATE f SET f.CedLigada = 1 FROM #f f JOIN #lig l ON l.Cuenta = f.Llave WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NULL;
+    /* Cédulas en conflicto: la cuenta del CRM trae una cédula válida y el contacto de Books ligado por su circuito trae
+       otra cédula válida distinta. Decisión de José (19/10/2026, 2C): ninguna de las dos identifica al cliente; la cuenta
+       queda como su propio cliente (llave por cuenta, sin cédula) y se marca (ID-02) para revisión manual. */
+    UPDATE f SET f.CedConflicto = 1, f.Clave = N'A:' + f.Tab + N':' + f.Llave
+    FROM #f f
+    WHERE f.Sis = 'ZohoCRM' AND f.Ced IS NOT NULL
+      AND EXISTS (SELECT 1 FROM #f b WHERE b.Sis = 'ZohoBooks' AND b.CuentaCircuito = f.Llave AND b.Ced IS NOT NULL AND b.Ced <> f.Ced);
     UPDATE f SET f.Clave = k.Clave, f.Metodo = 'CIRCUITO'
     FROM #f f JOIN #f k ON k.Sis = 'ZohoCRM' AND k.Llave = f.CuentaCircuito
     WHERE f.Sis <> 'ZohoCRM' AND f.CuentaCircuito IS NOT NULL;
@@ -131,6 +139,7 @@ BEGIN
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[Cedula]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoIdentificacion]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Nombre]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RazonSocial]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[TipoFiscal]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Exonerado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Correo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Telefono]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Segmento]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Industria]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[EstadoCorrespondencia]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_Cedula],
            q.[o_CedLigada],
+           q.[o_CedConflicto],
            q.[lf_Nombre_sis],
            q.[lf_Nombre_tab],
            q.[lf_Nombre_llave],
@@ -187,10 +196,10 @@ BEGIN
                x_Tel.Sis AS lf_Telefono_sis, x_Tel.Tab AS lf_Telefono_tab, x_Tel.Llave AS lf_Telefono_llave, x_Tel.Modificada AS lf_Telefono_fecha,
                x_Segmento.Sis AS lf_Segmento_sis, x_Segmento.Tab AS lf_Segmento_tab, x_Segmento.Llave AS lf_Segmento_llave, x_Segmento.Modificada AS lf_Segmento_fecha,
                x_Industria.Sis AS lf_Industria_sis, x_Industria.Tab AS lf_Industria_tab, x_Industria.Llave AS lf_Industria_llave, x_Industria.Modificada AS lf_Industria_fecha,
-               p.CedO AS o_Cedula, k.Ligada AS o_CedLigada
+               p.CedO AS o_Cedula, k.Ligada AS o_CedLigada, k.Conflicto AS o_CedConflicto
         FROM (SELECT Clave, MIN(Creada) AS Desde, MAX(CASE WHEN Sis = 'ZohoCRM' THEN 1 ELSE 0 END) AS ConCrm,
                      MAX(CASE WHEN Sis = 'ZohoBooks' THEN 1 ELSE 0 END) AS ConBooks, COUNT(DISTINCT Ced) AS Cedulas,
-                     MAX(CAST(CedLigada AS int)) AS Ligada
+                     MAX(CAST(CedLigada AS int)) AS Ligada, MAX(CAST(CedConflicto AS int)) AS Conflicto
               FROM #f GROUP BY Clave) k
         CROSS APPLY (SELECT TOP 1 f.KSis, f.KBase, f.KTab, f.KLlave, f.CedO FROM #f f WHERE f.Clave = k.Clave ORDER BY f.RankCom, f.Modificada DESC, f.Llave) p
         OUTER APPLY (SELECT TOP 1 f.Nombre AS v, f.Sis, f.Tab, f.Llave, f.Modificada FROM #f f WHERE f.Clave = k.Clave AND f.Nombre IS NOT NULL ORDER BY f.RankCom, f.Modificada DESC, f.Llave) AS x_Nombre
@@ -313,6 +322,10 @@ BEGIN
     SELECT @LoteId, 'ID-02', N'core.Cliente', t.[ClienteId], N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Cuenta del CRM sin cédula; Books o app.data.cr ligados sí traen cédula (no se hereda, decisión 1B)'
     FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
     WHERE s.o_CedLigada = 1 AND s.Cedula IS NULL;
+    INSERT ctl.Anomalia (LoteId, ReglaId, TablaModelo, RegistroId, Columna, ValorOriginal, Detalle)
+    SELECT @LoteId, 'ID-02', N'core.Cliente', t.[ClienteId], N'Cedula', LEFT(CONVERT(nvarchar(400), s.o_Cedula), 400), N'Cédula de la cuenta del CRM distinta de la del contacto de Books ligado por circuito: queda sin cédula hasta revisión manual (decisión 2C)'
+    FROM #src s JOIN core.Cliente t ON t.[FuenteSistema] = s.[FuenteSistema] AND t.[FuenteTabla] = s.[FuenteTabla] AND t.[FuenteLlave] = s.[FuenteLlave]
+    WHERE s.o_CedConflicto = 1;
 
     /* 7. Conciliación: leídas = válidas + excluidas; cada llave excluida debe tener su motivo en ctl.Descarte
        (de este lote o de un lote exitoso anterior). Las repetidas (DD) conservan su llave en una fila válida. */
