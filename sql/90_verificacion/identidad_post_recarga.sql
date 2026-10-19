@@ -15,8 +15,10 @@ WHERE ReglaId IN ('ID-01', 'ID-02', 'ID-07') GROUP BY Paso, ReglaId ORDER BY Pas
 
 PRINT '== 3. Clientes por llave y clientes sin ningún registro de origen vigente (quedaron de la regla anterior)';
 SELECT c.FuenteSistema, c.FuenteTabla, COUNT(*) AS Clientes,
-       SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM core.ClienteOrigen o WHERE o.ClienteId = c.ClienteId) THEN 1 ELSE 0 END) AS SinOrigen
-FROM core.Cliente c GROUP BY c.FuenteSistema, c.FuenteTabla ORDER BY 1, 2;
+       SUM(CASE WHEN o.ClienteId IS NULL THEN 1 ELSE 0 END) AS SinOrigen
+FROM core.Cliente c
+LEFT JOIN (SELECT DISTINCT ClienteId FROM core.ClienteOrigen WHERE ClienteId IS NOT NULL) o ON o.ClienteId = c.ClienteId
+GROUP BY c.FuenteSistema, c.FuenteTabla ORDER BY 1, 2;
 
 PRINT '== 4. Clústeres FTTH con y sin nodo, por nombre de nodo escrito en el clúster';
 SELECT COALESCE(n.Nombre, '(sin nodo)') AS Nodo, COUNT(*) AS Clusteres
