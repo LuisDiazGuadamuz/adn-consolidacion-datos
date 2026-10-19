@@ -12,6 +12,7 @@
   python -m adn_etl instantanea --nombre corrida1
   python -m adn_etl comparar --a corrida1 --b corrida2
   python -m adn_etl muestreo [--n 10] [--paso core_Factura]
+  python -m adn_etl bitacora                      # bitácora técnica de ejecución (reportes/bitacora_<fecha>/)
 """
 import argparse
 import glob
@@ -76,6 +77,7 @@ def main(argv=None):
     m = sub.add_parser("muestreo")
     m.add_argument("--n", type=int, default=10)
     m.add_argument("--paso", help="solo este paso")
+    sub.add_parser("bitacora", help="bitácora técnica de ejecución (md + csv) desde los objetos de control")
     a = ap.parse_args(argv)
 
     if a.cmd == "generar":
@@ -145,6 +147,9 @@ def main(argv=None):
     elif a.cmd == "stage-mongo":
         from . import mongo_stage
         mongo_stage.copiar(cfg, a.coleccion, a.desde, a.hasta)
+    elif a.cmd == "bitacora":
+        from . import bitacora
+        bitacora.generar(cfg)
     elif a.cmd == "muestreo":
         verificar.muestreo(cfg, a.n, a.paso)
 
