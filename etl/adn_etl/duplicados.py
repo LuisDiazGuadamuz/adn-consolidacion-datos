@@ -67,18 +67,18 @@ SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
 """
 
 
-_DOS_VERSIONES = [
-    ("Accounts", "Accounts_Extended", "core.Servicio", "CuentaCrmId"),
-    ("Cases", "Cases_Extended", "core.Caso", "CasoCrmId"),
-    ("Sales_Orders", "Sales_Orders_Extended", "core.OrdenVenta", "OrdenVentaCrmId"),
+_DOS_VERSIONES = [   # (tabla base, tabla _Extended, columna id en _Extended, destino, id del CRM en el modelo)
+    ("Accounts", "Accounts_Extended", "id", "core.Servicio", "CuentaCrmId"),
+    ("Cases", "Cases_Extended", "CaseId", "core.Caso", "CasoCrmId"),
+    ("Sales_Orders", "Sales_Orders_Extended", "id", "core.OrdenVenta", "OrdenVentaCrmId"),
 ]
 
 
-def _sql_dos_versiones(base_t, ext_t, destino, col):
+def _sql_dos_versiones(base_t, ext_t, ext_id, destino, col):
     return f"""/* ===== Dos versiones · Zoho_Mirror.{base_t} y {ext_t} → {destino}.{col} ===== */
 SET NOCOUNT ON;
 SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[{base_t}] b
-                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[{ext_t}] e WHERE e.id = b.id)) z) AS Origen,
+                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[{ext_t}] e WHERE e.[{ext_id}] = b.id)) z) AS Origen,
        (SELECT COUNT_BIG(t.[{col}]) - COUNT_BIG(DISTINCT t.[{col}]) FROM {destino} t) AS Modelo,
        CAST(0 AS bigint) AS Justificados;
 """
@@ -126,21 +126,36 @@ SELECT (SELECT COUNT_BIG(Ced) - COUNT_BIG(DISTINCT Ced) FROM #ced) AS Origen,
 """
 
 
+# Tablas que no entran en la medición de duplicados: catálogos derivados (cada nombre de unidad se repite en cada
+# posición: no son registros duplicados) y relaciones que reutilizan filas de otro paso (se contarían dos veces)
+_NO_MEDIR = {"ref_UnidadFlota": "catálogo derivado de las posiciones", "core_PagoFactura": "mismas filas que core_Pago"}
+
+
 def categorias():
-    """(categoría, detalle, sql, diagnóstico, justificación) en orden de reporte."""
+    """(categoría, detalle, sql, cifra del diagnóstico, en_diagnostico) en orden de reporte.
+    en_diagnostico = la categoría fue identificada en los informes del diagnóstico (Sprint 1): forma la línea base del
+    indicador. Las demás son repetidos hallados después (Sprint 3) y se informan aparte."""
     res = []
+    otros = []
     for g in reconciliar.grupos():
-        res.append(("1. Repetidos por llave", f"{g.nombre} ← {g.base}.{g.tabla}", _sql_llave(g),
-                    DIAGNOSTICO.get((g.destino, g.tabla)), ""))
-    for b, e, d, c in _DOS_VERSIONES:
-        res.append(("2. Dos versiones de la misma tabla (Zoho)", f"{b} y {e} → {d}.{c}", _sql_dos_versiones(b, e, d, c), None, ""))
+        if g.nombre in _NO_MEDIR:
+            continue
+        cifra = DIAGNOSTICO.get((g.destino, g.tabla))
+        if cifra is not None:
+            res.append(("1. Copias exactas en Zoho Books", f"{g.nombre} ← {g.base}.{g.tabla}", _sql_llave(g), cifra, True))
+        else:
+            otros.append(("5. Llaves repetidas en otras tablas", f"{g.nombre} ← {g.base}.{g.tabla}", _sql_llave(g), None, False))
+    for b, e, eid, d, c in _DOS_VERSIONES:
+        res.append(("2. Dos versiones de la misma tabla (Zoho)", f"{b} y {e} → {d}.{c}", _sql_dos_versiones(b, e, eid, d, c),
+                    None, True))
     for paso, desde, alias, base, tabla in [
             ("core_Llamada_Historico", "ADNApp.dbo.Telephony_cdr_historico", "c", "ADNApp", "Telephony_cdr_historico"),
             ("core_Llamada_SQL", "ADNApp.dbo.Telephony_cdr", "c", "ADNApp", "Telephony_cdr"),
             ("core_Llamada", "stg.mongo_Telephony_cdr", "c", "developer_adn_app_db", "Telephony_cdr")]:
-        res.append(("3. Llamadas idénticas", f"{paso} ← {base}.{tabla}", _sql_llamadas(paso, desde, alias, base, tabla), None, ""))
-    res.append(("4. Clientes repetidos entre sistemas", "misma cédula en CRM, Books y ADNPayV2 → core.Cliente", _SQL_CLIENTES, None, ""))
-    return res
+        res.append(("3. Llamadas idénticas", f"{paso} ← {base}.{tabla}", _sql_llamadas(paso, desde, alias, base, tabla), None, True))
+    res.append(("4. Clientes repetidos entre sistemas", "misma cédula en CRM, Books y ADNPayV2 → core.Cliente", _SQL_CLIENTES,
+                None, True))
+    return res + otros
 
 
 def generar_sql():
@@ -165,7 +180,7 @@ def ejecutar(cfg):
     try:
         ev = runner.evidencia_entorno(cfg, conn)
         cur = conn.cursor()
-        for cat, det, sql, diag, just in categorias():
+        for cat, det, sql, diag, en_diag in categorias():
             consultas.append(sql)
             t0 = dt.datetime.now()
             r = bd.filas(cur, sql)[0]
@@ -173,18 +188,23 @@ def ejecutar(cfg):
             noj = max(m - j, 0)
             red = 100.0 if o == 0 else round(100.0 * (o - noj) / o, 2)
             filas.append(dict(Categoria=cat, Detalle=det, Diagnostico=diag, LineaBase=o, Modelo=m, Justificados=j,
-                              NoJustificados=noj, Reduccion=red, Justificacion=just,
+                              NoJustificados=noj, Reduccion=red, EnDiagnostico=en_diag,
                               Segundos=round((dt.datetime.now() - t0).total_seconds(), 1)))
             if o or m:
                 print(f"{cat[:28]:28s} {det[:60]:60s} línea base {o:>8}  modelo {m:>6}  no justificados {noj:>6}  reducción {red:6.2f} %")
     finally:
         conn.close()
 
-    base = sum(f["LineaBase"] for f in filas)
-    noj = sum(f["NoJustificados"] for f in filas)
+    dg = [f for f in filas if f["EnDiagnostico"]]
+    base = sum(f["LineaBase"] for f in dg)
+    noj = sum(f["NoJustificados"] for f in dg)
     red = 100.0 if not base else round(100.0 * (base - noj) / base, 2)
-    print(f"\nTOTAL: línea base {base} duplicados · quedan {noj} no justificados en el modelo · reducción {red:.2f} % "
+    base_t = sum(f["LineaBase"] for f in filas)
+    noj_t = sum(f["NoJustificados"] for f in filas)
+    red_t = 100.0 if not base_t else round(100.0 * (base_t - noj_t) / base_t, 2)
+    print(f"\nINDICADOR (categorías del diagnóstico): línea base {base} · quedan {noj} no justificados · reducción {red:.2f} % "
           f"(umbral {UMBRAL:.0f} %) → {'CUMPLE' if red >= UMBRAL else 'NO CUMPLE'}")
+    print(f"AMPLIADO (con los repetidos hallados después): línea base {base_t} · quedan {noj_t} · reducción {red_t:.2f} %")
 
     with open(os.path.join(carpeta, "duplicados.csv"), "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(filas[0].keys()), delimiter=";")
@@ -198,7 +218,10 @@ def ejecutar(cfg):
     md = ["# Duplicados: línea base del diagnóstico vs modelo unificado", "",
           f"Ejecución: {ahora.strftime('%d/%m/%Y %H:%M')} (hora de Costa Rica) · entorno {ev.get('Marca ctl.Entorno', '')}", "",
           f"**Reducción de duplicados no justificados: {red:.2f} %** (línea base {n(base)}, quedan {n(noj)} en el modelo; "
-          f"umbral {UMBRAL:.0f} %: {'cumple' if red >= UMBRAL else 'no cumple'}).", "",
+          f"umbral {UMBRAL:.0f} %: {'cumple' if red >= UMBRAL else 'no cumple'}). La línea base son las categorías de "
+          f"duplicados identificadas en los informes del diagnóstico (categorías 1 a 4).", "",
+          f"Medición ampliada, con los repetidos hallados después en otras tablas (categoría 5): línea base {n(base_t)}, "
+          f"quedan {n(noj_t)}, reducción {red_t:.2f} %. No se miden {', '.join(f'{k} ({v})' for k, v in _NO_MEDIR.items())}.", "",
           "La línea base se recalcula sobre las mismas copias del origen que usó el diagnóstico; la columna Diagnóstico "
           "muestra la cifra publicada en los informes cuando existe. Consultas en `consultas.sql` y versionadas en "
           "`sql/20_validacion/duplicados_linea_base_vs_modelo.sql`.", "", "## Resumen por categoría", "",

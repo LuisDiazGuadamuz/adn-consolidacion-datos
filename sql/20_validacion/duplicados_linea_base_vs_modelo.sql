@@ -5,6 +5,172 @@ SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; SET ANSI_WARNINGS ON; SET ARITHABOR
 USE ADN_Unificado;
 GO
 
+/* ===== Llaves repetidas · core_MovimientoBancario · core.MovimientoBancario ← ZBooks_Mirror.banktransactions ===== */
+SET NOCOUNT ON;
+DECLARE @Desde date = NULL, @Hasta date = NULL;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.MovimientoBancario t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'banktransactions' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
+DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
+SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
+        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), m.[transaction_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
+              FROM ZBooks_Mirror.dbo.[banktransactions] m
+OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId
+             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(m.customer_id)) co) x) AS Origen,
+       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.MovimientoBancario t
+        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'banktransactions') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llaves repetidas · core_Factura · core.Factura ← ZBooks_Mirror.invoices ===== */
+SET NOCOUNT ON;
+DECLARE @Desde date = NULL, @Hasta date = NULL;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Factura t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'invoices' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
+DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
+SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
+        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), f.[invoice_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
+              FROM ZBooks_Mirror.dbo.[invoices] f
+OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                    CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(f.customer_id)) co
+OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc) x) AS Origen,
+       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Factura t
+        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'invoices') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llaves repetidas · core_Pago · core.Pago ← ZBooks_Mirror.customerpayments ===== */
+SET NOCOUNT ON;
+DECLARE @Desde date = NULL, @Hasta date = NULL;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Pago t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
+DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
+SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
+        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), p.[payment_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
+              FROM ZBooks_Mirror.dbo.[customerpayments] p
+OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
+                    CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
+             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(p.customer_id)) co
+OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc) x) AS Origen,
+       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Pago t
+        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llaves repetidas · core_Gasto · core.Gasto ← ZBooks_Mirror.expenses ===== */
+SET NOCOUNT ON;
+DECLARE @Desde date = NULL, @Hasta date = NULL;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Gasto t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'expenses' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
+DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
+SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
+        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), e.[expense_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
+              FROM ZBooks_Mirror.dbo.[expenses] e) x) AS Origen,
+       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Gasto t
+        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'expenses') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Dos versiones · Zoho_Mirror.Accounts y Accounts_Extended → core.Servicio.CuentaCrmId ===== */
+SET NOCOUNT ON;
+SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Accounts] b
+                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Accounts_Extended] e WHERE e.[id] = b.id)) z) AS Origen,
+       (SELECT COUNT_BIG(t.[CuentaCrmId]) - COUNT_BIG(DISTINCT t.[CuentaCrmId]) FROM core.Servicio t) AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Dos versiones · Zoho_Mirror.Cases y Cases_Extended → core.Caso.CasoCrmId ===== */
+SET NOCOUNT ON;
+SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Cases] b
+                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Cases_Extended] e WHERE e.[CaseId] = b.id)) z) AS Origen,
+       (SELECT COUNT_BIG(t.[CasoCrmId]) - COUNT_BIG(DISTINCT t.[CasoCrmId]) FROM core.Caso t) AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Dos versiones · Zoho_Mirror.Sales_Orders y Sales_Orders_Extended → core.OrdenVenta.OrdenVentaCrmId ===== */
+SET NOCOUNT ON;
+SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Sales_Orders] b
+                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Sales_Orders_Extended] e WHERE e.[id] = b.id)) z) AS Origen,
+       (SELECT COUNT_BIG(t.[OrdenVentaCrmId]) - COUNT_BIG(DISTINCT t.[OrdenVentaCrmId]) FROM core.OrdenVenta t) AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llamadas idénticas · core_Llamada_Historico (ADNApp.Telephony_cdr_historico, meses cargados) ===== */
+SET NOCOUNT ON;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Llamada t WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr_historico' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
+DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
+SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM ADNApp.dbo.Telephony_cdr_historico c
+        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
+          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
+       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
+        WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr_historico') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llamadas idénticas · core_Llamada_SQL (ADNApp.Telephony_cdr, meses cargados) ===== */
+SET NOCOUNT ON;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Llamada t WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
+DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
+SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM ADNApp.dbo.Telephony_cdr c
+        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
+          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
+       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
+        WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Llamadas idénticas · core_Llamada (developer_adn_app_db.Telephony_cdr, meses cargados) ===== */
+SET NOCOUNT ON;
+DROP TABLE IF EXISTS #m;
+SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
+FROM core.Llamada t WHERE t.FuenteBase = N'developer_adn_app_db' AND t.FuenteTabla = N'Telephony_cdr' AND t.FechaDato IS NOT NULL;
+DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
+DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
+SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM stg.mongo_Telephony_cdr c
+        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
+          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
+       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
+        WHERE t.FuenteBase = N'developer_adn_app_db' AND t.FuenteTabla = N'Telephony_cdr') AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
+/* ===== Clientes repetidos entre sistemas (misma cédula válida) ===== */
+SET NOCOUNT ON;
+DROP TABLE IF EXISTS #ced;
+SELECT ctl.fn_Cedula(a.Cedula_Jurida_Persona) AS Ced INTO #ced
+FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.id ORDER BY x.Modified_Time DESC) AS rn FROM Zoho_Mirror.dbo.Accounts_Extended x) a
+WHERE a.rn = 1
+UNION ALL
+SELECT ctl.fn_Cedula(b.Cedula_Jurida_Persona)
+FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.id ORDER BY ctl.fn_FechaCR(x.Modified_Time) DESC) AS rn FROM Zoho_Mirror.dbo.Accounts x
+      WHERE ISNULL(x.deleted, 0) = 0 AND NOT EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Accounts_Extended e WHERE e.id = x.id)) b
+WHERE b.rn = 1
+UNION ALL
+SELECT ctl.fn_Cedula(c.cf_identificaci_n_unformatted)
+FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.contact_id ORDER BY ctl.fn_FechaCR(x.last_modified_time) DESC, x.contact_name) AS rn
+      FROM ZBooks_Mirror.dbo.contacts x WHERE x.contact_type = 'customer' AND NULLIF(LTRIM(x.contact_id), '') IS NOT NULL) c
+WHERE c.rn = 1
+UNION ALL
+SELECT ctl.fn_Cedula(p.id) FROM ADNPayV2.dbo.Customer p WHERE p.status = 'approved';
+SELECT (SELECT COUNT_BIG(Ced) - COUNT_BIG(DISTINCT Ced) FROM #ced) AS Origen,
+       (SELECT COUNT_BIG(Cedula) - COUNT_BIG(DISTINCT Cedula) FROM core.Cliente) AS Modelo,
+       CAST(0 AS bigint) AS Justificados;
+GO
+
 /* ===== Llaves repetidas · ref_Provincia · ref.Provincia ← ADNPayV2.AddressProvince ===== */
 SET NOCOUNT ON;
 DECLARE @Desde date = NULL, @Hasta date = NULL;
@@ -767,44 +933,6 @@ SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
        CAST(0 AS bigint) AS Justificados;
 GO
 
-/* ===== Llaves repetidas · core_MovimientoBancario · core.MovimientoBancario ← ZBooks_Mirror.banktransactions ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.MovimientoBancario t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'banktransactions' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), m.[transaction_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM ZBooks_Mirror.dbo.[banktransactions] m
-OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId
-             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(m.customer_id)) co) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.MovimientoBancario t
-        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'banktransactions') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llaves repetidas · core_Factura · core.Factura ← ZBooks_Mirror.invoices ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Factura t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'invoices' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), f.[invoice_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM ZBooks_Mirror.dbo.[invoices] f
-OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
-                    CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
-             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(f.customer_id)) co
-OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Factura t
-        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'invoices') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
 /* ===== Llaves repetidas · core_FacturaLinea · core.FacturaLinea ← ZBooks_Mirror.invoices_items ===== */
 SET NOCOUNT ON;
 DECLARE @Desde date = NULL, @Hasta date = NULL;
@@ -839,61 +967,6 @@ OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.Cliente
 OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc) x) AS Origen,
        (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.FacturaRecurrente t
         WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'recurringinvoices') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llaves repetidas · core_Pago · core.Pago ← ZBooks_Mirror.customerpayments ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Pago t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), p.[payment_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM ZBooks_Mirror.dbo.[customerpayments] p
-OUTER APPLY (SELECT CASE WHEN COUNT(DISTINCT o.ClienteId) = 1 THEN MIN(o.ClienteId) END AS ClienteId,
-                    CASE WHEN COUNT(DISTINCT o.ServicioId) = 1 THEN MIN(o.ServicioId) END AS ServicioId
-             FROM core.ClienteOrigen o WHERE o.Sistema = 'ZohoBooks' AND o.LlaveOrigen = ctl.fn_Texto(p.customer_id)) co
-OUTER APPLY (SELECT COUNT(*) AS n, MIN(sv.ServicioId) AS ServicioId FROM core.Servicio sv WHERE sv.ClienteId = co.ClienteId) sc) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Pago t
-        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llaves repetidas · core_PagoFactura · core.PagoFactura ← ZBooks_Mirror.customerpayments ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.PagoFactura t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(CONCAT(ctl.fn_Texto(p.payment_id), N'|', n.Numero) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM ZBooks_Mirror.dbo.customerpayments p
-CROSS APPLY (SELECT DISTINCT CAST(ctl.fn_Texto(v.value) AS nvarchar(50)) AS Numero
-             FROM STRING_SPLIT(REPLACE(CONVERT(nvarchar(max), p.invoice_numbers), N';', N','), N',') v
-             WHERE ctl.fn_Texto(v.value) IS NOT NULL) n) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.PagoFactura t
-        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'customerpayments') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llaves repetidas · core_Gasto · core.Gasto ← ZBooks_Mirror.expenses ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Gasto t WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'expenses' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(ctl.fn_Texto(CONVERT(nvarchar(200), e.[expense_id])) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM ZBooks_Mirror.dbo.[expenses] e) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.Gasto t
-        WHERE t.FuenteBase = N'ZBooks_Mirror' AND t.FuenteTabla = N'expenses') AS Modelo,
        CAST(0 AS bigint) AS Justificados;
 GO
 
@@ -1423,23 +1496,6 @@ SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
        CAST(0 AS bigint) AS Justificados;
 GO
 
-/* ===== Llaves repetidas · ref_UnidadFlota · ref.UnidadFlota ← Navsat.Dispositivo ===== */
-SET NOCOUNT ON;
-DECLARE @Desde date = NULL, @Hasta date = NULL;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM ref.UnidadFlota t WHERE t.FuenteBase = N'Navsat' AND t.FuenteTabla = N'Dispositivo' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = DATEADD(day, -1, (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m));
-DECLARE @Fin datetime2 = DATEADD(day, 1, DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m)));
-SELECT (SELECT COUNT_BIG(x.k) - COUNT_BIG(DISTINCT x.k)
-        FROM (SELECT CAST(CAST(ctl.fn_Texto(u.d) AS nvarchar(100)) AS nvarchar(200)) COLLATE DATABASE_DEFAULT AS k
-              FROM (SELECT deviceName AS d FROM Navsat.dbo.Ultima_ubicacion UNION ALL SELECT DeviceName FROM Navsat.dbo.viajes_ayer_finalizado
-      UNION ALL SELECT dispositivo FROM Navsat.dbo.eventos UNION ALL SELECT dispositivo FROM Navsat.dbo.Eco_Driving) u) x) AS Origen,
-       (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM ref.UnidadFlota t
-        WHERE t.FuenteBase = N'Navsat' AND t.FuenteTabla = N'Dispositivo') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
 /* ===== Llaves repetidas · core_UbicacionFlota · core.UbicacionFlota ← Navsat.Ultima_ubicacion ===== */
 SET NOCOUNT ON;
 DECLARE @Desde date = NULL, @Hasta date = NULL;
@@ -1560,97 +1616,5 @@ OUTER APPLY (SELECT CASE WHEN COUNT(*) = 1 THEN MIN(k.ContactoId) END AS Contact
              FROM core.Contacto k WHERE k.ContactoCrmId = z.IdZcrm) ct) x) AS Origen,
        (SELECT COUNT_BIG(t.FuenteLlave) - COUNT_BIG(DISTINCT t.FuenteLlave) FROM core.TicketAtencion t
         WHERE t.FuenteBase = N'ZCRM2Trengo' AND t.FuenteTabla = N'trengo_data_tickets') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Dos versiones · Zoho_Mirror.Accounts y Accounts_Extended → core.Servicio.CuentaCrmId ===== */
-SET NOCOUNT ON;
-SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Accounts] b
-                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Accounts_Extended] e WHERE e.id = b.id)) z) AS Origen,
-       (SELECT COUNT_BIG(t.[CuentaCrmId]) - COUNT_BIG(DISTINCT t.[CuentaCrmId]) FROM core.Servicio t) AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Dos versiones · Zoho_Mirror.Cases y Cases_Extended → core.Caso.CasoCrmId ===== */
-SET NOCOUNT ON;
-SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Cases] b
-                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Cases_Extended] e WHERE e.id = b.id)) z) AS Origen,
-       (SELECT COUNT_BIG(t.[CasoCrmId]) - COUNT_BIG(DISTINCT t.[CasoCrmId]) FROM core.Caso t) AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Dos versiones · Zoho_Mirror.Sales_Orders y Sales_Orders_Extended → core.OrdenVenta.OrdenVentaCrmId ===== */
-SET NOCOUNT ON;
-SELECT (SELECT COUNT_BIG(*) FROM (SELECT DISTINCT b.id FROM Zoho_Mirror.dbo.[Sales_Orders] b
-                                  WHERE EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.[Sales_Orders_Extended] e WHERE e.id = b.id)) z) AS Origen,
-       (SELECT COUNT_BIG(t.[OrdenVentaCrmId]) - COUNT_BIG(DISTINCT t.[OrdenVentaCrmId]) FROM core.OrdenVenta t) AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llamadas idénticas · core_Llamada_Historico (ADNApp.Telephony_cdr_historico, meses cargados) ===== */
-SET NOCOUNT ON;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Llamada t WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr_historico' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
-DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
-SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM ADNApp.dbo.Telephony_cdr_historico c
-        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
-          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
-       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
-        WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr_historico') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llamadas idénticas · core_Llamada_SQL (ADNApp.Telephony_cdr, meses cargados) ===== */
-SET NOCOUNT ON;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Llamada t WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
-DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
-SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM ADNApp.dbo.Telephony_cdr c
-        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
-          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
-       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
-        WHERE t.FuenteBase = N'ADNApp' AND t.FuenteTabla = N'Telephony_cdr') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Llamadas idénticas · core_Llamada (developer_adn_app_db.Telephony_cdr, meses cargados) ===== */
-SET NOCOUNT ON;
-DROP TABLE IF EXISTS #m;
-SELECT DISTINCT CONVERT(char(7), t.FechaDato, 126) AS Mes INTO #m
-FROM core.Llamada t WHERE t.FuenteBase = N'developer_adn_app_db' AND t.FuenteTabla = N'Telephony_cdr' AND t.FechaDato IS NOT NULL;
-DECLARE @Ini datetime2 = (SELECT CAST(MIN(Mes) + '-01' AS datetime2) FROM #m);
-DECLARE @Fin datetime2 = DATEADD(month, 1, (SELECT CAST(MAX(Mes) + '-01' AS datetime2) FROM #m));
-SELECT (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT CONVERT(nvarchar(66), HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CDRTypeReason]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[StartDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[AnswerTimeOfDate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DisconnectDateTime]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[IngressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[EgressTrunk]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DialedNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[usd_exchange]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[Destination]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationCode]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRate]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRateNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DestinationRound]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInRoundedSeconds]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[DurationInMinutes]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCost]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallCostNoProfit]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CallingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[BillingNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[VoipDevice]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerIncrement]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerPorcentage]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[CustomerCircuitNumber]), N'~'), ISNULL(CONVERT(nvarchar(4000), c.[RoutingDigits]), N'~'))), 2)) FROM stg.mongo_Telephony_cdr c
-        WHERE c.StartDateTime >= @Ini AND c.StartDateTime < @Fin
-          AND CONVERT(char(7), c.StartDateTime, 126) IN (SELECT Mes FROM #m)) AS Origen,
-       (SELECT COUNT_BIG(*) - COUNT_BIG(DISTINCT t.HashContenido) FROM core.Llamada t
-        WHERE t.FuenteBase = N'developer_adn_app_db' AND t.FuenteTabla = N'Telephony_cdr') AS Modelo,
-       CAST(0 AS bigint) AS Justificados;
-GO
-
-/* ===== Clientes repetidos entre sistemas (misma cédula válida) ===== */
-SET NOCOUNT ON;
-DROP TABLE IF EXISTS #ced;
-SELECT ctl.fn_Cedula(a.Cedula_Jurida_Persona) AS Ced INTO #ced
-FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.id ORDER BY x.Modified_Time DESC) AS rn FROM Zoho_Mirror.dbo.Accounts_Extended x) a
-WHERE a.rn = 1
-UNION ALL
-SELECT ctl.fn_Cedula(b.Cedula_Jurida_Persona)
-FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.id ORDER BY ctl.fn_FechaCR(x.Modified_Time) DESC) AS rn FROM Zoho_Mirror.dbo.Accounts x
-      WHERE ISNULL(x.deleted, 0) = 0 AND NOT EXISTS (SELECT 1 FROM Zoho_Mirror.dbo.Accounts_Extended e WHERE e.id = x.id)) b
-WHERE b.rn = 1
-UNION ALL
-SELECT ctl.fn_Cedula(c.cf_identificaci_n_unformatted)
-FROM (SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.contact_id ORDER BY ctl.fn_FechaCR(x.last_modified_time) DESC, x.contact_name) AS rn
-      FROM ZBooks_Mirror.dbo.contacts x WHERE x.contact_type = 'customer' AND NULLIF(LTRIM(x.contact_id), '') IS NOT NULL) c
-WHERE c.rn = 1
-UNION ALL
-SELECT ctl.fn_Cedula(p.id) FROM ADNPayV2.dbo.Customer p WHERE p.status = 'approved';
-SELECT (SELECT COUNT_BIG(Ced) - COUNT_BIG(DISTINCT Ced) FROM #ced) AS Origen,
-       (SELECT COUNT_BIG(Cedula) - COUNT_BIG(DISTINCT Cedula) FROM core.Cliente) AS Modelo,
        CAST(0 AS bigint) AS Justificados;
 GO

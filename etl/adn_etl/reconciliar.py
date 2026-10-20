@@ -94,6 +94,13 @@ _ESPECIALES = {
     ],
     "core_ClienteOrigen": _CLIENTE,
 }
+# Motivo de los filtros de alcance de pasos generados desde la matriz (se muestran en el reporte)
+_NOTA_FILTRO = {
+    "core_Producto_Books": "artículos de Books vinculados a un producto del CRM: se cargan como ese producto (core_Producto_BooksVinculo)",
+    "core_OrdenVenta_Complemento": "órdenes que también están en Sales_Orders_Extended: se cargan desde esa tabla",
+    "core_Caso_Complemento": "casos que también están en Cases_Extended: se cargan desde esa tabla",
+    "core_Proveedor": "solo contactos tipo proveedor; los tipo cliente van a la consolidación de clientes",
+}
 _OMITIR = {"core_Cliente": "cliente consolidado (por cédula o por cuenta): se reconcilia por sus orígenes en core.ClienteOrigen"}
 
 
@@ -116,7 +123,7 @@ def grupos():
                 desde, llave = f"[{p.fuente[2]}].dbo.[{p.fuente[3]}] x", f"ctl.fn_Texto(CAST(x.[{p.llave_origen}] AS nvarchar(200)))"
             else:
                 continue
-            nota = "origen: copia de solo lectura de MongoDB (stg)" if p.fuente[1] == "MongoDB" else ""
+            nota = "origen: copia de solo lectura de MongoDB (stg)" if p.fuente[1] == "MongoDB" else _NOTA_FILTRO.get(p.nombre, "")
             defs = [(p.fuente[2], p.linaje_tabla or p.fuente[3], desde, llave, nota)]
         for base, tabla, desde, llave, nota in defs:
             k = (p.destino, base, tabla)
