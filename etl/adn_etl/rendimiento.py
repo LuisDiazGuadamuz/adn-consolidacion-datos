@@ -70,15 +70,16 @@ def ejecutar(cfg):
     t_real = sum(real(f) for f in sin_per)
     lent = sorted(sin_per, key=lambda f: -real(f))[:10]
     llam = [f for f in filas if f["Paso"].startswith("core_Llamada") and f["SegConfirm"]]
-    peor_mes = max((real(f) for f in llam), default=0)
-    prom_mes = (sum(real(f) for f in llam) / len(llam)) if llam else 0
+    # medido: la carga confirmada de cada mes (el ensayo previo solo está medido en algunas fuentes)
+    peor_mes = max((f["SegConfirm"] for f in llam), default=0)
+    prom_mes = (sum(f["SegConfirm"] for f in llam) / len(llam)) if llam else 0
     proy_24 = prom_mes * 24
     ok_comp = t_dry / 60 <= UMBRAL_COMPLETA_MIN     # medido: la corrida completa en ensayo (todas las fases de cada paso, revertidas)
     ok_mes = peor_mes / 60 <= UMBRAL_MES_LLAMADAS_MIN
     print(f"Corrida completa medida (dry-run, {len(sin_per)} pasos sin período): {t_dry/60:.1f} min "
           f"(umbral propuesto {UMBRAL_COMPLETA_MIN} min) → {'CUMPLE' if ok_comp else 'NO CUMPLE'}")
     print(f"Proyección en modo confirm (ensayo + carga de cada paso; no medida como corrida): ≈ {t_real/60:.0f} min")
-    print(f"Llamadas (ensayo + carga): peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
+    print(f"Llamadas (carga medida): peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
           f"(umbral propuesto {UMBRAL_MES_LLAMADAS_MIN} min) → {'CUMPLE' if ok_mes else 'NO CUMPLE'}; 24 meses ≈ {proy_24/3600:.1f} h")
     if estimados:
         print("Ensayo estimado igual a la carga (sin duración medida): " + ", ".join(estimados))
@@ -107,8 +108,8 @@ def ejecutar(cfg):
           "| Prueba | Medición | Umbral propuesto | Resultado |", "|---|---|---|---|",
           f"| R-1 Corrida completa medida (dry-run de los {len(sin_per)} pasos sin período) | {t_dry/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
           f"| R-2 Proyección en modo confirm (cada paso se ensaya y luego se carga) | ≈ {t_real/60:.0f} min (ensayo {t_dry/60:.0f} + carga {t_conf/60:.0f}; cargas de distintas fechas) | informativo | |",
-          f"| R-3 Un mes de llamadas por fuente, ensayo + carga (peor caso) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
-          f"| R-4 Proyección de 24 meses de llamadas (D7) | {proy_24/3600:.1f} h | informativo | |"]
+          f"| R-3 Carga de un mes de llamadas por fuente (peor caso, medido) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
+          f"| R-4 Proyección de 24 meses de llamadas, solo carga (D7) | {proy_24/3600:.1f} h | informativo | |"]
     if rec:
         md.append(f"| R-5 Reconciliación completa | {float(rec[0][1] or 0)/60:.1f} min ({rec[0][2]} tablas de origen) | informativo | |")
     md += ["", "Los umbrales son una propuesta para una ventana nocturna de mantenimiento; deben confirmarse con José Hernández.", "",
