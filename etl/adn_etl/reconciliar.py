@@ -132,7 +132,10 @@ def grupos():
                 continue
             g = Grupo([p.nombre], p.destino, base, tabla, desde, llave, p.periodo_origen, nota)
             lineas = desde.strip().split("\n")
-            g.filtro = " ".join(l.strip() for l in lineas[1:] if "@Desde" not in l and "@Hasta" not in l).strip()
+            # solo las condiciones de alcance (WHERE / AND), no los cruces que agregan columnas
+            cond = [l.strip() for l in lineas[1:] if l.strip().upper().startswith(("WHERE", "AND "))
+                    and "@Desde" not in l and "@Hasta" not in l]
+            g.filtro = " ".join(cond).strip()
             vistos[k] = g
             res.append(g)
     # los descartes se buscan en todos los pasos del destino que leen la misma tabla

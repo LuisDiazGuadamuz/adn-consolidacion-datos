@@ -81,16 +81,25 @@ def _texto_resumen(paso, modo, lote, leidas, sin_cambio, resumen):
     return lineas
 
 
-def _registrar_simulacion(conn, cfg, paso, leidas, sin_cambio, resumen, params):
-    """El dry-run se revierte completo; aquí se deja constancia del ensayo en ctl.Lote (sin datos)."""
+def _hora_servidor(conn):
+    cur = conn.cursor()
+    cur.execute("SELECT SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00')")
+    return cur.fetchone()[0]
+
+
+def _registrar_simulacion(conn, cfg, paso, leidas, sin_cambio, resumen, params, inicio=None):
+    """El dry-run se revierte completo; aquí se deja constancia del ensayo en ctl.Lote (sin datos). FechaInicio es la
+    hora en que empezó el ensayo, para medir su duración (rendimiento)."""
     cur = conn.cursor()
     lote = _iniciar(cur, paso, "DRYRUN", cfg, params)
+    if inicio is not None:
+        cur.execute("UPDATE ctl.Lote SET FechaInicio = %s WHERE LoteId = %s", (inicio, lote))
     cnt = {a: sum(n for _, x, n in resumen if x == a) for a in "IUDA"}
     conc = next((n for _, x, n in resumen if x == "C"), (None, None))
     cur.execute("""UPDATE ctl.Lote SET Estado = 'Simulado', FechaFin = SWITCHOFFSET(SYSDATETIMEOFFSET(), '-06:00'),
                    FilasLeidas = %s, FilasSinCambio = %s, FilasCargadas = %s, FilasActualizadas = %s,
                    FilasDescartadas = %s, Anomalias = %s, FilasExcluidas = %s, LlavesSinMotivo = %s,
-                   Mensaje = N'Ensayo (dry-run): todos los cambios se revirtieron.' WHERE LoteId = %s""",
+                   Mensaje = N'Ensayo (dry-run): todos los cambios se revirtieron. Duración medida.' WHERE LoteId = %s""",
                 (leidas, sin_cambio, cnt["I"], cnt["U"], cnt["D"], cnt["A"], conc[0], conc[1], lote))
     return lote
 
@@ -101,12 +110,13 @@ def ejecutar(cfg, paso, modo, desde=None, hasta=None, confirmar_sin_preguntar=Fa
         ev = evidencia_entorno(cfg, conn)
         params = json.dumps({"desde": desde, "hasta": hasta}) if (desde or hasta) else None
         # 1. Dry-run: se ejecuta exactamente lo mismo y se revierte
+        inicio = _hora_servidor(conn)
         _tx(conn, "BEGIN")
         try:
             _, leidas, sin_cambio, resumen = _correr(conn, cfg, paso, "DRYRUN", desde, hasta)
         finally:
             _tx(conn, "ROLLBACK")
-        lote_sim = _registrar_simulacion(conn, cfg, paso, leidas, sin_cambio, resumen, params)
+        lote_sim = _registrar_simulacion(conn, cfg, paso, leidas, sin_cambio, resumen, params, inicio)
         lineas = _texto_resumen(paso, "DRY-RUN", lote_sim, leidas, sin_cambio, resumen)
         print("\n".join(lineas))
         if modo == "dry-run":

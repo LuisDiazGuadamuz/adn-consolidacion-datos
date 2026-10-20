@@ -84,6 +84,8 @@ def main(argv=None):
     rc = sub.add_parser("reconciliar", help="reconciliación origen-destino por tabla de origen (Sprint 4)")
     rc.add_argument("--paso", help="solo los grupos de este paso")
     sub.add_parser("duplicados", help="duplicados: línea base del diagnóstico vs modelo unificado (Sprint 4)")
+    sub.add_parser("integridad", help="integridad referencial del modelo (Sprint 4)")
+    sub.add_parser("rendimiento", help="rendimiento de las cargas desde ctl.Lote (Sprint 4)")
     a = ap.parse_args(argv)
 
     if a.cmd == "generar":
@@ -168,6 +170,12 @@ def main(argv=None):
     elif a.cmd == "duplicados":
         from . import duplicados
         duplicados.ejecutar(cfg)
+    elif a.cmd == "integridad":
+        from . import integridad
+        integridad.ejecutar(cfg)
+    elif a.cmd == "rendimiento":
+        from . import rendimiento
+        rendimiento.ejecutar(cfg)
     elif a.cmd == "muestreo":
         verificar.muestreo(cfg, a.n, a.paso)
 
