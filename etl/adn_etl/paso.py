@@ -65,6 +65,7 @@ class Paso:
     traza_columna: str = ""                  # columna simple del origen para la búsqueda rápida (índice)
     linaje_tabla: str = ""                   # FuenteTabla que escribe el paso, si no es la tabla de origen (p. ej. 'Dispositivo')
     retirar_sin_origen: bool = False         # retira (Accion 'R' en la bitácora) filas cuya llave ya no produce el origen
+    periodo_origen: str = ""                 # expresión de fecha sobre traza_from (pasos por período): la reconciliación compara solo los meses cargados
 
     # ------------------------------------------------------------------ utilidades
     @property

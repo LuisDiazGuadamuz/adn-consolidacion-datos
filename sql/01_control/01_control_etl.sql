@@ -374,3 +374,46 @@ FROM ctl.Anomalia a
 JOIN ctl.Lote l ON l.LoteId = a.LoteId
 WHERE l.LoteId = (SELECT MAX(x.LoteId) FROM ctl.Lote x WHERE x.Paso = l.Paso AND x.Modo = 'CONFIRM' AND x.Estado = 'Exitoso');
 GO
+
+/* ---------------- Sprint 4: validación (reconciliación origen-destino) ----------------
+   Resultados de ./etl.ps1 reconciliar: una fila por tabla de origen y ejecución, y las llaves técnicas pendientes
+   (sin conciliar o en el modelo sin origen) para analizarlas en el sandbox. Solo conteos e identificadores técnicos. */
+IF OBJECT_ID(N'ctl.Reconciliacion', N'U') IS NULL
+CREATE TABLE ctl.Reconciliacion (
+    ReconciliacionId      bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_ctl_Reconciliacion PRIMARY KEY CLUSTERED,
+    Ejecucion             datetimeoffset(0) NOT NULL,
+    Paso                  nvarchar(150) NOT NULL,
+    TablaModelo           nvarchar(128) NOT NULL,
+    FuenteBase            nvarchar(128) NOT NULL,
+    FuenteTabla           nvarchar(128) NOT NULL,
+    FilasOrigen           bigint NULL,
+    FueraDeAlcance        bigint NOT NULL,
+    FilasUniverso         bigint NOT NULL,
+    Repetidas             bigint NOT NULL,
+    LlaveVacia            bigint NOT NULL,
+    LlaveVaciaJustificada bigint NOT NULL,
+    Llaves                bigint NOT NULL,
+    Cargadas              bigint NOT NULL,
+    Excluidas             bigint NOT NULL,
+    SinConciliar          bigint NOT NULL,
+    DestinoSinOrigen      bigint NOT NULL,
+    FilasConciliadas      bigint NOT NULL,
+    PctConciliado         decimal(9,4) NOT NULL,
+    Estado                varchar(10) NOT NULL,
+    Segundos              decimal(9,1) NULL
+);
+GO
+IF OBJECT_ID(N'ctl.ReconciliacionPendiente', N'U') IS NULL
+CREATE TABLE ctl.ReconciliacionPendiente (
+    PendienteId   bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_ctl_ReconciliacionPendiente PRIMARY KEY CLUSTERED,
+    Ejecucion     datetimeoffset(0) NOT NULL,
+    Paso          nvarchar(150) NOT NULL,
+    FuenteBase    nvarchar(128) NOT NULL,
+    FuenteTabla   nvarchar(128) NOT NULL,
+    FuenteLlave   nvarchar(200) NOT NULL,
+    Tipo          varchar(20) NOT NULL CONSTRAINT CK_ReconciliacionPendiente_Tipo CHECK (Tipo IN ('SinConciliar', 'DestinoSinOrigen'))
+);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_ReconciliacionPendiente' AND object_id = OBJECT_ID(N'ctl.ReconciliacionPendiente'))
+    CREATE INDEX IX_ReconciliacionPendiente ON ctl.ReconciliacionPendiente (Ejecucion, Paso, Tipo);
+GO

@@ -123,7 +123,7 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
                 where="", llave=None, fecha_dato=None, fecha_tc=None, moneda=None, descripcion="", depende=None,
                 reglas_extra=(), filtros_extra=(), anomalias_extra=(), auxiliares_extra=None, preparacion="",
                 excluir_atributos=(), clave=None, dedup=True, solo_actualizar=False, fuente_tabla=None, llave_expr=None,
-                tc_respaldo=None, requiere_periodo=False):
+                tc_respaldo=None, requiere_periodo=False, periodo_origen=""):
     """Arma un Paso desde la matriz.
 
     override: {columna_modelo: expresión T-SQL sobre el alias de origen} (reemplaza o agrega columnas)
@@ -313,7 +313,7 @@ def paso_matriz(nombre, orden, destino, sistema, base, tabla, alias="x", *, over
         descripcion=descripcion or f"{destino} desde {base}.{tabla} según la matriz de correspondencia.",
         reglas=sorted(reglas), columnas=columnas, auxiliares=aux, anomalias=anoms, filtros=filtros,
         preparacion=preparacion, clave=clave, depende=list(depende or []), solo_actualizar=solo_actualizar,
-        requiere_periodo=requiere_periodo,
+        requiere_periodo=requiere_periodo, periodo_origen=periodo_origen,
         traza_from=f"{base}.dbo.[{tabla}] {alias}" + ("\n" + extra_from.strip() if extra_from else "") + (f"\nWHERE {where}" if where else ""),
         traza_llave=llave_sql, traza_columna="" if llave_expr else f"{alias}.[{llave_src}]",
         dedup_regla="DD-02" if (dedup and tiene_mod) else "DD-04",

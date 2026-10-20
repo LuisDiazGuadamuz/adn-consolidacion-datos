@@ -240,7 +240,7 @@ PASOS += [
     Paso(
         nombre="core_Llamada_Historico", requiere_periodo=True, orden=529, destino="core.Llamada", depende=["core_Servicio", "core_Troncal", "ref_TipoCambio"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr_historico"), llave_origen="id",
-        traza_from="ADNApp.dbo.Telephony_cdr_historico c", traza_llave="CAST(c.id AS nvarchar(200))", traza_columna="c.id",
+        traza_from="ADNApp.dbo.Telephony_cdr_historico c", traza_llave="CAST(c.id AS nvarchar(200))", traza_columna="c.id", periodo_origen="c.StartDateTime",
         descripcion="Llamadas de años anteriores (ADNApp.Telephony_cdr_historico), hasta la primera fecha de ADNApp.Telephony_cdr (D1). "
                     "Según D7 el modelo guarda 24 meses en línea: cargar solo el período necesario con --desde/--hasta.",
         reglas=_REGLAS_LLAMADA + ["D7"], columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
@@ -251,7 +251,7 @@ PASOS += [
     Paso(
         nombre="core_Llamada_SQL", requiere_periodo=True, orden=530, destino="core.Llamada", depende=["core_Llamada_Historico"],
         fuente=(_A, "SQLServer", "ADNApp", "Telephony_cdr"), llave_origen="id",
-        traza_from="ADNApp.dbo.Telephony_cdr c", traza_llave="CAST(c.id AS nvarchar(200))", traza_columna="c.id",
+        traza_from="ADNApp.dbo.Telephony_cdr c", traza_llave="CAST(c.id AS nvarchar(200))", traza_columna="c.id", periodo_origen="c.StartDateTime",
         descripcion="Llamadas de ADNApp.Telephony_cdr (2026) anteriores a la primera fecha de la copia de MongoDB (D1). "
                     "Cargar por período con --desde/--hasta.",
         reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,
@@ -261,7 +261,7 @@ PASOS += [
     Paso(
         nombre="core_Llamada", requiere_periodo=True, orden=531, destino="core.Llamada", depende=["core_Llamada_SQL"],
         fuente=(_A, "MongoDB", "developer_adn_app_db", "Telephony_cdr"), llave_origen="_id",
-        traza_from="stg.mongo_Telephony_cdr c", traza_llave="CAST(c._id AS nvarchar(200))", traza_columna="c._id",
+        traza_from="stg.mongo_Telephony_cdr c", traza_llave="CAST(c._id AS nvarchar(200))", traza_columna="c._id", periodo_origen="c.StartDateTime",
         descripcion="Llamadas desde la primera fecha de la copia de MongoDB (D1), copiadas antes a stg.mongo_Telephony_cdr con stage-mongo. "
                     "Cargar por período con --desde/--hasta.",
         reglas=_REGLAS_LLAMADA, columnas=_COLS_LLAMADA, auxiliares=_AUX_LLAMADA, anomalias=_ANOM_LLAMADA,

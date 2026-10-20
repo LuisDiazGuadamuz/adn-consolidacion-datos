@@ -81,11 +81,17 @@ def main(argv=None):
     m.add_argument("--n", type=int, default=10)
     m.add_argument("--paso", help="solo este paso")
     sub.add_parser("bitacora", help="bitácora técnica de ejecución (md + csv) desde los objetos de control")
+    rc = sub.add_parser("reconciliar", help="reconciliación origen-destino por tabla de origen (Sprint 4)")
+    rc.add_argument("--paso", help="solo los grupos de este paso")
+    sub.add_parser("duplicados", help="duplicados: línea base del diagnóstico vs modelo unificado (Sprint 4)")
     a = ap.parse_args(argv)
 
     if a.cmd == "generar":
         for x in generador.generar():
             print(os.path.relpath(x, runner.RAIZ))
+        from . import reconciliar, duplicados
+        for ruta in (reconciliar.generar_sql()[0], duplicados.generar_sql()):
+            print(os.path.relpath(ruta, runner.RAIZ))
         return
     if a.cmd == "plan":
         for p in registro.todos():
@@ -156,6 +162,12 @@ def main(argv=None):
     elif a.cmd == "bitacora":
         from . import bitacora
         bitacora.generar(cfg)
+    elif a.cmd == "reconciliar":
+        from . import reconciliar
+        reconciliar.ejecutar(cfg, a.paso)
+    elif a.cmd == "duplicados":
+        from . import duplicados
+        duplicados.ejecutar(cfg)
     elif a.cmd == "muestreo":
         verificar.muestreo(cfg, a.n, a.paso)
 

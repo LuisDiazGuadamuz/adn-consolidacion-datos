@@ -120,7 +120,8 @@ WHERE u.rn = 1
     paso_matriz("core_UbicacionFlota", 701, "core.UbicacionFlota", _N, "Navsat", "Ultima_ubicacion", "u",
                 llave_expr=_huella("u", ["deviceName", "crDateTime", "latitude", "longitude"]),
                 where=_PERIODO_CR.format(x="ctl.fn_FechaCR(u.crDateTime)"),
-                requiere_periodo=True, depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
+                requiere_periodo=True, periodo_origen="ctl.fn_FechaCR(u.crDateTime)",
+                depende=["ref_UnidadFlota"], reglas_extra=("DD-01",),
                 descripcion="Posiciones reportadas por las unidades (sin llave en el origen: huella de dispositivo, fecha y coordenadas). "
                             "2,5 millones de filas: se carga por período (--desde/--hasta, hasta exclusivo)."),
     paso_matriz("core_ViajeFlota", 702, "core.ViajeFlota", _N, "Navsat", "viajes_ayer_finalizado", "v", llave="",

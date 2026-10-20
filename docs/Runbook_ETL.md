@@ -137,6 +137,24 @@ Los scripts de `sql/90_verificacion` son de **solo lectura** y solo devuelven co
 
 ---
 
+## 4b. Validación (Sprint 4)
+
+```powershell
+./etl.ps1 instalar        # crea ctl.Reconciliacion y ctl.ReconciliacionPendiente (idempotente)
+./etl.ps1 reconciliar     # reportes/reconciliacion_<fecha>/  (md, csv, justificaciones, consultas.sql)
+./etl.ps1 duplicados      # reportes/duplicados_<fecha>/      (md, csv, consultas.sql)
+```
+
+| Verificación | Consultas versionadas | Criterio |
+|---|---|---|
+| Reconciliación origen-destino | `sql/20_validacion/reconciliacion_origen_destino.sql` | ≥ 99 % de filas del origen conciliadas (cargadas o excluidas con regla) o diferencias justificadas; 0 llaves del modelo sin origen |
+| Duplicados vs línea base del diagnóstico | `sql/20_validacion/duplicados_linea_base_vs_modelo.sql` | reducción ≥ 95 % de duplicados no justificados |
+
+Las dos consultas se regeneran con `./etl.ps1 generar` (no se editan a mano). Las llaves técnicas pendientes
+quedan en `ctl.ReconciliacionPendiente` del sandbox para analizarlas; los reportes solo llevan conteos.
+
+---
+
 ## 5. Recuperación ante fallos
 
 | Síntoma | Causa probable | Qué hacer |
