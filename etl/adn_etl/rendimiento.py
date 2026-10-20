@@ -60,25 +60,33 @@ def ejecutar(cfg):
         conn.close()
 
     sin_per = [f for f in filas if f["PorPeriodo"] == "no"]
+    # En modo confirm el runner primero ensaya (dry-run, revertido) y luego carga: el tiempo real de una corrida es la
+    # suma de las dos fases. Si un paso no tiene ensayo con duración medida se estima igual a su carga.
+    def real(f):
+        return (f["SegConfirm"] or 0) + (f["SegDryRun"] if f["SegDryRun"] is not None else (f["SegConfirm"] or 0))
+    estimados = [f["Paso"] for f in filas if f["SegDryRun"] is None and f["SegConfirm"]]
     t_conf = sum(f["SegConfirm"] or 0 for f in sin_per)
     t_dry = sum(f["SegDryRun"] or 0 for f in sin_per)
-    lent = sorted(sin_per, key=lambda f: -(f["SegConfirm"] or 0))[:10]
-    # meses de llamadas: el último lote confirmado de cada paso de llamadas
+    t_real = sum(real(f) for f in sin_per)
+    lent = sorted(sin_per, key=lambda f: -real(f))[:10]
     llam = [f for f in filas if f["Paso"].startswith("core_Llamada") and f["SegConfirm"]]
-    peor_mes = max((f["SegConfirm"] for f in llam), default=0)
-    prom_mes = (sum(f["SegConfirm"] for f in llam) / len(llam)) if llam else 0
+    peor_mes = max((real(f) for f in llam), default=0)
+    prom_mes = (sum(real(f) for f in llam) / len(llam)) if llam else 0
     proy_24 = prom_mes * 24
-    ok_comp = t_conf / 60 <= UMBRAL_COMPLETA_MIN
+    ok_comp = t_real / 60 <= UMBRAL_COMPLETA_MIN
     ok_mes = peor_mes / 60 <= UMBRAL_MES_LLAMADAS_MIN
-    print(f"Corrida completa ({len(sin_per)} pasos sin período): confirm {t_conf/60:.1f} min · dry-run {t_dry/60:.1f} min "
-          f"(umbral propuesto {UMBRAL_COMPLETA_MIN} min) → {'CUMPLE' if ok_comp else 'NO CUMPLE'}")
-    print(f"Llamadas: peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
+    print(f"Corrida completa en modo confirm ({len(sin_per)} pasos sin período): {t_real/60:.1f} min "
+          f"= ensayo {t_dry/60:.1f} + carga {t_conf/60:.1f} (umbral propuesto {UMBRAL_COMPLETA_MIN} min) → "
+          f"{'CUMPLE' if ok_comp else 'NO CUMPLE'}")
+    print(f"Llamadas (ensayo + carga): peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
           f"(umbral propuesto {UMBRAL_MES_LLAMADAS_MIN} min) → {'CUMPLE' if ok_mes else 'NO CUMPLE'}; 24 meses ≈ {proy_24/3600:.1f} h")
+    if estimados:
+        print("Ensayo estimado igual a la carga (sin duración medida): " + ", ".join(estimados))
     if rec:
         print(f"Última reconciliación: {rec[0][2]} grupos en {float(rec[0][1] or 0)/60:.1f} min")
-    print("10 pasos más lentos (confirm):")
+    print("10 pasos más lentos (ensayo + carga):")
     for f in lent:
-        print(f"  {f['Paso']:34s} {f['SegConfirm'] or 0:>6} s  {f['FilasConfirm'] or 0:>9} filas  {f['FilasPorSegConfirm'] or 0:>8} filas/s")
+        print(f"  {f['Paso']:34s} {real(f):>6} s  {f['FilasConfirm'] or 0:>9} filas  {f['FilasPorSegConfirm'] or 0:>8} filas/s en la carga")
 
     cab = list(filas[0].keys())
     with open(os.path.join(carpeta, "rendimiento_por_paso.csv"), "w", encoding="utf-8-sig", newline="") as f:
@@ -97,15 +105,17 @@ def ejecutar(cfg):
           f"Ejecución: {ahora.strftime('%d/%m/%Y %H:%M')} (hora de Costa Rica) · entorno {ev.get('Marca ctl.Entorno', '')} "
           f"(Docker con 6 GB de memoria para SQL Server).", "",
           "| Prueba | Medición | Umbral propuesto | Resultado |", "|---|---|---|---|",
-          f"| R-1 Corrida completa ({len(sin_per)} pasos sin período, confirm) | {t_conf/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
-          f"| R-2 Corrida completa en ensayo (dry-run) | {t_dry/60:.1f} min | informativo | |",
-          f"| R-3 Un mes de llamadas por fuente (peor caso) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
+          f"| R-1 Corrida completa en modo confirm ({len(sin_per)} pasos sin período; ensayo + carga) | {t_real/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
+          f"| R-2 Fase de ensayo / fase de carga | {t_dry/60:.1f} min / {t_conf/60:.1f} min | informativo | |",
+          f"| R-3 Un mes de llamadas por fuente, ensayo + carga (peor caso) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
           f"| R-4 Proyección de 24 meses de llamadas (D7) | {proy_24/3600:.1f} h | informativo | |"]
     if rec:
         md.append(f"| R-5 Reconciliación completa | {float(rec[0][1] or 0)/60:.1f} min ({rec[0][2]} tablas de origen) | informativo | |")
     md += ["", "Los umbrales son una propuesta para una ventana nocturna de mantenimiento; deben confirmarse con José Hernández.", "",
-           "## Pasos más lentos (última carga confirmada)", "", "| Paso | Segundos | Filas leídas | Filas/s |", "|---|---:|---:|---:|"]
-    md += [f"| {f['Paso']} | {n(f['SegConfirm'])} | {n(f['FilasConfirm'])} | {n(f['FilasPorSegConfirm'])} |" for f in lent]
+           "En modo confirm cada paso se ensaya primero (dry-run revertido) y luego se carga; por eso el tiempo real es la suma "
+           "de las dos fases." + (f" Ensayo estimado igual a la carga en: {', '.join(estimados)}." if estimados else ""), "",
+           "## Pasos más lentos (ensayo + carga)", "", "| Paso | Segundos | Filas leídas | Filas/s en la carga |", "|---|---:|---:|---:|"]
+    md += [f"| {f['Paso']} | {n(real(f))} | {n(f['FilasConfirm'])} | {n(f['FilasPorSegConfirm'])} |" for f in lent]
     md += ["", "Detalle de los " + str(len(filas)) + " pasos en `rendimiento_por_paso.csv`; cargas por período en `rendimiento_por_periodo.csv`."]
     with open(os.path.join(carpeta, "rendimiento.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(md) + "\n")

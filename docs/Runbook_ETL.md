@@ -21,6 +21,7 @@ red Docker interna `etl-red`). Nunca sobre producción.
    | `05_correccion_circuito_no_unico.sql` | Circuito no único |
    | `06_correccion_linaje_por_lote.sql` | Linaje por lote |
    | `07_correccion_regla_circuito.sql` | ID-01 v1.1: circuito con guiones (varchar(14)); se ejecuta antes y después de recargar |
+   | `08_indices_rendimiento.sql` | Índice de búsqueda de clientes por llave de origen (rendimiento de las cargas de Books) |
 
    ```powershell
    docker cp sql\00_modelo\03_correccion_evento_conexion.sql sandbox-sql:/tmp/c.sql
