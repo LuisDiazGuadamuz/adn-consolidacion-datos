@@ -58,10 +58,10 @@ def ejecutar(cfg):
         for nombre, hija, col, padre, colp, _, _, nullable, ncols in fks:
             if ncols != 1:
                 continue
+            # la columna referenciada es llave primaria o única: el LEFT JOIN no multiplica filas
             r = bd.filas(cur, f"""SELECT COUNT_BIG(*), COUNT_BIG(h.[{col}]),
-                                         SUM(CASE WHEN h.[{col}] IS NOT NULL AND NOT EXISTS
-                                             (SELECT 1 FROM {padre} p WHERE p.[{colp}] = h.[{col}]) THEN 1 ELSE 0 END)
-                                  FROM {hija} h""")[0]
+                                         COUNT_BIG(CASE WHEN h.[{col}] IS NOT NULL AND p.[{colp}] IS NULL THEN 1 END)
+                                  FROM {hija} h LEFT JOIN {padre} p ON p.[{colp}] = h.[{col}]""")[0]
             filas, conv, h = int(r[0]), int(r[1]), int(r[2] or 0)
             huerf += h
             pct = None if not filas else round(100.0 * conv / filas, 2)
