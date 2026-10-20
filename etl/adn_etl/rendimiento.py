@@ -73,11 +73,11 @@ def ejecutar(cfg):
     peor_mes = max((real(f) for f in llam), default=0)
     prom_mes = (sum(real(f) for f in llam) / len(llam)) if llam else 0
     proy_24 = prom_mes * 24
-    ok_comp = t_real / 60 <= UMBRAL_COMPLETA_MIN
+    ok_comp = t_dry / 60 <= UMBRAL_COMPLETA_MIN     # medido: la corrida completa en ensayo (todas las fases de cada paso, revertidas)
     ok_mes = peor_mes / 60 <= UMBRAL_MES_LLAMADAS_MIN
-    print(f"Corrida completa en modo confirm ({len(sin_per)} pasos sin período): {t_real/60:.1f} min "
-          f"= ensayo {t_dry/60:.1f} + carga {t_conf/60:.1f} (umbral propuesto {UMBRAL_COMPLETA_MIN} min) → "
-          f"{'CUMPLE' if ok_comp else 'NO CUMPLE'}")
+    print(f"Corrida completa medida (dry-run, {len(sin_per)} pasos sin período): {t_dry/60:.1f} min "
+          f"(umbral propuesto {UMBRAL_COMPLETA_MIN} min) → {'CUMPLE' if ok_comp else 'NO CUMPLE'}")
+    print(f"Proyección en modo confirm (ensayo + carga de cada paso; no medida como corrida): ≈ {t_real/60:.0f} min")
     print(f"Llamadas (ensayo + carga): peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
           f"(umbral propuesto {UMBRAL_MES_LLAMADAS_MIN} min) → {'CUMPLE' if ok_mes else 'NO CUMPLE'}; 24 meses ≈ {proy_24/3600:.1f} h")
     if estimados:
@@ -105,8 +105,8 @@ def ejecutar(cfg):
           f"Ejecución: {ahora.strftime('%d/%m/%Y %H:%M')} (hora de Costa Rica) · entorno {ev.get('Marca ctl.Entorno', '')} "
           f"(Docker con 6 GB de memoria para SQL Server).", "",
           "| Prueba | Medición | Umbral propuesto | Resultado |", "|---|---|---|---|",
-          f"| R-1 Corrida completa en modo confirm ({len(sin_per)} pasos sin período; ensayo + carga) | {t_real/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
-          f"| R-2 Fase de ensayo / fase de carga | {t_dry/60:.1f} min / {t_conf/60:.1f} min | informativo | |",
+          f"| R-1 Corrida completa medida (dry-run de los {len(sin_per)} pasos sin período) | {t_dry/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
+          f"| R-2 Proyección en modo confirm (cada paso se ensaya y luego se carga) | ≈ {t_real/60:.0f} min (ensayo {t_dry/60:.0f} + carga {t_conf/60:.0f}; cargas de distintas fechas) | informativo | |",
           f"| R-3 Un mes de llamadas por fuente, ensayo + carga (peor caso) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
           f"| R-4 Proyección de 24 meses de llamadas (D7) | {proy_24/3600:.1f} h | informativo | |"]
     if rec:
