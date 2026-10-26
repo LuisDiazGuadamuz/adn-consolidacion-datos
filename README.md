@@ -11,12 +11,15 @@ Scripts reproducibles de limpieza, deduplicación, transformación y carga hacia
 
 | Carpeta | Contenido |
 |---|---|
-| `sql/00_modelo` | DDL del modelo unificado v1.2 y correcciones del Sprint 2 |
+| `sql/00_modelo` | DDL del modelo unificado y correcciones 02 a 10 (Sprints 2 a 4) |
 | `sql/01_control` | Objetos de control del ETL: bitácora por registro, lote, funciones de normalización |
 | `sql/10_pasos` | Un procedimiento por paso de carga (**generados**, no se editan a mano) |
+| `sql/20_validacion` | Consultas de reconciliación origen-destino y de duplicados vs línea base (**generadas**) |
+| `sql/30_rag` | Vistas para ask.data.cr con solo las columnas autorizadas (**generadas**) |
 | `sql/90_verificacion` | Verificaciones de solo lectura: pruebas del modelo, pruebas de funciones de limpieza, diagnósticos por grupo |
-| `sql/95_mantenimiento` | Mantenimiento del sandbox (p. ej. cerrar lotes colgados tras una caída) |
-| `docs` | [Runbook del ETL](docs/Runbook_ETL.md): orden de carga, 24 meses de llamadas, verificaciones del DoD, recuperación |
+| `sql/95_mantenimiento` | Mantenimiento del sandbox: respaldo completo, prueba de restauración, cerrar lotes colgados |
+| `docs` | [Manual de mantenimiento](docs/Manual_Mantenimiento_ADN_Unificado.md), [runbook técnico](docs/Runbook_ETL.md) y el diccionario de datos con la matriz (`Diccionario_Matriz_ADN_Unificado.xlsx`, **generado**) |
+| `herramientas` | Generadores del DDL (`gen_ddl.py`) y del diccionario, la matriz y las vistas RAG (`gen_diccionario.py`) |
 | `etl/adn_etl` | Runner en Python: especificaciones de los pasos, generador, dry-run/confirm/rollback, verificaciones |
 | `etl/adn_etl/datos` | Matriz de correspondencia aprobada (Sprint 2), que los pasos siguen al pie de la letra |
 | `docker` | Imagen del ETL y preparación de la red aislada |

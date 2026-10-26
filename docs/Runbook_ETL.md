@@ -1,5 +1,7 @@
 # Runbook del ETL · ADN_Unificado (Sprint 3)
 
+> Complemento técnico del [Manual de mantenimiento](Manual_Mantenimiento_ADN_Unificado.md) (Sprint 5), que es el documento principal para operar y extender la unificación.
+
 Procedimiento de operación del ETL: orden de carga, cargas grandes por período, verificaciones del DoD
 y recuperación ante fallos. **Todo se ejecuta solo en el sandbox** (`ETL_ENTORNO=SANDBOX`, marca `ctl.Entorno`,
 red Docker interna `etl-red`). Nunca sobre producción.
