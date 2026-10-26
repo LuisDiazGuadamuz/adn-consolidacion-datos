@@ -94,6 +94,19 @@ def main(argv=None):
         from . import reconciliar, duplicados
         for ruta in (reconciliar.generar_sql()[0], duplicados.generar_sql()):
             print(os.path.relpath(ruta, runner.RAIZ))
+        # Diccionario de datos, matriz y vistas para ask.data.cr (Sprint 5)
+        sys.path.insert(0, os.path.join(runner.RAIZ, "herramientas"))
+        try:
+            import gen_diccionario
+        except ImportError as ex:
+            print(f"Diccionario no regenerado ({ex}); reconstruya la imagen con ./docker/preparar.ps1")
+            return
+        xlsx = os.path.join(runner.RAIZ, "docs", "Diccionario_Matriz_ADN_Unificado.xlsx")
+        gen_diccionario.construir(xlsx)
+        print(os.path.relpath(xlsx, runner.RAIZ))
+        vistas = os.path.join(runner.RAIZ, "sql", "30_rag", "vistas_rag.sql")
+        gen_diccionario.vistas_rag(vistas)
+        print(os.path.relpath(vistas, runner.RAIZ))
         return
     if a.cmd == "plan":
         for p in registro.todos():

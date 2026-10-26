@@ -1,0 +1,2450 @@
+Base,TablaOrigen,ColumnaOrigen,Perfilado,PctVacios,TipoDestinoV1
+ADNApp,django_celery_beat_crontabschedule,id,,,
+ADNApp,django_celery_beat_crontabschedule,minute,,,
+ADNApp,django_celery_beat_crontabschedule,hour,,,
+ADNApp,django_celery_beat_crontabschedule,day_of_week,,,
+ADNApp,django_celery_beat_crontabschedule,day_of_month,,,
+ADNApp,django_celery_beat_crontabschedule,month_of_year,,,
+ADNApp,django_celery_beat_crontabschedule,timezone,,,
+ADNApp,django_celery_beat_intervalschedule,id,,,
+ADNApp,django_celery_beat_intervalschedule,every,,,
+ADNApp,django_celery_beat_intervalschedule,period,,,
+ADNApp,Telephony_invoicevoip,id,,,
+ADNApp,Telephony_invoicevoip,customer_name,,,
+ADNApp,Telephony_invoicevoip,legal_id,,,
+ADNApp,Telephony_invoicevoip,circuit_number,,,
+ADNApp,Telephony_invoicevoip,voip_service,,,
+ADNApp,Telephony_invoicevoip,invoice_start_date,,,
+ADNApp,Telephony_invoicevoip,invoice_end_date,,,
+ADNApp,Telephony_invoicevoip,voip_calls,,,
+ADNApp,Telephony_invoicevoip,voip_minutes,,,
+ADNApp,Telephony_invoicevoip,voip_cost,,,
+ADNApp,Telephony_invoicevoip,filepath,,,
+ADNApp,Telephony_invoicevoip,is_processed,,,
+ADNApp,django_celery_beat_periodictask,id,,,
+ADNApp,django_celery_beat_periodictask,name,,,
+ADNApp,django_celery_beat_periodictask,task,,,
+ADNApp,django_celery_beat_periodictask,args,,,
+ADNApp,django_celery_beat_periodictask,kwargs,,,
+ADNApp,django_celery_beat_periodictask,queue,,,
+ADNApp,django_celery_beat_periodictask,exchange,,,
+ADNApp,django_celery_beat_periodictask,routing_key,,,
+ADNApp,django_celery_beat_periodictask,expires,,,
+ADNApp,django_celery_beat_periodictask,enabled,,,
+ADNApp,django_celery_beat_periodictask,last_run_at,,,
+ADNApp,django_celery_beat_periodictask,total_run_count,,,
+ADNApp,django_celery_beat_periodictask,date_changed,,,
+ADNApp,django_celery_beat_periodictask,description,,,
+ADNApp,django_celery_beat_periodictask,crontab_id,,,
+ADNApp,django_celery_beat_periodictask,interval_id,,,
+ADNApp,django_celery_beat_periodictask,solar_id,,,
+ADNApp,django_celery_beat_periodictask,one_off,,,
+ADNApp,django_celery_beat_periodictask,start_time,,,
+ADNApp,django_celery_beat_periodictask,priority,,,
+ADNApp,django_celery_beat_periodictask,headers,,,
+ADNApp,django_celery_beat_periodictask,clocked_id,,,
+ADNApp,django_celery_beat_periodictask,expire_seconds,,,
+ADNApp,ZohoEngine_invoicevoip,id,Sin problemas,0,nvarchar(200)
+ADNApp,ZohoEngine_invoicevoip,customer_name,,,
+ADNApp,ZohoEngine_invoicevoip,legal_id,Revisar,0.0109,int
+ADNApp,ZohoEngine_invoicevoip,circuit_number,,,int
+ADNApp,ZohoEngine_invoicevoip,voip_service,,,nvarchar(50)
+ADNApp,ZohoEngine_invoicevoip,invoice_start_date,Sin problemas,0,date
+ADNApp,ZohoEngine_invoicevoip,invoice_end_date,Sin problemas,0,date
+ADNApp,ZohoEngine_invoicevoip,voip_calls,,,int
+ADNApp,ZohoEngine_invoicevoip,voip_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_invoicevoip,voip_cost,,,"decimal(19,4)"
+ADNApp,ZohoEngine_invoicevoip,filepath,,,nvarchar(1000)
+ADNApp,ZohoEngine_invoicevoip,is_processed,,,bit
+ADNApp,ZohoEngine_zohouser,zoho_id,,,nvarchar(30)
+ADNApp,ZohoEngine_zohouser,alias,,,nvarchar(max) JSON
+ADNApp,ZohoEngine_zohouser,email,,,nvarchar(200)
+ADNApp,ZohoEngine_zohouser,first_name,,,
+ADNApp,ZohoEngine_zohouser,last_name,,,
+ADNApp,ZohoEngine_zohouser,full_name,,,nvarchar(200)
+ADNApp,ZohoEngine_zohouser,mobile,,,nvarchar(30)
+ADNApp,ZohoEngine_zohouser,phone,,,nvarchar(30)
+ADNApp,ZohoEngine_zohouser,role,,,nvarchar(100)
+ADNApp,ZohoEngine_zohouser,profile,,,nvarchar(100)
+ADNApp,ZohoEngine_zohouser,status,,,nvarchar(30)
+ADNApp,ZohoEngine_zohouser,created_time,,,datetimeoffset(0)
+ADNApp,ZohoEngine_zohouser,user_id,,,nvarchar(max) JSON
+ADNApp,django_celery_beat_periodictasks,ident,,,
+ADNApp,django_celery_beat_periodictasks,last_update,,,
+ADNApp,django_celery_beat_solarschedule,id,,,
+ADNApp,django_celery_beat_solarschedule,event,,,
+ADNApp,django_celery_beat_solarschedule,latitude,,,
+ADNApp,django_celery_beat_solarschedule,longitude,,,
+ADNApp,django_migrations,id,Sin problemas,0,
+ADNApp,django_migrations,app,,,
+ADNApp,django_migrations,name,,,
+ADNApp,django_migrations,applied,Sin problemas,0,
+ADNApp,django_celery_beat_clockedschedule,id,,,
+ADNApp,django_celery_beat_clockedschedule,clocked_time,,,
+ADNApp,ZohoEngine_zohocustomer,id,Sin problemas,0,nvarchar(200)
+ADNApp,ZohoEngine_zohocustomer,CircuitNumber,,,nvarchar(100)
+ADNApp,ZohoEngine_zohocustomer,Name,,,
+ADNApp,ZohoEngine_zohocustomer,IDCard,,,nvarchar(50)
+ADNApp,ZohoEngine_zohocustomer,Increment,,,
+ADNApp,ZohoEngine_zohocustomer,Percentage,,,
+ADNApp,ZohoEngine_zohocustomer,SpecialNumberRate,,,
+ADNApp,ZohoEngine_zohocustomer,Ownership,,,
+ADNApp,ZohoEngine_zohocustomer,RateID,Sin problemas,0,
+ADNApp,ZohoEngine_zohocustomer,ZohoID,Sin problemas,0,nvarchar(30)
+ADNApp,ZohoEngine_zohocustomer,RazonSocial,,,
+ADNApp,ZohoEngine_zohocustomer,State,,,nvarchar(50)
+ADNApp,ZohoEngine_zohocustomer,Coordinates,,,"decimal(10,7)"
+ADNApp,ZohoEngine_zohocustomer,Industry,,,nvarchar(100)
+ADNApp,ZohoEngine_zohocustomer,Segmento,,,nvarchar(50)
+ADNApp,ZohoEngine_zohocustomervoipbill,id,Sin problemas,0,nvarchar(200)
+ADNApp,ZohoEngine_zohocustomervoipbill,customer_name,,,nvarchar(200)
+ADNApp,ZohoEngine_zohocustomervoipbill,legal_id,Revisar,0.0182,int
+ADNApp,ZohoEngine_zohocustomervoipbill,circuit_number,,,int
+ADNApp,ZohoEngine_zohocustomervoipbill,invoice_start_date,Sin problemas,0,date
+ADNApp,ZohoEngine_zohocustomervoipbill,invoice_end_date,Sin problemas,0,date
+ADNApp,ZohoEngine_zohocustomervoipbill,voip_available_mobile_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_zohocustomervoipbill,voip_available_fijo_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_zohocustomervoipbill,voip_applied_mobile_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_zohocustomervoipbill,voip_applied_fijo_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_zohocustomervoipbill,report_file_string,,,nvarchar(max)
+ADNApp,ZohoEngine_zohocustomervoipbill,status,,,nvarchar(30)
+ADNApp,ZohoEngine_zohocustomervoipbillservice,id,Sin problemas,0,nvarchar(200)
+ADNApp,ZohoEngine_zohocustomervoipbillservice,voip_service,,,nvarchar(50)
+ADNApp,ZohoEngine_zohocustomervoipbillservice,voip_calls,,,int
+ADNApp,ZohoEngine_zohocustomervoipbillservice,voip_minutes,,,"decimal(12,2)"
+ADNApp,ZohoEngine_zohocustomervoipbillservice,voip_cost,,,"decimal(19,4)"
+ADNApp,ZohoEngine_zohocustomervoipbillservice,zoho_customer_voip_bill_id,Sin problemas,0,int
+ADNApp,Telephony_cdr,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_cdr,CDRTypeCode,,,int
+ADNApp,Telephony_cdr,CDRTypeReason,,,nvarchar(100)
+ADNApp,Telephony_cdr,StartDateTime,Sin problemas,0,datetimeoffset(0)
+ADNApp,Telephony_cdr,AnswerTimeOfDate,Anomalía,0,datetimeoffset(0)
+ADNApp,Telephony_cdr,DisconnectDateTime,Sin problemas,0,datetimeoffset(0)
+ADNApp,Telephony_cdr,IngressTrunk,,,int
+ADNApp,Telephony_cdr,EgressTrunk,,,int
+ADNApp,Telephony_cdr,DialedNumber,,,nvarchar(50)
+ADNApp,Telephony_cdr,usd_exchange,,,"decimal(19,6)"
+ADNApp,Telephony_cdr,Destination,,,nvarchar(150)
+ADNApp,Telephony_cdr,DestinationCode,,,varchar(20)
+ADNApp,Telephony_cdr,DestinationRate,,,"decimal(19,4)"
+ADNApp,Telephony_cdr,DestinationRateNoProfit,,,"decimal(19,4)"
+ADNApp,Telephony_cdr,DestinationRound,,,int
+ADNApp,Telephony_cdr,DurationInSeconds,,,"decimal(12,2)"
+ADNApp,Telephony_cdr,DurationInRoundedSeconds,,,"decimal(12,2)"
+ADNApp,Telephony_cdr,DurationInMinutes,,,"decimal(12,2)"
+ADNApp,Telephony_cdr,CallCost,,,"decimal(19,4)"
+ADNApp,Telephony_cdr,CallCostNoProfit,,,"decimal(19,4)"
+ADNApp,Telephony_cdr,CallingNumber,,,nvarchar(50)
+ADNApp,Telephony_cdr,BillingNumber,,,nvarchar(50)
+ADNApp,Telephony_cdr,VoipDevice,,,nvarchar(100)
+ADNApp,Telephony_cdr,CustomerName,,,
+ADNApp,Telephony_cdr,CustomerIncrement,,,int
+ADNApp,Telephony_cdr,CustomerPorcentage,,,"decimal(9,4)"
+ADNApp,Telephony_cdr,CustomerCircuitNumber,,,varchar(12); int
+ADNApp,Telephony_cdr,IngressTrunkAlias,,,nvarchar(max) JSON
+ADNApp,Telephony_cdr,EgressTrunkAlias,,,nvarchar(max) JSON
+ADNApp,Telephony_cdr,OriginationSourceIP,,,nvarchar(max) JSON
+ADNApp,Telephony_cdr,OriginationDestinationIP,,,nvarchar(max) JSON
+ADNApp,Telephony_cdr,Rpid_PAI,,,nvarchar(max) JSON
+ADNApp,Telephony_cdr,RoutingDigits,,,nvarchar(50)
+ADNApp,Telephony_insertedcdrfiles,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_insertedcdrfiles,FileName,,,nvarchar(300)
+ADNApp,Telephony_insertedcdrfiles,VoipDevice,,,nvarchar(100)
+ADNApp,Telephony_insertedcdrfiles,InsertionDate,Sin problemas,0,date
+ADNApp,Telephony_minutepackage,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_minutepackage,Code,,,nvarchar(30)
+ADNApp,Telephony_minutepackage,Description,,,nvarchar(200)
+ADNApp,django_celery_results_taskresult,id,,,
+ADNApp,django_celery_results_taskresult,task_id,,,
+ADNApp,django_celery_results_taskresult,status,,,
+ADNApp,django_celery_results_taskresult,content_type,,,
+ADNApp,django_celery_results_taskresult,content_encoding,,,
+ADNApp,django_celery_results_taskresult,result,,,
+ADNApp,django_celery_results_taskresult,date_done,,,
+ADNApp,django_celery_results_taskresult,traceback,,,
+ADNApp,django_celery_results_taskresult,meta,,,
+ADNApp,django_celery_results_taskresult,task_args,,,
+ADNApp,django_celery_results_taskresult,task_kwargs,,,
+ADNApp,django_celery_results_taskresult,task_name,,,
+ADNApp,django_celery_results_taskresult,worker,,,
+ADNApp,django_celery_results_taskresult,date_created,,,
+ADNApp,Telephony_provider,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_provider,Name,,,nvarchar(100)
+ADNApp,Telephony_provider,LastRateUpdate,Sin problemas,0,datetimeoffset(0)
+ADNApp,Telephony_trunk,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_trunk,TrunkID,Sin problemas,0,nvarchar(50)
+ADNApp,Telephony_trunk,TrunkType,,,nvarchar(30)
+ADNApp,Telephony_trunk,IncomingTollFree,,,bit
+ADNApp,Telephony_trunk,IncomingDID,,,bit
+ADNApp,Telephony_trunk,State,,,nvarchar(30)
+ADNApp,Telephony_trunk,StateDefaultCode,,,nvarchar(30)
+ADNApp,Telephony_trunk,CustomerID_id,Sin problemas,0,int
+ADNApp,Telephony_trunk,StateSIP,,,nvarchar(30)
+ADNApp,django_celery_results_chordcounter,id,,,
+ADNApp,django_celery_results_chordcounter,group_id,,,
+ADNApp,django_celery_results_chordcounter,sub_tasks,,,
+ADNApp,django_celery_results_chordcounter,count,,,
+ADNApp,Telephony_usdexchange,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_usdexchange,Purchase,,,"decimal(19,6)"
+ADNApp,Telephony_usdexchange,Sale,,,"decimal(19,6)"
+ADNApp,Telephony_usdexchange,ExchangeDate,Sin problemas,0,date
+ADNApp,Telephony_trunkpermissions,id,,,nvarchar(200)
+ADNApp,Telephony_trunkpermissions,NoRestriction,,,bit
+ADNApp,Telephony_trunkpermissions,TrunkID_id,,,int
+ADNApp,Telephony_trunkpermissiondialcode,id,,,nvarchar(200)
+ADNApp,Telephony_trunkpermissiondialcode,DialCode,,,varchar(20)
+ADNApp,Telephony_trunkpermissiondialcode,Minutes,,,int
+ADNApp,Telephony_trunkpermissiondialcode,NoRestriction,,,bit
+ADNApp,Telephony_trunkpermissiondialcode,Trunk_id,,,int
+ADNApp,Telephony_specialnumberrate,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_specialnumberrate,DialCode,,,varchar(20)
+ADNApp,Telephony_specialnumberrate,Name,,,nvarchar(150)
+ADNApp,Telephony_specialnumberrate,Rate,,,"decimal(19,4)"
+ADNApp,Telephony_specialnumberrate,Round,,,"decimal(9,2)"
+ADNApp,Telephony_specialnumberrate,Cost,,,"decimal(19,4)"
+ADNApp,sysdiagrams,name,,,
+ADNApp,sysdiagrams,principal_id,,,
+ADNApp,sysdiagrams,diagram_id,,,
+ADNApp,sysdiagrams,version,,,
+ADNApp,sysdiagrams,definition,,,
+ADNApp,Telephony_providertrunk,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_providertrunk,TrunkID,Sin problemas,0,nvarchar(50)
+ADNApp,Telephony_providertrunk,State,,,nvarchar(30)
+ADNApp,Telephony_providertrunk,ProviderID_id,Sin problemas,0,int
+ADNApp,Telephony_minutepackagedialcode,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_minutepackagedialcode,DialCode,,,varchar(20)
+ADNApp,Telephony_minutepackagedialcode,Package_id,Sin problemas,0,int
+ADNApp,Telephony_freelines,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_freelines,FreeLineID,Revisar,0.0016,nvarchar(50)
+ADNApp,Telephony_freelines,IncomingTollFree,,,bit
+ADNApp,Telephony_freelines,IncomingDID,,,bit
+ADNApp,Telephony_freelines,State,,,nvarchar(30)
+ADNApp,Telephony_freelines,CustomerID_id,Sin problemas,0,int
+ADNApp,Telephony_customerminutepackage,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_customerminutepackage,Minutes,,,int
+ADNApp,Telephony_customerminutepackage,Customer_id,Sin problemas,0,int
+ADNApp,Telephony_customerminutepackage,Package_id,Sin problemas,0,int
+ADNApp,Telephony_countrydialcoderate,id,Sin problemas,0,nvarchar(200)
+ADNApp,Telephony_countrydialcoderate,DialCode,,,varchar(20)
+ADNApp,Telephony_countrydialcoderate,Name,,,nvarchar(150)
+ADNApp,Telephony_countrydialcoderate,Rate,,,"decimal(19,4)"
+ADNApp,Telephony_countrydialcoderate,Round,,,"decimal(9,2)"
+ADNApp,Telephony_countrydialcoderate,Cost,,,"decimal(19,4)"
+ADNApp,Telephony_countrydialcoderate,ProviderID_id,Sin problemas,0,int
+ADNApp,XMLEngine_invoicevoip,id,,,
+ADNApp,XMLEngine_invoicevoip,customer_name,,,
+ADNApp,XMLEngine_invoicevoip,legal_id,,,
+ADNApp,XMLEngine_invoicevoip,circuit_number,,,
+ADNApp,XMLEngine_invoicevoip,voip_service,,,
+ADNApp,XMLEngine_invoicevoip,invoice_start_date,,,
+ADNApp,XMLEngine_invoicevoip,invoice_end_date,,,
+ADNApp,XMLEngine_invoicevoip,voip_calls,,,
+ADNApp,XMLEngine_invoicevoip,voip_minutes,,,
+ADNApp,XMLEngine_invoicevoip,voip_cost,,,
+ADNApp,XMLEngine_invoicevoip,filepath,,,
+ADNApp,XMLEngine_invoicevoip,is_processed,,,
+ADNApp,Telephony_alertblockedtrunk,id,,,nvarchar(200)
+ADNApp,Telephony_alertblockedtrunk,Reason,,,nvarchar(500)
+ADNApp,Telephony_alertblockedtrunk,BlockedDate,,,datetimeoffset(0)
+ADNApp,Telephony_alertblockedtrunk,Operation,,,nvarchar(50)
+ADNApp,Telephony_alertblockedtrunk,Trunk_id,,,int
+ADNApp,XMLEngine_invoicexmlfiles,invoice_number,Sin problemas,0,nvarchar(60)
+ADNApp,XMLEngine_invoicexmlfiles,path,,,nvarchar(1000)
+ADNApp,XMLEngine_invoicexmlfiles,invoice_issue_date,Sin problemas,0,datetimeoffset(0)
+ADNApp,XMLEngine_invoicexmlfiles,filename,,,nvarchar(300)
+ADNApp,XMLEngine_invoicexmlfiles,invoice_emisor_name,,,nvarchar(200)
+ADNApp,XMLEngine_invoicexmlfiles,invoice_emisor_id,Sin problemas,0,varchar(12)
+ADNApp,XMLEngine_invoicexmlfiles,invoice_plain_text,,,nvarchar(max)
+ADNApp,XMLEngine_invoicexmlfiles,is_processed,,,bit
+ADNApp,django_content_type,id,Sin problemas,0,
+ADNApp,django_content_type,app_label,,,
+ADNApp,django_content_type,model,,,
+ADNApp,auth_permission,id,Sin problemas,0,
+ADNApp,auth_permission,name,,,
+ADNApp,auth_permission,content_type_id,Sin problemas,0,
+ADNApp,auth_permission,codename,,,
+ADNApp,auth_group,id,Sin problemas,0,
+ADNApp,auth_group,name,,,
+ADNApp,auth_group_permissions,id,,,
+ADNApp,auth_group_permissions,group_id,,,
+ADNApp,auth_group_permissions,permission_id,,,
+ADNApp,auth_user,id,Sin problemas,0,
+ADNApp,auth_user,password,,,
+ADNApp,auth_user,last_login,Sin problemas,0,
+ADNApp,auth_user,is_superuser,,,
+ADNApp,auth_user,username,,,
+ADNApp,auth_user,first_name,,,
+ADNApp,auth_user,last_name,,,
+ADNApp,auth_user,email,,,
+ADNApp,auth_user,is_staff,,,
+ADNApp,auth_user,is_active,,,
+ADNApp,auth_user,date_joined,Sin problemas,0,
+ADNApp,auth_user_groups,id,Sin problemas,0,
+ADNApp,auth_user_groups,user_id,Sin problemas,0,
+ADNApp,auth_user_groups,group_id,Sin problemas,0,
+ADNApp,auth_user_user_permissions,id,,,
+ADNApp,auth_user_user_permissions,user_id,,,
+ADNApp,auth_user_user_permissions,permission_id,,,
+ADNApp,django_admin_log,id,Sin problemas,0,
+ADNApp,django_admin_log,action_time,Sin problemas,0,
+ADNApp,django_admin_log,object_id,Sin problemas,0,
+ADNApp,django_admin_log,object_repr,,,
+ADNApp,django_admin_log,action_flag,,,
+ADNApp,django_admin_log,change_message,,,
+ADNApp,django_admin_log,content_type_id,Sin problemas,0,
+ADNApp,django_admin_log,user_id,Sin problemas,0,
+ADNApp,django_session,session_key,Sin problemas,0,
+ADNApp,django_session,session_data,,,
+ADNApp,django_session,expire_date,Sin problemas,0,
+ADNApp,Minutos_Customer,Description,,,
+ADNApp,Minutos_Customer,Minutes,,,
+ADNApp,Minutos_Customer,Customer_id,Sin problemas,0,
+ADNApp,MinutosLegalId,IDCard,,,
+ADNApp,MinutosLegalId,MinutosFijo,,,
+ADNApp,MinutosLegalId,MinutosCelular,,,
+ADNApp,Query,customer_name,,,
+ADNApp,Query,legal_id,,,
+ADNApp,Query,circuit_number,,,
+ADNApp,Query,voip_service,,,
+ADNApp,Query,invoice_start_date,,,
+ADNApp,Query,invoice_end_date,,,
+ADNApp,Query,voip_calls,,,
+ADNApp,Query,voip_minutes,,,
+ADNApp,Query,voip_cost,,,
+ADNApp,Query,filepath,,,
+ADNApp,Query,is_processed,,,
+ADNPayV2,OnvoProduct,id,,,nvarchar(200)
+ADNPayV2,OnvoProduct,plan_id,,,
+ADNPayV2,OnvoProduct,extra_iptv_boxes,,,nvarchar(max) JSON
+ADNPayV2,OnvoProduct,telephony,,,bit
+ADNPayV2,OnvoProduct,public_ip,,,bit
+ADNPayV2,OnvoProduct,onvo_product_id,,,nvarchar(50)
+ADNPayV2,OnvoProduct,product_name,,,nvarchar(200)
+ADNPayV2,OnvoProduct,image_url,,,
+ADNPayV2,OnvoProduct,created_at,,,datetimeoffset(0)
+ADNPayV2,OnvoPrice,id,,,nvarchar(200)
+ADNPayV2,OnvoPrice,onvo_product_id,,,
+ADNPayV2,OnvoPrice,onvo_price_id,,,nvarchar(max) JSON
+ADNPayV2,OnvoPrice,unit_amount,,,"decimal(19,4)"
+ADNPayV2,OnvoPrice,is_active,,,bit
+ADNPayV2,OnvoPrice,created_at,,,datetimeoffset(0)
+ADNPayV2,OnvoPrice,updated_at,,,datetimeoffset(0)
+ADNPayV2,OnvoCheckoutSession,session_index,Sin problemas,0,nvarchar(200)
+ADNPayV2,OnvoCheckoutSession,session_id,Sin problemas,0,nvarchar(100)
+ADNPayV2,OnvoCheckoutSession,payment_intent_id,Sin problemas,0,nvarchar(100)
+ADNPayV2,OnvoCheckoutSession,amount_total,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,OnvoCheckoutSession,payment_mode,,,nvarchar(30)
+ADNPayV2,OnvoCheckoutSession,payment_status,,,nvarchar(30)
+ADNPayV2,OnvoCheckoutSession,currency,,,char(3)
+ADNPayV2,OnvoCheckoutSession,metadata_customer_id,Sin problemas,0,
+ADNPayV2,OnvoCheckoutSession,price_id,Sin problemas,0,nvarchar(100)
+ADNPayV2,OnvoCheckoutSession,customer_external_id,Sin problemas,0,
+ADNPayV2,OnvoCheckoutSession,customer_name,,,
+ADNPayV2,OnvoCheckoutSession,customer_phone,,,
+ADNPayV2,OnvoCheckoutSession,customer_email,,,
+ADNPayV2,OnvoCheckoutSession,created_at,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,OnvoCheckoutSession,expires_at,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,OnvoCheckoutSession,mode,,,
+ADNPayV2,OnvoCheckoutSession,customer_index,Sin problemas,0,int
+ADNPayV2,OnvoCheckoutSession,expired,,,bit
+ADNPayV2,OdooProvisioning,id,,,nvarchar(200)
+ADNPayV2,OdooProvisioning,customer_id,,,int
+ADNPayV2,OdooProvisioning,status,,,nvarchar(30)
+ADNPayV2,OdooProvisioning,odoo_lead_id,,,int
+ADNPayV2,OdooProvisioning,odoo_partner_id,,,int
+ADNPayV2,OdooProvisioning,odoo_site_id,,,int
+ADNPayV2,OdooProvisioning,odoo_so_id,,,int
+ADNPayV2,OdooProvisioning,odoo_contract_id,,,int
+ADNPayV2,OdooProvisioning,odoo_task_id,,,int
+ADNPayV2,OdooProvisioning,odoo_circuit_id,,,varchar(12)
+ADNPayV2,OdooProvisioning,attempt,,,int
+ADNPayV2,OdooProvisioning,last_error,,,nvarchar(2000)
+ADNPayV2,OdooProvisioning,created_at,,,datetimeoffset(0)
+ADNPayV2,OdooProvisioning,updated_at,,,datetimeoffset(0)
+ADNPayV2,Service,index,Sin problemas,0,nvarchar(200)
+ADNPayV2,Service,name,,,nvarchar(200)
+ADNPayV2,Service,price,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,Service,download,,,"decimal(9,2)"
+ADNPayV2,Service,upload,,,"decimal(9,2)"
+ADNPayV2,Service,simetry,,,nvarchar(max) JSON
+ADNPayV2,Service,iptv,,,bit
+ADNPayV2,Service,telephony,,,bit
+ADNPayV2,Service,price_string,Revisar,0.1538,
+ADNPayV2,Service,type,,,nvarchar(50)
+ADNPayV2,Service,idpro,,,nvarchar(50)
+ADNPayV2,Service,description,,,nvarchar(1000)
+ADNPayV2,Service,tax_free_price,Revisar,0.1538,"decimal(19,4)"
+ADNPayV2,Service,public_ip,,,bit
+ADNPayV2,Service,drop,,,nvarchar(max) JSON
+ADNPayV2,Code,code,,,
+ADNPayV2,Code,category,,,
+ADNPayV2,Visitdate,id,,,nvarchar(200)
+ADNPayV2,Visitdate,tentatie_date,,,date
+ADNPayV2,Visitdate,status,,,varchar(30)
+ADNPayV2,Visitdate,fk_customer,,,int
+ADNPayV2,Visitdate,address,,,nvarchar(1000)
+ADNPayV2,Customer,index,Sin problemas,0,nvarchar(200)
+ADNPayV2,Customer,name,,,nvarchar(200)
+ADNPayV2,Customer,email,,,nvarchar(200)
+ADNPayV2,Customer,phone,,,nvarchar(30)
+ADNPayV2,Customer,id,Sin problemas,0,int; nvarchar(50)
+ADNPayV2,Customer,id_type,Sin problemas,0,varchar(10)
+ADNPayV2,Customer,type,,,nvarchar(30)
+ADNPayV2,Customer,condominium,,,nvarchar(200)
+ADNPayV2,Customer,ftth,,,nvarchar(50)
+ADNPayV2,Customer,mobile,,,
+ADNPayV2,Customer,province,,,nvarchar(60)
+ADNPayV2,Customer,canton,,,nvarchar(80)
+ADNPayV2,Customer,district,,,nvarchar(80)
+ADNPayV2,Customer,address,,,nvarchar(1000)
+ADNPayV2,Customer,plan,,,int
+ADNPayV2,Customer,dates,Columna sin uso,1,
+ADNPayV2,Customer,user_agent,,,
+ADNPayV2,Customer,ip_address,,,
+ADNPayV2,Customer,status,,,nvarchar(50)
+ADNPayV2,Customer,reference,,,varchar(50)
+ADNPayV2,Customer,create_time,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,Customer,extra_iptv,,,int
+ADNPayV2,Customer,promcode,,,nvarchar(50)
+ADNPayV2,Customer,crm_status,,,bit
+ADNPayV2,Customer,idcard_front,,,
+ADNPayV2,Customer,idcard_back,,,
+ADNPayV2,Customer,sign,,,
+ADNPayV2,Customer,telephony,,,bit
+ADNPayV2,Customer,public_ip,,,bit
+ADNPayV2,Customer,promotion,,,bit
+ADNPayV2,Customer,promotion_type,,,varchar(50)
+ADNPayV2,Customer,promotion_date,Columna sin uso,1,date
+ADNPayV2,Customer,pay_type,,,varchar(30)
+ADNPayV2,Customer,coordinate,,,"decimal(10,7)"
+ADNPayV2,Customer,coordinates,,,"decimal(10,7)"
+ADNPayV2,Customer,total_price,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,Customer,additional_iptv,,,int
+ADNPayV2,Customer,error_reference,,,nvarchar(max) JSON
+ADNPayV2,Customer,payment_intent_id,Sin problemas,0,varchar(100)
+ADNPayV2,Customer,is_referred,,,bit
+ADNPayV2,Customer,referred_dat,,,nvarchar(200)
+ADNPayV2,Customer,promotion_code,,,nvarchar(50)
+ADNPayV2,Customer,invalid_data,,,bit
+ADNPayV2,Customer,contract_s3_path,,,nvarchar(1000)
+ADNPayV2,Customer,firestick_quantity,,,int
+ADNPayV2,Customer,odoo_template_id,Columna sin uso,1,
+ADNPayV2,ThirdPartyToken,id,Sin problemas,0,
+ADNPayV2,ThirdPartyToken,owner_name,,,
+ADNPayV2,ThirdPartyToken,token_hash,,,
+ADNPayV2,ThirdPartyToken,created_at,Sin problemas,0,
+ADNPayV2,ThirdPartyToken,expires_at,Sin problemas,0,
+ADNPayV2,ThirdPartyToken,last_used_at,Sin problemas,0,
+ADNPayV2,ThirdPartyTokenPermission,id,Sin problemas,0,
+ADNPayV2,ThirdPartyTokenPermission,token_id,Sin problemas,0,
+ADNPayV2,ThirdPartyTokenPermission,permission,,,
+ADNPayV2,AddressProvince,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,AddressProvince,name,,,nvarchar(60)
+ADNPayV2,AddressCanton,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,AddressCanton,province_id,Sin problemas,0,int
+ADNPayV2,AddressCanton,name,,,nvarchar(80)
+ADNPayV2,AddressDistrict,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,AddressDistrict,canton_id,Sin problemas,0,int
+ADNPayV2,AddressDistrict,name,,,nvarchar(80)
+ADNPayV2,AddressMain,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,AddressMain,district_id,Sin problemas,0,int
+ADNPayV2,AddressMain,location_description,,,nvarchar(500)
+ADNPayV2,AddressMain,nickname,,,nvarchar(100)
+ADNPayV2,AddressMain,postal_code,,,nvarchar(20)
+ADNPayV2,AddressMain,country,,,nvarchar(60)
+ADNPayV2,ServiceReservations,reservation_id,Sin problemas,0,nvarchar(200)
+ADNPayV2,ServiceReservations,reservation_date,Sin problemas,0,date
+ADNPayV2,ServiceReservations,time_slot,,,time(0)
+ADNPayV2,ServiceReservations,customer_index,Sin problemas,0,int
+ADNPayV2,ServiceReservations,booking_timestamp,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,ServiceReservations,expiration_date,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,ServiceReservations,status,,,varchar(30)
+ADNPayV2,CustomerProspect,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,CustomerProspect,id_card,Sin problemas,0,varchar(12)
+ADNPayV2,CustomerProspect,id_card_type,Revisar,0.0033,
+ADNPayV2,CustomerProspect,first_name,,,nvarchar(100)
+ADNPayV2,CustomerProspect,last_name,,,nvarchar(100)
+ADNPayV2,CustomerProspect,email,,,nvarchar(200)
+ADNPayV2,CustomerProspect,phone,,,nvarchar(30)
+ADNPayV2,CustomerProspect,mobile,,,nvarchar(30)
+ADNPayV2,CustomerProspect,address_id,Revisar,0.8079,int
+ADNPayV2,CustomerProspect,condominium_name_requested,,,nvarchar(200)
+ADNPayV2,CustomerProspect,registration_date,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,CustomerProspect,referred_dat,,,nvarchar(max) JSON
+ADNPayV2,CustomerProspect,service_purchased,,,bit
+ADNPayV2,IPTVService,tier_id,Sin problemas,0,nvarchar(200)
+ADNPayV2,IPTVService,tier_name,,,nvarchar(200)
+ADNPayV2,IPTVService,minimum_units,,,nvarchar(max) JSON
+ADNPayV2,IPTVService,limit_units,,,nvarchar(max) JSON
+ADNPayV2,IPTVService,description,,,nvarchar(1000)
+ADNPayV2,IPTVService,base_name,,,nvarchar(max) JSON
+ADNPayV2,IPTVService,short_contract_name,,,nvarchar(max) JSON
+ADNPayV2,IPTVService,product_id,Sin problemas,0,nvarchar(50)
+ADNPayV2,IPTVService,price_without_tax,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,IPTVService,price_with_tax,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,Product,product_id,Sin problemas,0,nvarchar(200); nvarchar(50)
+ADNPayV2,Product,name,,,nvarchar(200)
+ADNPayV2,Product,description,,,nvarchar(1000)
+ADNPayV2,Product,price_crc,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,Product,is_active,,,bit
+ADNPayV2,Product,created_at,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,Product,price_without_tax,Sin problemas,0,"decimal(19,4)"
+ADNPayV2,SaleOrder,order_id,,,nvarchar(200)
+ADNPayV2,SaleOrder,customer_index,,,int
+ADNPayV2,SaleOrder,order_date,,,datetimeoffset(0)
+ADNPayV2,SaleOrder,status,,,nvarchar(30)
+ADNPayV2,SaleOrder,total_amount_crc,,,"decimal(19,4)"
+ADNPayV2,SaleOrder,total_amount_without_tax,,,"decimal(19,4)"
+ADNPayV2,code_promo_condo,id,Sin problemas,0,nvarchar(200)
+ADNPayV2,code_promo_condo,code,,,varchar(50)
+ADNPayV2,code_promo_condo,state,,,bit
+ADNPayV2,SaleOrderLine,line_id,,,nvarchar(200)
+ADNPayV2,SaleOrderLine,order_id,,,int
+ADNPayV2,SaleOrderLine,product_id,,,int
+ADNPayV2,SaleOrderLine,quantity,,,int
+ADNPayV2,SaleOrderLine,unit_price_crc,,,"decimal(19,4)"
+ADNPayV2,SaleOrderLine,line_total_crc,,,"decimal(19,4)"
+ADNPayV2,SaleOrderLine,product_name,,,nvarchar(200)
+ADNPayV2,SaleOrderLine,product_description,,,nvarchar(1000)
+ADNPayV2,SaleOrderLine,line_total_without_tax,,,"decimal(19,4)"
+ADNPayV2,SaleOrderLine,unit_price_without_tax,,,"decimal(19,4)"
+ADNPayV2,Cart,cart_id,Sin problemas,0,nvarchar(200)
+ADNPayV2,Cart,created_at,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,Cart,customer_id,Sin problemas,0,int
+ADNPayV2,Cart,updated_at,Sin problemas,0,datetimeoffset(0)
+ADNPayV2,Cart,is_locked,,,bit
+ADNPayV2,CartLine,line_id,,,nvarchar(200)
+ADNPayV2,CartLine,cart_id,,,int
+ADNPayV2,CartLine,product_id,,,int
+ADNPayV2,CartLine,quantity,,,int
+ADNPayV2,CartLine,unit_price_crc,,,"decimal(19,4)"
+ADNPayV2,CartLine,product_name,,,nvarchar(200)
+ADNPayV2,CartLine,product_description,,,nvarchar(1000)
+Navsat,Ultima_ubicacion,plateNumber,,,nvarchar(200); nvarchar(30); varchar(20)
+Navsat,Ultima_ubicacion,deviceName,,,int
+Navsat,Ultima_ubicacion,crDateTime,Sin problemas,0,datetimeoffset(0)
+Navsat,Ultima_ubicacion,latitude,,,"decimal(10,7)"
+Navsat,Ultima_ubicacion,longitude,,,"decimal(10,7)"
+Navsat,Ultima_ubicacion,odometer,,,"decimal(12,2)"
+Navsat,Ultima_ubicacion,speed,,,"decimal(7,2)"
+Navsat,Ultima_ubicacion,lugar,,,nvarchar(500)
+Navsat,Ultima_ubicacion,estado,,,nvarchar(50)
+Navsat,Eco_Driving,id_evento,Sin problemas,0,int
+Navsat,Eco_Driving,dispositivo,,,int
+Navsat,Eco_Driving,placa_vehiculo,,,nvarchar(30)
+Navsat,Eco_Driving,fecha_hora_incidente,Sin problemas,0,datetimeoffset(0)
+Navsat,Eco_Driving,conductor,,,nvarchar(150)
+Navsat,Eco_Driving,tipo_incidente,,,nvarchar(100)
+Navsat,Eco_Driving,lugar,,,nvarchar(500)
+Navsat,Eco_Driving,duracion,,,int
+Navsat,Eco_Driving,velocidad_maxima,,,int
+Navsat,Eco_Driving,veces_exceso_velocidad,,,int
+Navsat,Eco_Driving,penalidad,,,"decimal(9,2)"
+Navsat,viajes_ayer_finalizado,Id,Anomalía,1,nvarchar(200)
+Navsat,viajes_ayer_finalizado,UnitId,Sin problemas,0,
+Navsat,viajes_ayer_finalizado,FechaInicio,Sin problemas,0,datetimeoffset(0)
+Navsat,viajes_ayer_finalizado,FechaFin,Sin problemas,0,datetimeoffset(0)
+Navsat,viajes_ayer_finalizado,KilometrosRecorridos,,,"decimal(10,2)"
+Navsat,viajes_ayer_finalizado,Duracion,,,"decimal(12,2)"
+Navsat,viajes_ayer_finalizado,LugarInicio,,,nvarchar(500)
+Navsat,viajes_ayer_finalizado,LugarFin,,,nvarchar(500)
+Navsat,viajes_ayer_finalizado,Estado,,,nvarchar(50)
+Navsat,viajes_ayer_finalizado,DeviceName,,,int
+Navsat,viajes_ayer_finalizado,PlateNumber,,,nvarchar(30)
+Navsat,eventos,dispositivo,,,int
+Navsat,eventos,placa,,,nvarchar(30)
+Navsat,eventos,evento,,,nvarchar(100)
+Navsat,eventos,mensaje,,,nvarchar(500)
+Navsat,eventos,fecha,Sin problemas,0,datetimeoffset(0)
+Navsat,eventos,latitude,,,"decimal(10,7)"
+Navsat,eventos,longitude,,,"decimal(10,7)"
+Navsat,eventos,lugar,,,nvarchar(500)
+Navsat,eventos,regla,,,nvarchar(200)
+ZBooks_Mirror,comments_contacts,contact_id,Sin problemas,0,int
+ZBooks_Mirror,comments_contacts,contact_name,,,
+ZBooks_Mirror,comments_contacts,description,,,nvarchar(max)
+ZBooks_Mirror,comments_contacts,commented_by_id,Sin problemas,0,
+ZBooks_Mirror,comments_contacts,commented_by,,,nvarchar(200)
+ZBooks_Mirror,comments_contacts,date,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,comments_contacts,date_description,Anomalía,0,
+ZBooks_Mirror,comments_contacts,time,,,datetimeoffset(0)
+ZBooks_Mirror,comments_contacts,id,Sin problemas,0,nvarchar(40)
+ZBooks_Mirror,expense_tags,expense_id,Sin problemas,0,int
+ZBooks_Mirror,expense_tags,tag_id,Sin problemas,0,nvarchar(max)
+ZBooks_Mirror,expense_tags,tag_name,,,nvarchar(max)
+ZBooks_Mirror,expense_tags,tag_option,,,nvarchar(max)
+ZBooks_Mirror,invoices_items,invoice_id,Sin problemas,0,int
+ZBooks_Mirror,invoices_items,line_item_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,invoices_items,item_id,Revisar,0.002,int
+ZBooks_Mirror,invoices_items,name,,,nvarchar(300)
+ZBooks_Mirror,invoices_items,description,,,nvarchar(max)
+ZBooks_Mirror,invoices_items,quantity,,,"decimal(12,2)"
+ZBooks_Mirror,invoices_items,rate,,,"decimal(19,4)"
+ZBooks_Mirror,invoices_items,total,Anomalía,0,"decimal(19,4)"
+ZBooks_Mirror,contacts,contact_id,Sin problemas,0,nvarchar(200); nvarchar(30)
+ZBooks_Mirror,contacts,contact_name,,,nvarchar(200)
+ZBooks_Mirror,contacts,customer_name,,,nvarchar(200)
+ZBooks_Mirror,contacts,vendor_name,,,
+ZBooks_Mirror,contacts,company_name,,,nvarchar(200)
+ZBooks_Mirror,contacts,website,,,
+ZBooks_Mirror,contacts,language_code,,,
+ZBooks_Mirror,contacts,language_code_formatted,,,
+ZBooks_Mirror,contacts,contact_type,,,
+ZBooks_Mirror,contacts,contact_type_formatted,,,
+ZBooks_Mirror,contacts,status,,,nvarchar(30)
+ZBooks_Mirror,contacts,customer_sub_type,,,
+ZBooks_Mirror,contacts,source,,,
+ZBooks_Mirror,contacts,is_linked_with_zohocrm,,,
+ZBooks_Mirror,contacts,payment_terms,,,
+ZBooks_Mirror,contacts,payment_terms_label,,,
+ZBooks_Mirror,contacts,currency_id,Sin problemas,0,
+ZBooks_Mirror,contacts,twitter,,,
+ZBooks_Mirror,contacts,facebook,,,
+ZBooks_Mirror,contacts,currency_code,,,
+ZBooks_Mirror,contacts,outstanding_receivable_amount,Sin problemas,0,
+ZBooks_Mirror,contacts,outstanding_receivable_amount_bcy,Sin problemas,0,
+ZBooks_Mirror,contacts,outstanding_payable_amount,Sin problemas,0,
+ZBooks_Mirror,contacts,outstanding_payable_amount_bcy,Sin problemas,0,
+ZBooks_Mirror,contacts,unused_credits_receivable_amount,Sin problemas,0,
+ZBooks_Mirror,contacts,unused_credits_receivable_amount_bcy,Sin problemas,0,
+ZBooks_Mirror,contacts,unused_credits_payable_amount,Sin problemas,0,
+ZBooks_Mirror,contacts,unused_credits_payable_amount_bcy,Sin problemas,0,
+ZBooks_Mirror,contacts,first_name,,,
+ZBooks_Mirror,contacts,last_name,,,
+ZBooks_Mirror,contacts,email,,,nvarchar(200)
+ZBooks_Mirror,contacts,phone,,,nvarchar(30)
+ZBooks_Mirror,contacts,mobile,,,
+ZBooks_Mirror,contacts,portal_status,,,
+ZBooks_Mirror,contacts,created_time,Sin problemas,0,
+ZBooks_Mirror,contacts,created_time_formatted,Anomalía,0,
+ZBooks_Mirror,contacts,last_modified_time,Sin problemas,0,
+ZBooks_Mirror,contacts,last_modified_time_formatted,,,
+ZBooks_Mirror,contacts,cf_tipo_fiscal,,,
+ZBooks_Mirror,contacts,cf_tipo_fiscal_unformatted,,,nvarchar(50)
+ZBooks_Mirror,contacts,cf_identificaci_n,,,
+ZBooks_Mirror,contacts,cf_identificaci_n_unformatted,,,varchar(12); nvarchar(50)
+ZBooks_Mirror,contacts,cf_circuit_number,,,
+ZBooks_Mirror,contacts,cf_circuit_number_unformatted,,,nvarchar(100)
+ZBooks_Mirror,contacts,cf_exonerado,,,
+ZBooks_Mirror,contacts,cf_exonerado_unformatted,,,bit
+ZBooks_Mirror,contacts,cf_created_in_crm,Anomalía,0.718,
+ZBooks_Mirror,contacts,cf_created_in_crm_unformatted,Anomalía,0.718,
+ZBooks_Mirror,contacts,cf_segmento,,,
+ZBooks_Mirror,contacts,cf_segmento_unformatted,,,nvarchar(50)
+ZBooks_Mirror,contacts,cf_creado_por_zm,,,
+ZBooks_Mirror,contacts,cf_creado_por_zm_unformatted,,,
+ZBooks_Mirror,contacts,cf_gestor_de_cobro,,,
+ZBooks_Mirror,contacts,cf_gestor_de_cobro_unformatted,,,
+ZBooks_Mirror,contacts,ach_supported,,,
+ZBooks_Mirror,contacts,has_attachment,,,
+ZBooks_Mirror,contacts,sync,,,
+ZBooks_Mirror,contacts,cf_cobro_automatico,,,
+ZBooks_Mirror,contacts,cf_segmento2,,,
+ZBooks_Mirror,contacts,cf_segmento2_unformatted,,,
+ZBooks_Mirror,chartofaccounts,account_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,chartofaccounts,account_name,,,nvarchar(200)
+ZBooks_Mirror,chartofaccounts,account_code,,,nvarchar(50)
+ZBooks_Mirror,chartofaccounts,account_type,,,nvarchar(50)
+ZBooks_Mirror,chartofaccounts,description,,,nvarchar(500)
+ZBooks_Mirror,chartofaccounts,is_user_created,Anomalía,0,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,is_system_account,,,bit
+ZBooks_Mirror,chartofaccounts,is_active,,,bit
+ZBooks_Mirror,chartofaccounts,can_show_in_ze,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,parent_account_id,Revisar,0.1328,int
+ZBooks_Mirror,chartofaccounts,parent_account_name,,,
+ZBooks_Mirror,chartofaccounts,depth,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,is_child_present,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,child_count,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,documents,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,chartofaccounts,is_standalone_account,,,nvarchar(max) JSON
+ZBooks_Mirror,chartofaccounts,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,items,group_id,Anomalía,0.1592,nvarchar(max) JSON
+ZBooks_Mirror,items,group_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,item_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,items,name,,,nvarchar(200)
+ZBooks_Mirror,items,item_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,unit,,,nvarchar(30)
+ZBooks_Mirror,items,status,,,bit
+ZBooks_Mirror,items,source,,,nvarchar(max) JSON
+ZBooks_Mirror,items,is_combo_product,,,nvarchar(max) JSON
+ZBooks_Mirror,items,is_linked_with_zohocrm,,,nvarchar(max) JSON
+ZBooks_Mirror,items,zcrm_product_id,Revisar,0.2453,nvarchar(30)
+ZBooks_Mirror,items,description,,,nvarchar(1000)
+ZBooks_Mirror,items,brand,,,nvarchar(max) JSON
+ZBooks_Mirror,items,manufacturer,,,nvarchar(max) JSON
+ZBooks_Mirror,items,rate,,,"decimal(19,4)"
+ZBooks_Mirror,items,tax_id,Revisar,0.9663,int
+ZBooks_Mirror,items,tax_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,tax_percentage,,,nvarchar(max) JSON
+ZBooks_Mirror,items,purchase_account_id,Revisar,0.0367,nvarchar(max) JSON
+ZBooks_Mirror,items,purchase_account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,account_id,Revisar,0.3894,nvarchar(max) JSON
+ZBooks_Mirror,items,account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,purchase_description,,,nvarchar(max) JSON
+ZBooks_Mirror,items,purchase_rate,,,nvarchar(max) JSON
+ZBooks_Mirror,items,item_type,,,nvarchar(50)
+ZBooks_Mirror,items,product_type,,,nvarchar(100)
+ZBooks_Mirror,items,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,items,is_returnable,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_id1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_id2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_id3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_name1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_name2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_name3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_type1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_type2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_type3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_id1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_id2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_id3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_name1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_name2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_name3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_data1,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_data2,,,nvarchar(max) JSON
+ZBooks_Mirror,items,attribute_option_data3,,,nvarchar(max) JSON
+ZBooks_Mirror,items,sku,,,nvarchar(max) JSON
+ZBooks_Mirror,items,upc,,,nvarchar(max) JSON
+ZBooks_Mirror,items,ean,,,nvarchar(max) JSON
+ZBooks_Mirror,items,isbn,,,nvarchar(max) JSON
+ZBooks_Mirror,items,part_number,,,nvarchar(max) JSON
+ZBooks_Mirror,items,track_serial_number,,,nvarchar(max) JSON
+ZBooks_Mirror,items,image_name,,,nvarchar(max) JSON
+ZBooks_Mirror,items,image_type,,,nvarchar(max) JSON
+ZBooks_Mirror,items,image_document_id,Revisar,0.9994,
+ZBooks_Mirror,items,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,items,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,items,show_in_storefront,,,nvarchar(max) JSON
+ZBooks_Mirror,items,length,,,nvarchar(max) JSON
+ZBooks_Mirror,items,width,,,nvarchar(max) JSON
+ZBooks_Mirror,items,height,,,nvarchar(max) JSON
+ZBooks_Mirror,items,weight,,,nvarchar(max) JSON
+ZBooks_Mirror,items,weight_unit,,,nvarchar(max) JSON
+ZBooks_Mirror,items,dimension_unit,,,nvarchar(max) JSON
+ZBooks_Mirror,items,odoo,,,nvarchar(max) JSON
+ZBooks_Mirror,taxes,tax_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,taxes,tax_name,,,nvarchar(100)
+ZBooks_Mirror,taxes,tax_percentage,,,"decimal(9,4)"
+ZBooks_Mirror,taxes,tax_type,,,nvarchar(50)
+ZBooks_Mirror,taxes,tax_specific_type,,,nvarchar(max) JSON
+ZBooks_Mirror,taxes,is_value_added,,,nvarchar(max) JSON
+ZBooks_Mirror,taxes,is_default_tax,,,bit
+ZBooks_Mirror,taxes,is_editable,,,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,account_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,bankaccounts,account_name,,,nvarchar(200)
+ZBooks_Mirror,bankaccounts,account_code,,,nvarchar(50)
+ZBooks_Mirror,bankaccounts,currency_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,currency_code,,,char(3)
+ZBooks_Mirror,bankaccounts,account_type,,,nvarchar(50)
+ZBooks_Mirror,bankaccounts,uncategorized_transactions,,,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,total_unprinted_checks,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,is_active,,,bit
+ZBooks_Mirror,bankaccounts,balance,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,bankaccounts,bank_balance,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,bankaccounts,bcy_balance,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,bankaccounts,bank_name,,,nvarchar(100)
+ZBooks_Mirror,bankaccounts,is_paypal_account,,,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,feeds_last_refresh_date,Columna sin uso,1,
+ZBooks_Mirror,bankaccounts,is_direct_paypal,,,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,is_beta_feed,,,nvarchar(max) JSON
+ZBooks_Mirror,bankaccounts,consent_info,,,
+ZBooks_Mirror,bankaccounts,feed_status,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,payment_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,customerpayments,payment_number,,,nvarchar(50)
+ZBooks_Mirror,customerpayments,invoice_numbers,,,
+ZBooks_Mirror,customerpayments,date,Anomalía,0,date
+ZBooks_Mirror,customerpayments,payment_mode,,,nvarchar(50)
+ZBooks_Mirror,customerpayments,payment_mode_formatted,,,
+ZBooks_Mirror,customerpayments,amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,bcy_amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,unused_amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,bcy_unused_amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,account_id,Sin problemas,0,int
+ZBooks_Mirror,customerpayments,account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,description,,,nvarchar(1000)
+ZBooks_Mirror,customerpayments,reference_number,,,nvarchar(200)
+ZBooks_Mirror,customerpayments,branch_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,branch_name,,,nvarchar(100)
+ZBooks_Mirror,customerpayments,customer_id,Sin problemas,0,nvarchar(30); int
+ZBooks_Mirror,customerpayments,customer_name,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,customerpayments,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,customerpayments,last_four_digits,,,
+ZBooks_Mirror,customerpayments,gateway_transaction_id,Columna sin uso,1,
+ZBooks_Mirror,customerpayments,payment_gateway,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,bcy_refunded_amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,applied_invoices,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,documents,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,custom_fields_list,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,tax_account_id,Columna sin uso,1,
+ZBooks_Mirror,customerpayments,tax_account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,tax_amount_withheld,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,customerpayments,payment_type,,,nvarchar(max) JSON
+ZBooks_Mirror,customerpayments,settlement_status,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,expense_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,expenses,date,Anomalía,0,date
+ZBooks_Mirror,expenses,paid_through_account_name,,,nvarchar(200)
+ZBooks_Mirror,expenses,account_name,,,nvarchar(200)
+ZBooks_Mirror,expenses,description,,,nvarchar(1000)
+ZBooks_Mirror,expenses,currency_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,expenses,currency_code,,,char(3)
+ZBooks_Mirror,expenses,bcy_total,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,expenses,bcy_total_without_tax,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,expenses,total,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,expenses,total_without_tax,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,expenses,is_billable,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,reference_number,,,nvarchar(200)
+ZBooks_Mirror,expenses,customer_id,Revisar,0.9995,int
+ZBooks_Mirror,expenses,is_personal,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,customer_name,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,vendor_id,Revisar,0.5398,int
+ZBooks_Mirror,expenses,vendor_name,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,status,,,nvarchar(30)
+ZBooks_Mirror,expenses,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,expenses,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,expenses,expense_receipt_name,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,exchange_rate,,,"decimal(19,6)"
+ZBooks_Mirror,expenses,distance,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,mileage_rate,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,mileage_unit,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,mileage_type,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,expense_type,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,report_id,Revisar,0.7958,nvarchar(max) JSON
+ZBooks_Mirror,expenses,branch_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,expenses,branch_name,,,nvarchar(100)
+ZBooks_Mirror,expenses,start_reading,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,end_reading,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,report_name,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,report_number,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,custom_fields_list,,,nvarchar(max) JSON
+ZBooks_Mirror,expenses,expens_id,,,
+ZBooks_Mirror,invoices,invoice_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,invoices,ach_payment_initiated,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,zcrm_potential_id,Columna sin uso,1,
+ZBooks_Mirror,invoices,zcrm_potential_name,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,customer_name,,,
+ZBooks_Mirror,invoices,customer_id,Sin problemas,0,nvarchar(30); int
+ZBooks_Mirror,invoices,company_name,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,status,,,nvarchar(30)
+ZBooks_Mirror,invoices,color_code,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,current_sub_status_id,Columna sin uso,1,
+ZBooks_Mirror,invoices,current_sub_status,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,invoice_number,,,nvarchar(50)
+ZBooks_Mirror,invoices,reference_number,,,nvarchar(200)
+ZBooks_Mirror,invoices,date,Sin problemas,0,date
+ZBooks_Mirror,invoices,due_date,Sin problemas,0,date
+ZBooks_Mirror,invoices,due_days,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,currency_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,invoices,schedule_time,Columna sin uso,1,
+ZBooks_Mirror,invoices,email,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,currency_code,,,char(3)
+ZBooks_Mirror,invoices,currency_symbol,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,template_type,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,no_of_copies,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,show_no_of_copies,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,is_viewed_by_client,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,client_viewed_time,Nulo permitido,0.9817,nvarchar(max) JSON
+ZBooks_Mirror,invoices,invoice_url,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,project_name,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,branch_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,invoices,branch_name,,,nvarchar(100)
+ZBooks_Mirror,invoices,billing_address,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,shipping_address,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,country,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,phone,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,created_by,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,updated_time,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,invoices,transaction_type,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,total,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,invoices,balance,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,invoices,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,invoices,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,invoices,is_emailed,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,reminders_sent,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,last_reminder_sent_date,Nulo permitido,0.9928,nvarchar(max) JSON
+ZBooks_Mirror,invoices,payment_expected_date,Columna sin uso,1,
+ZBooks_Mirror,invoices,last_payment_date,Nulo permitido,0.0921,date
+ZBooks_Mirror,invoices,custom_fields,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,cf_envio_facturas,,,
+ZBooks_Mirror,invoices,cf_envio_facturas_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,cf_ship_date,Anomalía,0.607,
+ZBooks_Mirror,invoices,cf_ship_date_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,customer_cf_tipo_fiscal,,,
+ZBooks_Mirror,invoices,customer_cf_tipo_fiscal_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,customer_cf_identificaci_n,,,
+ZBooks_Mirror,invoices,customer_cf_identificaci_n_unformatted,,,nvarchar(50)
+ZBooks_Mirror,invoices,customer_cf_circuit_number,,,
+ZBooks_Mirror,invoices,customer_cf_circuit_number_unformatted,,,nvarchar(100)
+ZBooks_Mirror,invoices,customer_cf_exonerado,,,
+ZBooks_Mirror,invoices,customer_cf_exonerado_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,template_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,invoices,documents,,,nvarchar(max) JSON
+ZBooks_Mirror,invoices,salesperson_id,Revisar,0.9947,nvarchar(max) JSON
+ZBooks_Mirror,invoices,salesperson_name,,,nvarchar(200)
+ZBooks_Mirror,invoices,shipping_charge,,,"decimal(19,4)"
+ZBooks_Mirror,invoices,adjustment,,,"decimal(19,4)"
+ZBooks_Mirror,invoices,write_off_amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,invoices,exchange_rate,,,"decimal(19,6)"
+ZBooks_Mirror,invoices,line_items,,,
+ZBooks_Mirror,recurringinvoices,recurring_invoice_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,recurringinvoices,recurrence_name,,,nvarchar(200)
+ZBooks_Mirror,recurringinvoices,reference_number,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,status,,,nvarchar(30)
+ZBooks_Mirror,recurringinvoices,total,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,recurringinvoices,customer_id,Sin problemas,0,nvarchar(30); int
+ZBooks_Mirror,recurringinvoices,customer_name,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,child_entity_type,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,start_date,Sin problemas,0,date
+ZBooks_Mirror,recurringinvoices,end_date,Nulo permitido,0.9947,date
+ZBooks_Mirror,recurringinvoices,last_sent_date,Nulo permitido,0.05,date
+ZBooks_Mirror,recurringinvoices,next_invoice_date,Nulo permitido,0.0033,date
+ZBooks_Mirror,recurringinvoices,recurrence_frequency,,,nvarchar(30)
+ZBooks_Mirror,recurringinvoices,repeat_every,,,int
+ZBooks_Mirror,recurringinvoices,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,recurringinvoices,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,recurringinvoices,salesperson_id,Revisar,0.9967,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,salesperson_name,,,nvarchar(200)
+ZBooks_Mirror,recurringinvoices,last_four_digits,,,
+ZBooks_Mirror,recurringinvoices,cf_medio_de_pago,,,
+ZBooks_Mirror,recurringinvoices,cf_medio_de_pago_unformatted,,,nvarchar(50)
+ZBooks_Mirror,recurringinvoices,cf_condici_n_de_venta,,,
+ZBooks_Mirror,recurringinvoices,cf_condici_n_de_venta_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_actividad_econ_mica,,,
+ZBooks_Mirror,recurringinvoices,cf_actividad_econ_mica_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_cedula,,,
+ZBooks_Mirror,recurringinvoices,cf_cedula_unformatted,,,nvarchar(50)
+ZBooks_Mirror,recurringinvoices,cf_circuito,,,
+ZBooks_Mirror,recurringinvoices,cf_circuito_unformatted,,,nvarchar(100)
+ZBooks_Mirror,recurringinvoices,cf_envio_facturas,,,
+ZBooks_Mirror,recurringinvoices,cf_envio_facturas_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_tipo_id,Revisar,0.8252,
+ZBooks_Mirror,recurringinvoices,cf_tipo_id_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_exencion,,,
+ZBooks_Mirror,recurringinvoices,cf_exencion_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_emisor_exencion,,,
+ZBooks_Mirror,recurringinvoices,cf_emisor_exencion_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_ship_date,Anomalía,0.8004,
+ZBooks_Mirror,recurringinvoices,cf_ship_date_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_generado_zm_telefonia,,,
+ZBooks_Mirror,recurringinvoices,cf_generado_zm_telefonia_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,cf_zm_special_identifier,,,
+ZBooks_Mirror,recurringinvoices,cf_zm_special_identifier_unformatted,,,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,branch_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,recurringinvoices,branch_name,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,transaction_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,banktransactions,date,Sin problemas,0,date
+ZBooks_Mirror,banktransactions,amount,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,banktransactions,transaction_type,,,nvarchar(50)
+ZBooks_Mirror,banktransactions,status,,,nvarchar(30)
+ZBooks_Mirror,banktransactions,source,,,nvarchar(50)
+ZBooks_Mirror,banktransactions,account_id,Sin problemas,0,int
+ZBooks_Mirror,banktransactions,account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,account_type,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,price_precision,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,customer_id,Revisar,0.197,int
+ZBooks_Mirror,banktransactions,payee,,,nvarchar(200)
+ZBooks_Mirror,banktransactions,is_paid_via_print_check,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,payroll_tax_group_formatted,,,
+ZBooks_Mirror,banktransactions,description,,,nvarchar(1000)
+ZBooks_Mirror,banktransactions,currency_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,currency_code,,,char(3)
+ZBooks_Mirror,banktransactions,currency_symbol,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,debit_or_credit,,,varchar(10)
+ZBooks_Mirror,banktransactions,offset_account_name,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,is_offsetaccount_matched,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,reference_number,,,nvarchar(200)
+ZBooks_Mirror,banktransactions,reconcile_status,,,nvarchar(30)
+ZBooks_Mirror,banktransactions,imported_transaction_id,Revisar,0.2722,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,is_rule_exist,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,rule_details,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,exclude_description,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,is_excluded_by_system,,,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,running_balance_formatted,,,
+ZBooks_Mirror,banktransactions,running_balance,Columna sin uso,1,
+ZBooks_Mirror,banktransactions,branch_id,Revisar,0.0027,nvarchar(max) JSON
+ZBooks_Mirror,banktransactions,branch_name,,,nvarchar(100)
+ZBooks_Mirror,purchaseorders,purchaseorder_id,Sin problemas,0,nvarchar(30)
+ZBooks_Mirror,purchaseorders,vendor_id,Sin problemas,0,int
+ZBooks_Mirror,purchaseorders,vendor_name,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,company_name,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,order_status,,,nvarchar(30)
+ZBooks_Mirror,purchaseorders,billed_status,,,nvarchar(30)
+ZBooks_Mirror,purchaseorders,received_status,,,nvarchar(30)
+ZBooks_Mirror,purchaseorders,status,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,color_code,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,current_sub_status_id,Columna sin uso,1,
+ZBooks_Mirror,purchaseorders,current_sub_status,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,purchaseorder_number,,,nvarchar(50)
+ZBooks_Mirror,purchaseorders,reference_number,,,nvarchar(200)
+ZBooks_Mirror,purchaseorders,date,Sin problemas,0,date
+ZBooks_Mirror,purchaseorders,delivery_date,Nulo permitido,0.9227,date
+ZBooks_Mirror,purchaseorders,delivery_days,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,due_by_days,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,due_in_days,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,currency_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,currency_code,,,char(3)
+ZBooks_Mirror,purchaseorders,price_precision,Columna sin uso,1,
+ZBooks_Mirror,purchaseorders,total,Sin problemas,0,"decimal(19,4)"
+ZBooks_Mirror,purchaseorders,has_attachment,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,created_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,purchaseorders,last_modified_time,Sin problemas,0,datetimeoffset(0)
+ZBooks_Mirror,purchaseorders,is_drop_shipment,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,total_ordered_quantity,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,quantity_yet_to_receive,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,quantity_marked_as_received,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,is_po_marked_as_received,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,is_backorder,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,receives,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,client_viewed_time,Nulo permitido,0.9992,
+ZBooks_Mirror,purchaseorders,is_viewed_by_client,,,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,branch_id,Sin problemas,0,nvarchar(max) JSON
+ZBooks_Mirror,purchaseorders,branch_name,,,nvarchar(100)
+ZBooks_Mirror,purchaseorders,odoo,,,nvarchar(max) JSON
+ZCRM2Trengo,Zoho2Trengo,ID_TRENGO,Sin problemas,0,nvarchar(200)
+ZCRM2Trengo,Zoho2Trengo,MOBILE,,,
+ZCRM2Trengo,Zoho2Trengo,EMAIL,,,
+ZCRM2Trengo,Zoho2Trengo,NAME,,,
+ZCRM2Trengo,Zoho2Trengo,ID_ZCRM,Revisar,0.042,
+ZCRM2Trengo,Zoho2Trengo,SOURCE,,,
+ZCRM2Trengo,trengo_data_tickets,id_case,Sin problemas,0,nvarchar(50)
+ZCRM2Trengo,trengo_data_tickets,created_at,Sin problemas,0,datetimeoffset(0)
+ZCRM2Trengo,trengo_data_tickets,updated_at,Sin problemas,0,datetimeoffset(0)
+ZCRM2Trengo,trengo_data_tickets,closed_at,Sin problemas,0,datetimeoffset(0)
+ZCRM2Trengo,trengo_data_tickets,duration,,,"decimal(12,2)"
+ZCRM2Trengo,trengo_data_tickets,assigned_at,Sin problemas,0,datetimeoffset(0)
+ZCRM2Trengo,trengo_data_tickets,owner,,,nvarchar(100)
+ZCRM2Trengo,trengo_data_tickets,department,,,nvarchar(100)
+ZCRM2Trengo,trengo_data_tickets,phone,,,nvarchar(30)
+ZCRM2Trengo,trengo_data_tickets,channel,,,nvarchar(50)
+ZCRM2Trengo,trengo_data_tickets,labels,,,nvarchar(max)
+ZCRM2Trengo,trengo_data_tickets,custom_data,,,nvarchar(max); int
+Zoho_Mirror,FTTHs,Penetraci_n,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Locked__s,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Construy,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Cant_n,,,nvarchar(80)
+Zoho_Mirror,FTTHs,Distrito,,,nvarchar(80)
+Zoho_Mirror,FTTHs,Cantidad_de_Clientes,,,int
+Zoho_Mirror,FTTHs,Unsubscribed_Time,Columna sin uso,1,
+Zoho_Mirror,FTTHs,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,FTTHs,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,FTTHs,Provincia,,,nvarchar(60)
+Zoho_Mirror,FTTHs,Codigo_Cluster,,,nvarchar(50)
+Zoho_Mirror,FTTHs,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,FTTHs,Fecha_de_Instalaci_n,Nulo permitido,0.0769,date
+Zoho_Mirror,FTTHs,Capacidad_de_la_Red,,,int
+Zoho_Mirror,FTTHs,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Last_Activity_Time,Sin problemas,0,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Name,,,nvarchar(200)
+Zoho_Mirror,FTTHs,Fase,,,nvarchar(50)
+Zoho_Mirror,FTTHs,Nodo,,,int
+Zoho_Mirror,FTTHs,Empalm,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Coordenadas_del_Cluster,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Proyecto_Principal,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,Zona_de_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,FTTHs,deleted,,,
+Zoho_Mirror,Sales_Orders_Extended,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Sales_Orders_Extended,Owner,,,int
+Zoho_Mirror,Sales_Orders_Extended,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Sales_Orders_Extended,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Sales_Orders_Extended,Last_Activity_Time,Nulo permitido,0.0001,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Subject,,,nvarchar(300)
+Zoho_Mirror,Sales_Orders_Extended,Status,,,nvarchar(50)
+Zoho_Mirror,Sales_Orders_Extended,Account_Name,,,int
+Zoho_Mirror,Sales_Orders_Extended,Contact_Name,,,int
+Zoho_Mirror,Sales_Orders_Extended,Deal_Name,,,int
+Zoho_Mirror,Sales_Orders_Extended,Quote_Name,,,int
+Zoho_Mirror,Sales_Orders_Extended,ADNPAY,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Adjustment,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Aplica_Promoci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,CHURN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,C_dula_Contrato_Sucursal,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Cant_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Capacidad_Mbps_Carga,,,"decimal(9,2)"
+Zoho_Mirror,Sales_Orders_Extended,Capacidad_Mbps_Descarga,,,"decimal(9,2)"
+Zoho_Mirror,Sales_Orders_Extended,Changes,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Codigo_Actividad_Economica_Cliente,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Codigo_FTTH,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Comision,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,ComsionADN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Condici_n_adicional,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Condominio,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Condominio_C,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Condominio_sin_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Contacto_Facturaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Contacto_T_cnico_a,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Contrato_Asociado,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Coordenadas,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Cortes_a,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Costo_Instalaci_n_Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Costo_Instalacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Costo_Mensual_Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Costo_Recurrente_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Costo_de_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Currency,,,char(3)
+Zoho_Mirror,Sales_Orders_Extended,Description,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Detalle1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Diferencia,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Direcci_n_Exacta,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Discount,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Extended,Districts1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Distrito,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Drop_Cliente,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Due_Date,Nulo permitido,0.9274,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Encargado_Retencion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Enlace_Provisional,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Enlace_provisional_con_costo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Envio_Revision_Fase_1,Nulo permitido,0.4749,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Envio_Revision_Fase_2,Nulo permitido,0.4582,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Envio_Revision_Fase_3,Nulo permitido,0.2654,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Sales_Orders_Extended,Exonerado,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Fase_1_Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Fase_2_Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Fecha_Envio_Revision,Nulo permitido,0.9975,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Fecha_Proyeccion_Venta,Nulo permitido,0.1082,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Fecha_Revision,Nulo permitido,0.9999,
+Zoho_Mirror,Sales_Orders_Extended,Fecha_de_Firma,Nulo permitido,0.0432,date
+Zoho_Mirror,Sales_Orders_Extended,Fecha_de_Inactivaci_n,Nulo permitido,0.9981,date
+Zoho_Mirror,Sales_Orders_Extended,Generar_OT,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Grand_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Extended,IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Locked__s,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Loss_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Menos_de_3_Meses,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mensualidad1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mensualidad_Actual,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Extended,Mensualidad_Nueva1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mensualidad_Pasada,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mes,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mes_al_que_aplica_la_promoci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Mes_que_aplica_la_promoci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Meses_de_Plazo_Contrato,,,int
+Zoho_Mirror,Sales_Orders_Extended,Modo_de_Pago,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Motivo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,N_mero_Circuito,,,varchar(12); int
+Zoho_Mirror,Sales_Orders_Extended,Numero_Telefonico,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Orden_de_Compra,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Pago_Realizado,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Pais,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Plataforma_Actual,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Plazo_Contrato,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Product_Details,,,
+Zoho_Mirror,Sales_Orders_Extended,Promo_Monte_Sol,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Promoci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Prorrateo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Proveedor1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Provincia,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,ROI,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,ROIAADN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,ROI_EX_ISP,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Relaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Retencion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revenue,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_2,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_3,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_Completa_Fase_1,Nulo permitido,0.4813,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_Completada_Fase_2,Nulo permitido,0.5656,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Revision_Completada_Fase_3,Nulo permitido,0.7381,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Segmentacion_Contrato_B2B,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Sistema_de_facturaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Sub_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Extended,Submotivo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Tax,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Extended,Tipo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Tipo_Fiscal,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Tipo_de_Contrato,,,nvarchar(100)
+Zoho_Mirror,Sales_Orders_Extended,Tramite_de_Permisos,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Ultima_Mensualidad,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,borrador,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,borrador2,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,flag_expiration,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,ftth,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Sales_Orders_Extended,ModifiedDate,Sin problemas,0,
+Zoho_Mirror,Sales_Orders_Extended,MigrationDate,Sin problemas,0,
+Zoho_Mirror,Sales_Orders_Extended,Billing_City,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Billing_Country,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Shipping_City,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Shipping_Country,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders_Extended,Terms_and_Conditions,,,nvarchar(max) JSON
+Zoho_Mirror,Zoho_Attachments,AttachmentId,,,nvarchar(30)
+Zoho_Mirror,Zoho_Attachments,ModuleName,,,nvarchar(50)
+Zoho_Mirror,Zoho_Attachments,RecordId,,,nvarchar(30)
+Zoho_Mirror,Zoho_Attachments,FileName,,,nvarchar(500)
+Zoho_Mirror,Zoho_Attachments,FileSize,,,bigint
+Zoho_Mirror,Zoho_Attachments,FileType,,,nvarchar(50)
+Zoho_Mirror,Zoho_Attachments,CreatedTime,,,datetimeoffset(0)
+Zoho_Mirror,Zoho_Attachments,CreatedBy,,,
+Zoho_Mirror,Zoho_Attachments,ModifiedTime,,,datetimeoffset(0)
+Zoho_Mirror,Zoho_Attachments,ModifiedBy,,,
+Zoho_Mirror,Zoho_Attachments,LocalPath,,,
+Zoho_Mirror,Zoho_Attachments,CloudPath,,,nvarchar(1000)
+Zoho_Mirror,Zoho_Attachments,Downloaded,,,
+Zoho_Mirror,Zoho_Attachments,DownloadDate,,,
+Zoho_Mirror,Zoho_Attachments,ZohoLink,,,
+Zoho_Mirror,Zoho_Attachments,CreatedDate,,,
+Zoho_Mirror,Ordenes_de_Trabajo,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,N_mero_de_Ticket,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo,,,int
+Zoho_Mirror,Ordenes_de_Trabajo,Link_Waze,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_Antena_Base,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,N_mero_de_circuito_contrato,,,int
+Zoho_Mirror,Ordenes_de_Trabajo,Transporte,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Download_Capacity,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IP_Router,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Contrato_Relacionado,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_entrega_de_enlace,Nulo permitido,0.4608,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,OLT,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_Creaci_n_de_la_OT,Anomalía,0.3364,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_recepci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Relaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Raz_n_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Inspecci_n_Postes_Ductos,Columna sin uso,1,
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_SU_Nano,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_Solicitud_IP_Completada,Nulo permitido,0.9536,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Puerto_a_utilizar,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Pagina_utilizada_para_la_prueba_de_navegaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Detalles_de_instalaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Comunidad_SNMP,,,
+Zoho_Mirror,Ordenes_de_Trabajo,Consecutivo,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Agenda_Estudio,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_Antena_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Campo_de_agregaci_n_1,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Respuesta_de_Ping,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Capacidad_Carga,,,nvarchar(50)
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_Creaci_n_de_la_OT1,Anomalía,0.9994,
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo_Factible_3,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Navegaci_n_Confirmada,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo_Factible_2,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo_Factible_1,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IP_Nano_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Puerto_Wan_del_Router,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Asignado_a,,,int
+Zoho_Mirror,Ordenes_de_Trabajo,IP_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_creaci_n_de_la_solicitud,Anomalía,0.6769,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_finalizaci_n,Nulo permitido,0.9994,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_Base_Nano,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IP_de_red,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IP_Nano_Base,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Switch_a_utilizar_en_el_nodo,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,SSID,Revisar,0.8824,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Provincia,,,nvarchar(60)
+Zoho_Mirror,Ordenes_de_Trabajo,Ticket,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_Recepci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Ancho_de_Canal,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,N_mero_Serial,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Propietario_Poste,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Cant_n,,,nvarchar(80)
+Zoho_Mirror,Ordenes_de_Trabajo,IP_BASE,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Cierre,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Capacidad_Descarga,,,nvarchar(50)
+Zoho_Mirror,Ordenes_de_Trabajo,ATA,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Enlace_factible,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Equipos_adicionales,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Permisos,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_Conexion,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Vlan_de_gestion,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Inspeccion_Cliente,Nulo permitido,0.9976,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Mascara,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Upload_Capacity,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo_Fibra,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Sub_Estado,,,nvarchar(50)
+Zoho_Mirror,Ordenes_de_Trabajo,Orden_de_Instalaci_n_Numero,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Solicitud_IP_Completada,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Coordinada,Nulo permitido,0.248,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Comentarios,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Latitud,,,"decimal(10,7)"
+Zoho_Mirror,Ordenes_de_Trabajo,Name,,,nvarchar(200)
+Zoho_Mirror,Ordenes_de_Trabajo,Departamento_Operaciones,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Last_Activity_Time,Nulo permitido,0.0191,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Coordenadas_GPS,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_Router_2,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Numero_de_Solicitud_de_IP_relacionada,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tecnologia,,,nvarchar(50)
+Zoho_Mirror,Ordenes_de_Trabajo,Nodo_Solicitado,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,ID_Proveedor,Revisar,0.9975,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Longitud,,,"decimal(10,7)"
+Zoho_Mirror,Ordenes_de_Trabajo,T_cnico_asignado_en_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Distrito,,,nvarchar(80)
+Zoho_Mirror,Ordenes_de_Trabajo,Otro_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Vlan_publica,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Transportador,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Ancho_de_banda_speedtest_data_cr,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Recibido_por,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Distancia_KM,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Solicitud_realizada_por,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Cuenta_principal,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Ducteria,Nulo permitido,0.9985,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Estimada,Nulo permitido,0.7663,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Actualizacion_Sensores,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Capacidad,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Estado,,,nvarchar(50)
+Zoho_Mirror,Ordenes_de_Trabajo,Numero_de_Solicitud_de_IP,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Puerto_Utilizable,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Gateway,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,OLT_Nodo,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,IP_publica,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_finalizaci_n_de_la_Instalaci_n,Nulo permitido,0.0947,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Observaciones1,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_Area,Nulo permitido,0.9984,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Ordenes_de_Trabajo,Fecha_de_Cierre_de_OT,Nulo permitido,0.9994,
+Zoho_Mirror,Ordenes_de_Trabajo,Altura_Mastil,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,M_vil_Asignada_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Orden_de_trabajo_de,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Nombre_del_cliente,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Frecuencia,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_Exacta,,,nvarchar(1000)
+Zoho_Mirror,Ordenes_de_Trabajo,Identificaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_OT,,,nvarchar(100)
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_AP2,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tiempo_de_respuesta_D_as,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_AP3,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Direcci_n_IP_AP1,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,Tipo_de_solicitud,,,nvarchar(100)
+Zoho_Mirror,Ordenes_de_Trabajo,Vlan_admin,,,nvarchar(max) JSON
+Zoho_Mirror,Ordenes_de_Trabajo,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Ordenes_de_Trabajo,deleted,,,
+Zoho_Mirror,Contacts,Tel_fono_Empresa,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Last_Enriched_Time__s,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Reason_for_Conversion_Failure,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Fax,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Referrer,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Ad_Campaign_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Nombre_de_la_Empresa,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,woztellfull__WhatsApp_Opt_Out,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Last_Name,,,nvarchar(100)
+Zoho_Mirror,Contacts,Tel_fonos_Empresa,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Profesi_n_Ocupaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,s,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Direcci_n_Exacta,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,First_Visited_Time,Nulo permitido,0.9916,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Mobile,,,nvarchar(30)
+Zoho_Mirror,Contacts,Cant_n,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Device_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Unsubscribed_Time,Nulo permitido,0.9992,
+Zoho_Mirror,Contacts,woztellfull__WhatsApp,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Keyword,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Contacts,Provincia,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Pais,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Tipo_de_Contacto,,,nvarchar(50)
+Zoho_Mirror,Contacts,Account_Name,,,int
+Zoho_Mirror,Contacts,Phone,,,nvarchar(30)
+Zoho_Mirror,Contacts,Categoria,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Cost_per_Conversion,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Conversion_Export_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Record_Image,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Full_Name,,,nvarchar(200)
+Zoho_Mirror,Contacts,First_Name,,,nvarchar(100)
+Zoho_Mirror,Contacts,Salutation,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Cedula_Juridica,,,varchar(12)
+Zoho_Mirror,Contacts,Average_Time_Spent_Minutes,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Search_Partner_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Number_Of_Chats,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Ad,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Description,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Estado_Civil,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Last_Visited_Time,Nulo permitido,0.9856,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Nacionalidad,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Ad_Click_Date,Columna sin uso,1,
+Zoho_Mirror,Contacts,Direcci_n_Empresa,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Home_Phone,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,AdGroup_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Cube_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Contacts,Click_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Days_Visited,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,First_Visited_URL,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Enrich_Status__s,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Cost_per_Click,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Conversion_Exported_On,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Razon_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Contacts,Nodo_Principal,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Ad_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Exchange_Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Last_Activity_Time,Nulo permitido,0.0054,nvarchar(max) JSON
+Zoho_Mirror,Contacts,woztellfull__WhatsApp_message,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,woztellfull__No_WhatsApp,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Other_Phone,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,Visitor_Score,,,nvarchar(max) JSON
+Zoho_Mirror,Contacts,GCLID,Revisar,0.9997,
+Zoho_Mirror,Contacts,N_mero_Cedula_Pasaporte,,,varchar(12)
+Zoho_Mirror,Contacts,Email,,,nvarchar(200)
+Zoho_Mirror,Contacts,Owner,,,int
+Zoho_Mirror,Contacts,deleted,,,
+Zoho_Mirror,Accounts,Identifiacion_2,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Penetraci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Tipo_Tarjeta,,,
+Zoho_Mirror,Accounts,Coordenadas,,,"decimal(10,7)"
+Zoho_Mirror,Accounts,Antigua_Legal_ID1,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Direcci_n_Exacta,,,nvarchar(1000)
+Zoho_Mirror,Accounts,Parent_Account,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,MRC_ISP,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Clave_Proveedor_IPTV,,,
+Zoho_Mirror,Accounts,Sobre_consumo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,High_Consumption_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Enlace_Backup,Nulo permitido,0.9973,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Segmentacion_Residencial,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Distritos,,,nvarchar(80); int
+Zoho_Mirror,Accounts,Cantidad_de_Casas,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Modified_Time,Nulo permitido,0.0001,datetimeoffset(0)
+Zoho_Mirror,Accounts,Cambio_Razon_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_IP_Adicional,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Segmentacion_B2B,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Disminucion,Nulo permitido,0.9921,nvarchar(max) JSON
+Zoho_Mirror,Accounts,From_Odoo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Cuenta_Proveedor_IPTV,,,
+Zoho_Mirror,Accounts,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Cambio_Plataforma,Nulo permitido,0.9849,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Estado,,,nvarchar(50)
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Servicio_WiFi_Administrado,Nulo permitido,0.9896,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Created_in_CRM,Anomalía,0.2759,nvarchar(max) JSON
+Zoho_Mirror,Accounts,IPTV,,,bit
+Zoho_Mirror,Accounts,Cortesia,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Ownership,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_VoIP,Nulo permitido,0.9805,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_VoIP,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Paquete_Minutos_Fijo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Tipo_Fiscal,,,nvarchar(50)
+Zoho_Mirror,Accounts,Peaje,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Aumentos,Nulo permitido,0.9087,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Estado_del_Proyecto,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Cantidad_de_Clientes,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Nombre_Persona,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Discard,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,No_Sensor,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Condominio_C,,,int
+Zoho_Mirror,Accounts,Enrich_Status__s,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Tarjeta_en_Sistema,,,
+Zoho_Mirror,Accounts,Condominio,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Segmento_Cuenta,,,nvarchar(50)
+Zoho_Mirror,Accounts,Aprovisionamiento_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_Traslado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Odoo_Sync,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Accounts,Fecha_de_Retiro,Nulo permitido,0.9362,date
+Zoho_Mirror,Accounts,Industry,,,nvarchar(100)
+Zoho_Mirror,Accounts,Last_Activity_Time,Nulo permitido,0.002,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Actualizaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Lead_Agent,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Link_Prtg,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,VoIP_B2C,,,bit
+Zoho_Mirror,Accounts,Nodo_Dispobile,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Non_Payment,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Account_Type,,,nvarchar(50)
+Zoho_Mirror,Accounts,Estrategia_Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Estudio_WiFi_B2C,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Last_Enriched_Time__s,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Ingreso_Condominio,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,s,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Tipo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,No_Sensor_Reason_Lista1,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Activacion_Addendum,Nulo permitido,0.9947,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Cant_n,,,nvarchar(80)
+Zoho_Mirror,Accounts,Peajes,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Conversion,Nulo permitido,0.9542,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Paused_Sensor,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Municipalidad,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Exonerado,,,bit
+Zoho_Mirror,Accounts,Provincia,,,nvarchar(60)
+Zoho_Mirror,Accounts,Antigua_Razon_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Account_Name,,,nvarchar(200)
+Zoho_Mirror,Accounts,Aprovisionamiento_Disminucion,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Confirmacion,Nulo permitido,0.9229,datetimeoffset(0)
+Zoho_Mirror,Accounts,Courtesy_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Cedula_Jurida_Persona,,,varchar(12)
+Zoho_Mirror,Accounts,Aprovisionamiento_Servicio_WiFi_Administrado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Referencia,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_Cambio_Plataforma,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Telefon_a,,,nvarchar(30)
+Zoho_Mirror,Accounts,No_Sensor_Reason,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Pago_realizado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_Aumentos,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fuente_de_Ingreso,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Site,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Nueva_Cuenta,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,ID_ISP,Revisar,0.9914,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Zona_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Paquete_Minutos_Celular,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_IPTV,Nulo permitido,0.9619,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Env_o_de_Factura,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Numero_Tarjeta,,,
+Zoho_Mirror,Accounts,Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Created_Time,Anomalía,0.0001,datetimeoffset(0)
+Zoho_Mirror,Accounts,Fecha_Expiracion,Nulo permitido,1,
+Zoho_Mirror,Accounts,Raz_n_Social,,,nvarchar(200)
+Zoho_Mirror,Accounts,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Accounts,Provisioned_date,Nulo permitido,0.6591,nvarchar(max) JSON
+Zoho_Mirror,Accounts,No_Sensor_Reason_Lista,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionamiento_Enlace_Backup,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Currency,,,char(3)
+Zoho_Mirror,Accounts,N_mero_Circuito,,,varchar(12)
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_Traslado,Nulo permitido,0.9795,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Line_DID,Revisar,0.9862,nvarchar(50)
+Zoho_Mirror,Accounts,Proveedor_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Prioridad_de_atencion,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Numero_Troncal,,,nvarchar(50)
+Zoho_Mirror,Accounts,Fecha_Aprovisionamiento_IP_Adicional,Nulo permitido,0.9976,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Aprovisionado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Proyecto,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Fecha_Activacion_Contrato,Nulo permitido,0.9886,nvarchar(max) JSON
+Zoho_Mirror,Accounts,deleted,,,
+Zoho_Mirror,Accounts,Ejecutivo_Asignado,,,int
+Zoho_Mirror,Accounts,Referido_por,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,in_odoo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts,Codigo_Postal,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Last_Enriched_Time__s,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Reason_for_Conversion_Failure,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Legal_ID,Revisar,0.9925,varchar(12)
+Zoho_Mirror,Leads,Lead_Source,,,nvarchar(100)
+Zoho_Mirror,Leads,Referrer,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Ad_Campaign_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,woztellfull__WhatsApp_Opt_Out,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Last_Name,,,nvarchar(100)
+Zoho_Mirror,Leads,Segmento,,,nvarchar(50)
+Zoho_Mirror,Leads,s,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,First_Visited_Time,Nulo permitido,0.9956,nvarchar(max) JSON
+Zoho_Mirror,Leads,Direcci_n_Exacta,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Mobile,,,nvarchar(30)
+Zoho_Mirror,Leads,Cant_n,,,nvarchar(80)
+Zoho_Mirror,Leads,Fecha_Estimada_Cobertura,Nulo permitido,0.9593,nvarchar(max) JSON
+Zoho_Mirror,Leads,Device_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Unsubscribed_Time,Columna sin uso,1,
+Zoho_Mirror,Leads,woztellfull__WhatsApp,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Keyword,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Distritos,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Fecha_Conversion,Nulo permitido,0.9745,datetimeoffset(0)
+Zoho_Mirror,Leads,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Leads,Provincia,,,nvarchar(60)
+Zoho_Mirror,Leads,Tipo_de_Prospecto,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,From_Odoo,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Phone,,,nvarchar(30)
+Zoho_Mirror,Leads,Categoria,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Condominio_Aprobado,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Cost_per_Conversion,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Telefono_Adicional,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Conversion_Export_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Full_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,First_Name,,,nvarchar(100)
+Zoho_Mirror,Leads,Lead_Status,,,nvarchar(50)
+Zoho_Mirror,Leads,Salutation,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Referencia,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Average_Time_Spent_Minutes,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Search_Partner_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Number_Of_Chats,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Ad,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Description,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Last_Visited_Time,Nulo permitido,0.9485,nvarchar(max) JSON
+Zoho_Mirror,Leads,Zona_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Ad_Click_Date,Columna sin uso,1,
+Zoho_Mirror,Leads,AdGroup_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Leads,Enrich_Status__s,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Click_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Days_Visited,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,First_Visited_URL,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Cost_per_Click,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Coordenadas_GPS,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Conversion_Exported_On,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,id,Sin problemas,0,nvarchar(200)
+Zoho_Mirror,Leads,Ad_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Motivo_descarte,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Odoo_Sync,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Exchange_Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Industry,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Last_Activity_Time,Nulo permitido,0.1172,nvarchar(max) JSON
+Zoho_Mirror,Leads,woztellfull__WhatsApp_message,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Lead_Agent,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Tiempo_Atencion,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,woztellfull__No_WhatsApp,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Visitor_Score,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,GCLID,Revisar,0.9984,nvarchar(max) JSON
+Zoho_Mirror,Leads,Email,,,nvarchar(200)
+Zoho_Mirror,Leads,Estrategia_Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Leads,Company,,,nvarchar(200)
+Zoho_Mirror,Leads,Owner,,,int
+Zoho_Mirror,Leads,deleted,,,
+Zoho_Mirror,Leads,Referido_por,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Coordenadas,,,"decimal(10,7)"
+Zoho_Mirror,Nodos,Enviar_Correo,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Modelo_Switch_Secundario,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,MRC_ISP,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Unsubscribed_Time,Columna sin uso,1,
+Zoho_Mirror,Nodos,Tiempo_de_Respaldo_de_Baterias,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Nodos,Marca_del_Router,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Horario_de_Ingreso,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Backup_En_Nodo,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Esperar_Permisos_de_Admin,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Cantidad_de_Baterias,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Capacidad,,,nvarchar(50)
+Zoho_Mirror,Nodos,Nodo_Asociado1,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Celular_1,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Proveedore_de_Servicio_El_ctrico,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Celular_2,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Correo_electronico_2,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Llamar_antes,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Guarda,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tipo_de_Generador,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tipo_de_Inversor,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Modelo_Router,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Condici_n,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Cantidad_de_Clientes,,,int
+Zoho_Mirror,Nodos,Tel_fono_2,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tel_fono_1,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tipo_de_Cerradura,,,
+Zoho_Mirror,Nodos,Nomenclatura,,,nvarchar(50)
+Zoho_Mirror,Nodos,Fecha_fabricacion_baterias_Inversor,Nulo permitido,0.7216,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Sensor_de_Temperatura,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Exchange_Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Sensor_de_Puerta,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Last_Activity_Time,Nulo permitido,0.0515,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Name,,,nvarchar(200)
+Zoho_Mirror,Nodos,ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Aire_Acondicionado,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Sensor_de_Movimiento,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Email,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,N_Medidor_Electrico,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,UPS_de_Back_Up,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Due_o_Medidor,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Camara_de_Seguridad,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Contrato_o_NISE,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,IP_Inversor,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Seguridad_o_Guarda,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Provincia,,,nvarchar(60)
+Zoho_Mirror,Nodos,Email_Opt_Out,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Fecha_Fabricaci_n_de_Baterias,Nulo permitido,0.8144,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Vehiculo_para_ingreso,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Record_Image,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Cantidad_de_Baterias_Inversor,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Contacto_2,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Contacto_1,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Telefono_Proveedor_electrico_2,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Banco_de_Baterias_Inversor,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Telefono_Proveedor_electrico_1,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,ID_ISP,Revisar,0.9175,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Modelo_Switch,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Altura_Torre,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Generador,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Estado_de_Nodo,,,nvarchar(50)
+Zoho_Mirror,Nodos,Banco_de_Bateria,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,N_Localizacion,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Direcci_n,,,nvarchar(1000)
+Zoho_Mirror,Nodos,Monitoreo_Electrico,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Nodos,IP_UPS,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Nodos,Modelo_Router_MikroTik,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tipo_de_Torre,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tipo_UPS,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Marca_del_Switch,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,IP_Monitoreo_Electrico,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Ordenes_de_trabajo,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Marca_Switch_Secundario,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Tiempo_de_Traslado_desde_San_Jose,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Nodos,deleted,,,
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Tipo_Servicio,,,nvarchar(100)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Contrato,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Tipo_Solicitud,,,nvarchar(100)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Fecha_de_Solicitud,Nulo permitido,0.6791,date
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Fecha_de_Desinstalacion,Nulo permitido,0.9894,date
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Unsubscribed_Time,Columna sin uso,1,
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Cliente,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,N_mero_Circuito,,,int
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Estado,,,nvarchar(50)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Last_Activity_Time,Nulo permitido,0.5725,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Name,,,nvarchar(200)
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Fecha_Instalacion,Nulo permitido,0.6425,date
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Proveedor_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Descripci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Contacto_1,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Orden_de_Servicio_Voz_IP,deleted,,,
+Zoho_Mirror,Sales_Orders,Pago_Realizado,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Direcci_n_Exacta,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Subject,,,nvarchar(300)
+Zoho_Mirror,Sales_Orders,Fecha_Revision,Nulo permitido,1,
+Zoho_Mirror,Sales_Orders,Due_Date,Nulo permitido,0.9341,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Meses_de_Plazo_Contrato,,,int
+Zoho_Mirror,Sales_Orders,Mensualidad_Pasada,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Sales_Orders,Changes,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Pais,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Capacidad_Mbps_Carga,,,"decimal(9,2)"
+Zoho_Mirror,Sales_Orders,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fecha_Envio_Revision,Nulo permitido,0.9977,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Mensualidad1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Segmentacion_Contrato_B2B,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,ROI_EX_ISP,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Costo_Instalaci_n_Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Mes,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Envio_Revision_Fase_1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Envio_Revision_Fase_2,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Envio_Revision_Fase_3,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Tipo_Fiscal,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,ROI,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Orden_de_Compra,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Tipo_de_Contrato,,,nvarchar(100)
+Zoho_Mirror,Sales_Orders,Product_Details,,,
+Zoho_Mirror,Sales_Orders,Distrito,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Condominio_C,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Mensualidad_Nueva1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Encargado_Retencion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Grand_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders,Quote_Name,,,int
+Zoho_Mirror,Sales_Orders,Condominio,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Capacidad_Mbps_Descarga,,,"decimal(9,2)"
+Zoho_Mirror,Sales_Orders,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Sales_Orders,Deal_Name,,,int
+Zoho_Mirror,Sales_Orders,Costo_Recurrente_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Mensualidad_Actual,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders,Tax,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders,Condominio_sin_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Costo_Instalacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Costo_Mensual_Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Revision_Completa_Fase_1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fecha_Proyeccion_Venta,Nulo permitido,0.1066,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Tipo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Contact_Name,,,int
+Zoho_Mirror,Sales_Orders,Revision_Completada_Fase_2,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Revision_Completada_Fase_3,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Cant_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Sub_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders,Ultima_Mensualidad,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Provincia,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Account_Name,,,int
+Zoho_Mirror,Sales_Orders,Past_Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Drop_Cliente,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,C_dula_Contrato_Sucursal,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Contrato_Asociado,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Discount,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders,Description,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fecha_de_Inactivaci_n,Nulo permitido,0.9981,date
+Zoho_Mirror,Sales_Orders,Contacto_Facturaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Revenue,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fecha_de_Firma,Nulo permitido,0.0458,date
+Zoho_Mirror,Sales_Orders,Proveedor,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Sales_Orders,Adjustment,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fase_2_Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Status,,,nvarchar(50)
+Zoho_Mirror,Sales_Orders,CHURN,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Fase_1_Duracion_Aprobacion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Relaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Sales_Orders,Revision_3,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Currency,,,char(3)
+Zoho_Mirror,Sales_Orders,Revision_2,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Aplica_Promoci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Revision_1,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,N_mero_Circuito,,,varchar(12); int
+Zoho_Mirror,Sales_Orders,borrador,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Diferencia,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Motivo,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Retencion,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Plataforma_Actual,,,nvarchar(max) JSON
+Zoho_Mirror,Sales_Orders,Owner,,,int
+Zoho_Mirror,Sales_Orders,deleted,,,
+Zoho_Mirror,Quotes,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Fecha_Cierre_Aproximado,Nulo permitido,0.1795,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Tipo,,,nvarchar(50)
+Zoho_Mirror,Quotes,Contact_Name,,,int
+Zoho_Mirror,Quotes,Subject,,,nvarchar(300)
+Zoho_Mirror,Quotes,Sub_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Quotes,Numeraci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Terms_and_Conditions,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Numero_de_DID,Revisar,0.9994,
+Zoho_Mirror,Quotes,Motivo_del_rechazo,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Quotes,Quote_Stage,,,nvarchar(50)
+Zoho_Mirror,Quotes,Account_Name,,,int
+Zoho_Mirror,Quotes,Categoria,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,precio,Revisar,0.4245,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Masive_Edition_Control_Field,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Past_Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Minutos_a_movil,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Discount,,,"decimal(19,4)"
+Zoho_Mirror,Quotes,Sub_Categor_a,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Minutos_a_fijo,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Numero_de_Canales,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Product_Details,,,
+Zoho_Mirror,Quotes,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Quotes,Adjustment,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Validez_Propuesta,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Grand_Total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Quotes,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Quotes,Currency,,,char(3)
+Zoho_Mirror,Quotes,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Quotes,Deal_Name,,,int
+Zoho_Mirror,Quotes,Tax,,,"decimal(19,4)"
+Zoho_Mirror,Quotes,Fecha_Actual,Sin problemas,0,date
+Zoho_Mirror,Quotes,ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,Duraci_n_del_compromiso,,,nvarchar(max) JSON
+Zoho_Mirror,Quotes,deleted,,,
+Zoho_Mirror,Cases,Fecha_Hora_Finalizaci_n,Nulo permitido,0.051,datetimeoffset(0)
+Zoho_Mirror,Cases,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Fecha_Hora_Fin_Mant,Nulo permitido,0.9627,datetimeoffset(0)
+Zoho_Mirror,Cases,Fecha_Coordinacion,Nulo permitido,0.9371,nvarchar(max) JSON
+Zoho_Mirror,Cases,Creado_por,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Duraci_n_en_Minutos,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Solucion,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Segmento,,,nvarchar(50)
+Zoho_Mirror,Cases,Nombre_de_quien_reporta,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Duracion,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,CDF_Revision,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Type,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Subject,,,nvarchar(500)
+Zoho_Mirror,Cases,N_mero_Ticket,,,nvarchar(50)
+Zoho_Mirror,Cases,Pick_List_40,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Case_Origin,,,nvarchar(50)
+Zoho_Mirror,Cases,Frecuencias_Probadas,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Ancho_de_Canal,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Proveedor_Externo,,,nvarchar(100)
+Zoho_Mirror,Cases,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases,SSID,Revisar,0.9827,nvarchar(max) JSON
+Zoho_Mirror,Cases,Account_Name,,,int
+Zoho_Mirror,Cases,BW_Final_Download_Upload,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Rol_en_la_Red,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Single_Line_38,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,IP_SU,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,CCQ_Final,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Tipo_Mantenimiento,,,nvarchar(100)
+Zoho_Mirror,Cases,Asignado_a,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Frecuencia_Final,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,IP_Equipo_Down,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Description,,,nvarchar(max)
+Zoho_Mirror,Cases,Modelo_de_Equipo_CDF,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Cotizacion,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Coordinacion,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Motivo_Mantenimiento,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Nodo_2,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Consecutivo,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Ticked_ID_Proveedor_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Stand_By,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Departamente_Origen,,,nvarchar(100)
+Zoho_Mirror,Cases,IP_PBX,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,FINAL,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Alcance,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases,Plataforma,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Ancho_de_Canal_Final,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Status,,,nvarchar(50)
+Zoho_Mirror,Cases,Fecha_Hora_de_Solicitud,Nulo permitido,0.0046,datetimeoffset(0)
+Zoho_Mirror,Cases,Red_Publica,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Subjects,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,CCQ_Inicial,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Cases,Apellido,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Razon_Stand_By,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,IP_Router,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,N_mero_Circuito,,,varchar(12)
+Zoho_Mirror,Cases,Resultado_Final,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Frecuencia_Inicial,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,IP_Base,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Cerrado_Por_2,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Envio_de_reporte,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Numero1,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Visita_Tecnica,,,bit
+Zoho_Mirror,Cases,Fecha_Hora_Afectacion,Nulo permitido,0.9619,datetimeoffset(0)
+Zoho_Mirror,Cases,Problema_Datos,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Tipo_PBX,,,nvarchar(max) JSON
+Zoho_Mirror,Cases,Owner,,,int
+Zoho_Mirror,Cases,deleted,,,
+Zoho_Mirror,Products,Unit_Price,Revisar,0.227,"decimal(19,4)"
+Zoho_Mirror,Products,Taxable,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Products,C_digo_Cabyss,,,nvarchar(30)
+Zoho_Mirror,Products,Product_Name,,,nvarchar(200)
+Zoho_Mirror,Products,Commission_Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Tipo_Producto,,,nvarchar(50)
+Zoho_Mirror,Products,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Products,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Products,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Products,Unidad_de_Medida,,,nvarchar(30)
+Zoho_Mirror,Products,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Record_Image,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Product_Active,,,bit
+Zoho_Mirror,Products,Tax,,,int
+Zoho_Mirror,Products,Description,,,nvarchar(1000)
+Zoho_Mirror,Products,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Products,Product_Category,,,nvarchar(100)
+Zoho_Mirror,Products,deleted,,,
+Zoho_Mirror,Deals,Plataforma_de_Enlace,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Dist_Interna,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Coordenadas,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Empresa_Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Antenas_Op_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Direcci_n_Exacta,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Router_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Router_3,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Antenas_Op_3,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Sales_Cycle_Duration,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_No_Recurrente_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Obra_Civil,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Viaticos,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Capacidad_Primer_Enlace,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Device_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Segundo_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Deals,Complejidad,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Comentarios_Notas1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Cuarto_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Tercer_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Cantidad_Casas,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,VPN,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Capacidad_Mbps_Carga,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Condominio_Aprobado,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Cost_per_Conversion,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Conversion_Export_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Closing_Date,Nulo permitido,0.0001,date
+Zoho_Mirror,Deals,Costo_del_dispositivo_de_fibra_ADN_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Comentarios_Notas_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Comentarios_Notas,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_No_Recurrente_ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Comentarios_Notas_3,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Recurrente_ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Fecha_Inspeccion,Nulo permitido,0.9875,nvarchar(max) JSON
+Zoho_Mirror,Deals,AdGroup_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Cuarto_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Condominio_C,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Click_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Conversion_Exported_On,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Capacidad_Mbps_Descarga,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Nombre_Proyecto,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Deals,Deal_Name,,,nvarchar(200)
+Zoho_Mirror,Deals,Costo_Recurrente_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Viaticos1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Last_Activity_Time,Nulo permitido,0.0009,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Final,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Enlace_de_Datos_GPS,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Fibra,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,CPO,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Estrategia_Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Reason_for_Conversion_Failure,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Proveedor_1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Ad_Campaign_Name,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Proveedor_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Segmento,,,nvarchar(50)
+Zoho_Mirror,Deals,Layout,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Tercer_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Necesita_permisos,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Contact_Name,,,int
+Zoho_Mirror,Deals,Probability,,,"decimal(5,2)"
+Zoho_Mirror,Deals,Motivo_de_rechazo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Amount,Revisar,0.0001,"decimal(19,4)"
+Zoho_Mirror,Deals,Keyword,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Troncal,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Requiere_permisos,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Antenas,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Account_Name,,,int
+Zoho_Mirror,Deals,Moitvo_de_Perdida,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Overall_Sales_Duration,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Alta_Prioridad,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Equipo_Fibra_ADN1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Materiales,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Lead_Conversion_Time,Anomalía,0.8083,nvarchar(max) JSON
+Zoho_Mirror,Deals,Aprobaci_n_Comercial,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Drop_Internet_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Nodo_Factible,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Drop_Triple_Play,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Search_Partner_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Ad,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Description,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Viaticos_ISP_1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Total_General_1,Revisar,0.884,nvarchar(max) JSON
+Zoho_Mirror,Deals,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Servicio_Asim_trico,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Consecutivo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Ad_Click_Date,Columna sin uso,1,
+Zoho_Mirror,Deals,Costo_Recurrente_ISP_Externo_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Router,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Double_Play,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Drop,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Deals,Tiempo_Estimado,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Cost_per_Click,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Plazo_ISP_1,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Deals,Stage,,,nvarchar(50)
+Zoho_Mirror,Deals,Ad_Network,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Plazo_ISP_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Currency,,,char(3)
+Zoho_Mirror,Deals,Viaticos_Extras_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Viaticos_Extras_3,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Materiales_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_No_Recurrente_ISP_Externo_2,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Materiales_3,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Segundo_Equipo,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,Costo_Tiple_Play,,,nvarchar(max) JSON
+Zoho_Mirror,Deals,GCLID,Columna sin uso,1,
+Zoho_Mirror,Deals,Owner,,,int
+Zoho_Mirror,Deals,Total_General_3,Revisar,0.999,
+Zoho_Mirror,Deals,Total_General_2,Revisar,0.9914,nvarchar(max) JSON
+Zoho_Mirror,Deals,deleted,,,
+Zoho_Mirror,Condominios,Tipo_de_Construcci_n,,,nvarchar(50)
+Zoho_Mirror,Condominios,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Coordenadas,,,"decimal(10,7)"
+Zoho_Mirror,Condominios,Cant_n,,,nvarchar(80)
+Zoho_Mirror,Condominios,Direcci_n,,,nvarchar(1000)
+Zoho_Mirror,Condominios,Unsubscribed_Time,Columna sin uso,1,
+Zoho_Mirror,Condominios,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Condominios,Distritos,,,nvarchar(80)
+Zoho_Mirror,Condominios,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Condominios,Tipo_de_Condominio,,,nvarchar(50)
+Zoho_Mirror,Condominios,Tel_fono,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Provincia,,,nvarchar(60)
+Zoho_Mirror,Condominios,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Condominios,Fecha_de_Instalaci_n,Nulo permitido,0.5907,date
+Zoho_Mirror,Condominios,Unsubscribed_Mode,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Record_Image,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Last_Activity_Time,Nulo permitido,0.0859,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Name,,,nvarchar(200)
+Zoho_Mirror,Condominios,N_A_Cortes_a,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Cortes_a,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Canitdad_de_Casas,,,int
+Zoho_Mirror,Condominios,CPO,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Email,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Nombre,,,nvarchar(200)
+Zoho_Mirror,Condominios,deleted,,,
+Zoho_Mirror,Condominios,Fases,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Capacidad_Maxima,,,int
+Zoho_Mirror,Condominios,Estado_de_Construncion,,,nvarchar(max) JSON
+Zoho_Mirror,Condominios,Aplica_FTTH,,,bit
+Zoho_Mirror,Tasks,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,What_Id,Revisar,0.0043,nvarchar(30); int
+Zoho_Mirror,Tasks,Tipo,,,nvarchar(50)
+Zoho_Mirror,Tasks,Subject,,,nvarchar(500)
+Zoho_Mirror,Tasks,Capacidad_Actual,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Tasks,Priority,,,nvarchar(20)
+Zoho_Mirror,Tasks,Due_Date,Nulo permitido,0.0243,date
+Zoho_Mirror,Tasks,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Tasks,Status,,,nvarchar(50)
+Zoho_Mirror,Tasks,Who_Id,Revisar,0.688,int
+Zoho_Mirror,Tasks,Llamada_Seguimiento_30D,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Remind_At,Anomalía,0.9783,nvarchar(max) JSON
+Zoho_Mirror,Tasks,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Tasks,Capacidad_Nueva,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Actualizaci_n_de_Tarea,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Send_Notification_Email,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,Asignado_a,,,int
+Zoho_Mirror,Tasks,Closed_Time,Nulo permitido,0.0787,datetimeoffset(0)
+Zoho_Mirror,Tasks,Description,,,nvarchar(max)
+Zoho_Mirror,Tasks,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Tasks,deleted,,,
+Zoho_Mirror,Sales_Orders_Products,line_tax,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Products,product_description,,,nvarchar(1000)
+Zoho_Mirror,Sales_Orders_Products,id,Sin problemas,0,nvarchar(200)
+Zoho_Mirror,Sales_Orders_Products,total,Sin problemas,0,
+Zoho_Mirror,Sales_Orders_Products,quantity_in_stock,,,
+Zoho_Mirror,Sales_Orders_Products,unit_price,Revisar,0.2443,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Products,list_price,Revisar,0.0002,
+Zoho_Mirror,Sales_Orders_Products,Tax,,,
+Zoho_Mirror,Sales_Orders_Products,book,,,
+Zoho_Mirror,Sales_Orders_Products,net_total,Sin problemas,0,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Products,total_after_discount,Sin problemas,0,
+Zoho_Mirror,Sales_Orders_Products,Discount,,,"decimal(19,4)"
+Zoho_Mirror,Sales_Orders_Products,quantity,,,"decimal(12,2)"
+Zoho_Mirror,Sales_Orders_Products,product,,,int
+Zoho_Mirror,Sales_Orders_Products,deleted,,,
+Zoho_Mirror,Sales_Orders_Products,sales_order,,,int
+Zoho_Mirror,Cases_Extended,CaseId,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Cases_Extended,OriginalCaseId,Sin problemas,0,nvarchar(200)
+Zoho_Mirror,Cases_Extended,Subject,,,nvarchar(500)
+Zoho_Mirror,Cases_Extended,Description,,,nvarchar(max)
+Zoho_Mirror,Cases_Extended,Status,,,nvarchar(50)
+Zoho_Mirror,Cases_Extended,CaseOrigin,,,nvarchar(50)
+Zoho_Mirror,Cases_Extended,Segmento,,,nvarchar(50)
+Zoho_Mirror,Cases_Extended,AsignadoA,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,CreadoPor,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,SupervisadoPor,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,CerradoPor2,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,NumeroCircuito,,,varchar(12)
+Zoho_Mirror,Cases_Extended,VisitaTecnica,,,bit
+Zoho_Mirror,Cases_Extended,Escalated,,,bit
+Zoho_Mirror,Cases_Extended,RevisionING,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,CerradoSupervision,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,ProveedorExterno,,,nvarchar(100)
+Zoho_Mirror,Cases_Extended,TickedIdProveedorExterno,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,DepartamenteOrigen,,,nvarchar(100)
+Zoho_Mirror,Cases_Extended,TipoMantenimiento,,,nvarchar(100)
+Zoho_Mirror,Cases_Extended,ApoyoAdicional,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,RazonStandBy,,,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,FechaHoraDeSolicitud,Nulo permitido,0.0031,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,FechaHoraAfectacion,Nulo permitido,0.9608,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,FechaHoraDeEscalamiento,Nulo permitido,0.94,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,FechaHoraPreCierre,Nulo permitido,0.92,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,FechaHoraFinMant,Nulo permitido,0.9612,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,FechaHoraFinalizacion,Nulo permitido,0.0443,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,CreatedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,ModifiedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases_Extended,LastActivityTime,Sin problemas,0,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,OwnerId,Sin problemas,0,int
+Zoho_Mirror,Cases_Extended,AccountId,Sin problemas,0,int
+Zoho_Mirror,Cases_Extended,LayoutId,Sin problemas,0,nvarchar(max) JSON
+Zoho_Mirror,Cases_Extended,NotesCount,,,
+Zoho_Mirror,Cases_Extended,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Cases_Extended,ModifiedDate,Sin problemas,0,
+Zoho_Mirror,Cases_Extended,MigrationDate,Sin problemas,0,
+Zoho_Mirror,Cases_Notes,NoteId,Sin problemas,0,nvarchar(40)
+Zoho_Mirror,Cases_Notes,CaseId,Sin problemas,0,int
+Zoho_Mirror,Cases_Notes,NoteTitle,,,nvarchar(500)
+Zoho_Mirror,Cases_Notes,NoteContent,,,nvarchar(max)
+Zoho_Mirror,Cases_Notes,SeModule,,,varchar(15)
+Zoho_Mirror,Cases_Notes,Editable,,,
+Zoho_Mirror,Cases_Notes,IsSharedToClient,,,bit
+Zoho_Mirror,Cases_Notes,VoiceNote,,,
+Zoho_Mirror,Cases_Notes,State,,,
+Zoho_Mirror,Cases_Notes,Size,,,
+Zoho_Mirror,Cases_Notes,Attachments,,,
+Zoho_Mirror,Cases_Notes,FieldStates,,,
+Zoho_Mirror,Cases_Notes,OwnerId,Sin problemas,0,int
+Zoho_Mirror,Cases_Notes,CreatedById,Sin problemas,0,
+Zoho_Mirror,Cases_Notes,ModifiedById,Sin problemas,0,
+Zoho_Mirror,Cases_Notes,ParentId,Sin problemas,0,int
+Zoho_Mirror,Cases_Notes,ParentName,,,
+Zoho_Mirror,Cases_Notes,CreatedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases_Notes,ModifiedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Cases_Notes,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Cases_Notes,ModifiedDate,Sin problemas,0,
+Zoho_Mirror,Layouts,LayoutId,Sin problemas,0,
+Zoho_Mirror,Layouts,LayoutName,,,
+Zoho_Mirror,Layouts,DisplayLabel,,,
+Zoho_Mirror,Layouts,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Layouts,ModifiedDate,Sin problemas,0,
+Zoho_Mirror,Users,status,,,nvarchar(30)
+Zoho_Mirror,Users,date_format,Anomalía,0,nvarchar(max) JSON
+Zoho_Mirror,Users,phone,,,nvarchar(30)
+Zoho_Mirror,Users,territories,,,nvarchar(max) JSON
+Zoho_Mirror,Users,full_name,,,nvarchar(200)
+Zoho_Mirror,Users,confirm,,,nvarchar(max) JSON
+Zoho_Mirror,Users,zuid,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Extension_Number,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Shift_Effective_From,,,nvarchar(max) JSON
+Zoho_Mirror,Users,time_zone,,,nvarchar(max) JSON
+Zoho_Mirror,Users,last_name,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Next_Shift,,,nvarchar(max) JSON
+Zoho_Mirror,Users,mobile,,,nvarchar(max) JSON
+Zoho_Mirror,Users,profile,,,nvarchar(100)
+Zoho_Mirror,Users,offset,,,nvarchar(max) JSON
+Zoho_Mirror,Users,time_format,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Users,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Users,status_reason__s,,,nvarchar(max) JSON
+Zoho_Mirror,Users,decimal_separator,,,nvarchar(max) JSON
+Zoho_Mirror,Users,zip,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Reporting_To,,,nvarchar(max) JSON
+Zoho_Mirror,Users,email,,,nvarchar(200)
+Zoho_Mirror,Users,first_name,,,nvarchar(max) JSON
+Zoho_Mirror,Users,sandboxDeveloper,,,nvarchar(max) JSON
+Zoho_Mirror,Users,country_locale,,,nvarchar(max) JSON
+Zoho_Mirror,Users,state,,,nvarchar(max) JSON
+Zoho_Mirror,Users,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Users,theme,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Division,,,nvarchar(100)
+Zoho_Mirror,Users,Currency,,,nvarchar(max) JSON
+Zoho_Mirror,Users,street,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Users,default_tab_group,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Isonline,,,nvarchar(max) JSON
+Zoho_Mirror,Users,personal_account,,,nvarchar(max) JSON
+Zoho_Mirror,Users,locale,,,nvarchar(max) JSON
+Zoho_Mirror,Users,microsoft,,,nvarchar(max) JSON
+Zoho_Mirror,Users,language,,,nvarchar(max) JSON
+Zoho_Mirror,Users,name_format,,,nvarchar(max) JSON
+Zoho_Mirror,Users,Current_Shift,,,nvarchar(max) JSON
+Zoho_Mirror,Users,signature,,,
+Zoho_Mirror,Users,city,,,nvarchar(max) JSON
+Zoho_Mirror,Users,customize_info,,,nvarchar(max) JSON
+Zoho_Mirror,Users,role,,,nvarchar(100)
+Zoho_Mirror,Users,country,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,id,Sin problemas,0,nvarchar(30)
+Zoho_Mirror,Accounts_Extended,Owner,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Created_By,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Modified_By,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Created_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Accounts_Extended,Modified_Time,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Accounts_Extended,Last_Activity_Time,Nulo permitido,0.002,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Account_Name,,,nvarchar(200)
+Zoho_Mirror,Accounts_Extended,Parent_Account,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Account_Type,,,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Aceptacion_Estudio_Wifi,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Agent,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Antigua_Legal_ID1,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Antigua_Razon_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Aumentos,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Cambio_Plataforma,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Disminucion,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Enlace_Backup,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_IP_Adicional,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Servicio_Administrado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Servicio_WiFi_Administrado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_Traslado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Aprovisionamiento_VoIP,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Cambio_Razon_Social,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Cant_n,,,nvarchar(80)
+Zoho_Mirror,Accounts_Extended,Cantidad_de_DIDs,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Capacidad_MPBS,,,"decimal(9,2)"
+Zoho_Mirror,Accounts_Extended,Capacity_ISP_External_Mbps,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Cargo_Autom_tico,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Causa_de_retenci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Cedula_Jurida_Persona,,,varchar(12)
+Zoho_Mirror,Accounts_Extended,Change_Log_Time__s,Columna sin uso,1,
+Zoho_Mirror,Accounts_Extended,Check_CPostal,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Clave_Proveedor_IPTV,,,
+Zoho_Mirror,Accounts_Extended,Codigo_Postal,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Condominio_C,,,int
+Zoho_Mirror,Accounts_Extended,Cortesia,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Courtesy_Type,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Cuenta_Proveedor_IPTV,,,
+Zoho_Mirror,Accounts_Extended,Currency,,,char(3)
+Zoho_Mirror,Accounts_Extended,Direcci_n_Exacta,,,nvarchar(1000)
+Zoho_Mirror,Accounts_Extended,Discard,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Distritos,,,nvarchar(80); int
+Zoho_Mirror,Accounts_Extended,Ejecutivo_Asignado,,,int
+Zoho_Mirror,Accounts_Extended,Enrich_Status__s,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Enviar_notificaci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Est_Act_de_Acc,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Estado,,,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Estrategia_Segmento,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Exchange_Rate,,,"decimal(19,6)"
+Zoho_Mirror,Accounts_Extended,Expiration_Date_ISP_Extenal,Nulo permitido,0.9943,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fech_Act_Est_Actual_Acc,Nulo permitido,0.8426,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Aumentos,Nulo permitido,0.9072,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Cambio_Plataforma,Nulo permitido,0.9847,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Disminucion,Nulo permitido,0.9919,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Enlace_Backup,Nulo permitido,0.9973,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_IPTV,Nulo permitido,0.9613,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_IP_Adicional,Nulo permitido,0.9976,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Servicio_Administrado,Nulo permitido,0.9997,
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Servicio_WiFi_Administrado,Nulo permitido,0.9896,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_Traslado,Nulo permitido,0.9792,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Aprovisionamiento_VoIP,Nulo permitido,0.9802,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_Confirmacion,Nulo permitido,0.9311,datetimeoffset(0)
+Zoho_Mirror,Accounts_Extended,Fecha_Conversion,Nulo permitido,0.9538,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_de_Cierre,Nulo permitido,0.9583,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_de_Desconexion_Temporal,Nulo permitido,0.9984,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_de_Ingreso,Nulo permitido,0.9942,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_de_Reconexion,Nulo permitido,0.9989,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Fecha_de_Retiro,Nulo permitido,0.9355,date
+Zoho_Mirror,Accounts_Extended,Fecha_de_instalaci_n,Nulo permitido,0.9923,date
+Zoho_Mirror,Accounts_Extended,Fuente_de_Ingreso,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Gain_ADN,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Hora_Cambio_Estado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,ID_ISP,Revisar,0.9913,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,IPTV,,,bit
+Zoho_Mirror,Accounts_Extended,ISP_Externo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Identifiacion_2,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Industry,,,nvarchar(100)
+Zoho_Mirror,Accounts_Extended,Last_Enriched_Time__s,Columna sin uso,1,
+Zoho_Mirror,Accounts_Extended,Last_Update_ACC,Nulo permitido,0.9507,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Line_DID,Revisar,0.986,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Link_Prtg,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Locked__s,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,MRC_Client,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,MRC_ISP,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Menos_de_3_Meses,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Mensualidad,,,"decimal(19,4)"
+Zoho_Mirror,Accounts_Extended,Motivo_de_retenci_n,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Municipalidad,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,N_mero_Circuito,,,varchar(12)
+Zoho_Mirror,Accounts_Extended,No_Sensor,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,No_Sensor_Reason,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,No_Sensor_Reason_Lista,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,No_Sensor_Reason_Lista1,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Nodo_Dispobile,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Nueva_Cuenta,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Numero_Troncal,,,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Ownership,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,PRUEBA_KIM,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Pago_realizado,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Paquete_Minutos_Celular,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Paquete_Minutos_Fijo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Passwordp,,,
+Zoho_Mirror,Accounts_Extended,Paused_Sensor,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Peaje,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Peajes,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Plataforma_de_servicio,,,nvarchar(100)
+Zoho_Mirror,Accounts_Extended,Platform_ISP_External,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Proveedor_IPTV,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Provincia,,,nvarchar(60)
+Zoho_Mirror,Accounts_Extended,Provisioned_date,Nulo permitido,0.654,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Rate,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Raz_n_Social,,,nvarchar(200)
+Zoho_Mirror,Accounts_Extended,Referencia,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Referido_por,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Retenci_n_Status,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Segmentacion_B2B,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Segmentacion_Residencial,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Segmento_Cuenta,,,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Servicep,,,
+Zoho_Mirror,Accounts_Extended,Site,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Tag,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Telefon_a,,,nvarchar(30)
+Zoho_Mirror,Accounts_Extended,Tiempo_des_meses,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Tipo,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,Tipo_Fiscal,,,nvarchar(50)
+Zoho_Mirror,Accounts_Extended,Userp,,,
+Zoho_Mirror,Accounts_Extended,VoIP_B2C,,,bit
+Zoho_Mirror,Accounts_Extended,Zoho_Books,,,
+Zoho_Mirror,Accounts_Extended,Zona_Cobertura,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,coordinates,,,"decimal(10,7)"
+Zoho_Mirror,Accounts_Extended,cost_by_mbps,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,ftth,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Extended,latitude,,,"decimal(10,7)"
+Zoho_Mirror,Accounts_Extended,longitude,,,"decimal(10,7)"
+Zoho_Mirror,Accounts_Extended,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Accounts_Extended,ModifiedDate,Sin problemas,0,
+Zoho_Mirror,Accounts_Extended,MigrationDate,Sin problemas,0,
+Zoho_Mirror,Accounts_Extended,NotesCount,,,nvarchar(max) JSON
+Zoho_Mirror,Accounts_Notes,NoteId,Sin problemas,0,nvarchar(40)
+Zoho_Mirror,Accounts_Notes,AccountId,Sin problemas,0,int
+Zoho_Mirror,Accounts_Notes,NoteTitle,,,nvarchar(500)
+Zoho_Mirror,Accounts_Notes,NoteContent,,,nvarchar(max)
+Zoho_Mirror,Accounts_Notes,SeModule,,,varchar(15)
+Zoho_Mirror,Accounts_Notes,Editable,,,
+Zoho_Mirror,Accounts_Notes,IsSharedToClient,,,bit
+Zoho_Mirror,Accounts_Notes,VoiceNote,,,
+Zoho_Mirror,Accounts_Notes,State,,,
+Zoho_Mirror,Accounts_Notes,Size,,,
+Zoho_Mirror,Accounts_Notes,Attachments,,,
+Zoho_Mirror,Accounts_Notes,FieldStates,,,
+Zoho_Mirror,Accounts_Notes,OwnerId,Sin problemas,0,int
+Zoho_Mirror,Accounts_Notes,CreatedById,Sin problemas,0,
+Zoho_Mirror,Accounts_Notes,ModifiedById,Sin problemas,0,
+Zoho_Mirror,Accounts_Notes,ParentId,Sin problemas,0,int
+Zoho_Mirror,Accounts_Notes,ParentName,,,
+Zoho_Mirror,Accounts_Notes,CreatedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Accounts_Notes,ModifiedTime,Sin problemas,0,datetimeoffset(0)
+Zoho_Mirror,Accounts_Notes,CreatedDate,Sin problemas,0,
+Zoho_Mirror,Accounts_Notes,ModifiedDate,Sin problemas,0,
+History_Tables,check_in_navsat,Id,Sin problemas,0,nvarchar(200)
+History_Tables,check_in_navsat,fecha,Sin problemas,0,datetimeoffset(0)
+History_Tables,check_in_navsat,address,,,nvarchar(500)
+History_Tables,check_in_navsat,longitud,,,"decimal(10,7)"
+History_Tables,check_in_navsat,relative_path,,,nvarchar(1000)
+History_Tables,check_in_navsat,download_url,,,nvarchar(1000)
+History_Tables,check_in_navsat,Empleado,,,nvarchar(150)
+History_Tables,check_in_navsat,comentario,,,nvarchar(1000)
+History_Tables,check_in_navsat,latitud,,,"decimal(10,7)"
+History_Tables,check_in_navsat,file_id,Revisar,0.7582,int
+History_Tables,Conexiones_desconexiones_realizadas,customer_name,,,nvarchar(200)
+History_Tables,Conexiones_desconexiones_realizadas,ip,,,nvarchar(max)
+History_Tables,Conexiones_desconexiones_realizadas,type,,,nvarchar(50)
+History_Tables,Conexiones_desconexiones_realizadas,realized_by,,,nvarchar(100)
+History_Tables,Conexiones_desconexiones_realizadas,date,Sin problemas,0,datetimeoffset(0)
+History_Tables,Conexiones_desconexiones_realizadas,ip_errors,,,nvarchar(max)
+History_Tables,Conexiones_desconexiones_realizadas,type_desc_rec,,,nvarchar(50)
+History_Tables,Conexiones_desconexiones_realizadas,date_desc_rec,Anomalía,0.015,datetimeoffset(0)
+History_Tables,customer_status_zbooks,custome_id,Sin problemas,0,nvarchar(30); int
+History_Tables,customer_status_zbooks,circuit_number,,,
+History_Tables,customer_status_zbooks,customer_status,,,nvarchar(50)
+History_Tables,customer_status_zbooks,realized_by,,,nvarchar(100)
+History_Tables,customer_status_zbooks,modification_date,Sin problemas,0,datetimeoffset(0)
+History_Tables,customer_status_zbooks,segment,,,nvarchar(50)
+app.data.cr (MongoDB),Telephony_cdr,_id,,,nvarchar(200)
+app.data.cr (MongoDB),Telephony_cdr,CDRTypeCode,,,int
+app.data.cr (MongoDB),Telephony_cdr,CDRTypeReason,,,nvarchar(100)
+app.data.cr (MongoDB),Telephony_cdr,StartDateTime,,,datetimeoffset(0)
+app.data.cr (MongoDB),Telephony_cdr,AnswerTimeOfDate,,,datetimeoffset(0)
+app.data.cr (MongoDB),Telephony_cdr,DisconnectDateTime,,,datetimeoffset(0)
+app.data.cr (MongoDB),Telephony_cdr,IngressTrunk,,,int
+app.data.cr (MongoDB),Telephony_cdr,EgressTrunk,,,int
+app.data.cr (MongoDB),Telephony_cdr,DialedNumber,,,nvarchar(50)
+app.data.cr (MongoDB),Telephony_cdr,usd_exchange,,,"decimal(19,6)"
+app.data.cr (MongoDB),Telephony_cdr,Destination,,,nvarchar(150)
+app.data.cr (MongoDB),Telephony_cdr,DestinationCode,,,varchar(20)
+app.data.cr (MongoDB),Telephony_cdr,DestinationRate,,,"decimal(19,4)"
+app.data.cr (MongoDB),Telephony_cdr,DestinationRateNoProfit,,,"decimal(19,4)"
+app.data.cr (MongoDB),Telephony_cdr,DestinationRound,,,int
+app.data.cr (MongoDB),Telephony_cdr,DurationInSeconds,,,"decimal(12,2)"
+app.data.cr (MongoDB),Telephony_cdr,DurationInRoundedSeconds,,,"decimal(12,2)"
+app.data.cr (MongoDB),Telephony_cdr,DurationInMinutes,,,"decimal(12,2)"
+app.data.cr (MongoDB),Telephony_cdr,CallCost,,,"decimal(19,4)"
+app.data.cr (MongoDB),Telephony_cdr,CallCostNoProfit,,,"decimal(19,4)"
+app.data.cr (MongoDB),Telephony_cdr,CallingNumber,,,nvarchar(50)
+app.data.cr (MongoDB),Telephony_cdr,BillingNumber,,,nvarchar(50)
+app.data.cr (MongoDB),Telephony_cdr,VoipDevice,,,nvarchar(100)
+app.data.cr (MongoDB),Telephony_cdr,CustomerName,,,
+app.data.cr (MongoDB),Telephony_cdr,CustomerIncrement,,,int
+app.data.cr (MongoDB),Telephony_cdr,CustomerPorcentage,,,"decimal(9,4)"
+app.data.cr (MongoDB),Telephony_cdr,CustomerCircuitNumber,,,varchar(12); int
+app.data.cr (MongoDB),Telephony_cdr,RoutingDigits,,,nvarchar(50)
+app.data.cr (MongoDB),Telephony_cdr,IngressTrunkAlias,,,nvarchar(max) JSON
+app.data.cr (MongoDB),Telephony_cdr,EgressTrunkAlias,,,nvarchar(max) JSON
+app.data.cr (MongoDB),Telephony_cdr,OriginationSourceIP,,,nvarchar(max) JSON
+app.data.cr (MongoDB),Telephony_cdr,OriginationDestinationIP,,,nvarchar(max) JSON
+app.data.cr (MongoDB),Telephony_cdr,Rpid_PAI,,,nvarchar(max) JSON
+app.data.cr (MongoDB),Telephony_cdr,id,,,
