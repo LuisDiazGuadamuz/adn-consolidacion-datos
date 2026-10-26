@@ -112,7 +112,9 @@ PASOS = [
                 descripcion="Consumo VoIP por tipo de servicio dentro de cada corte; hereda servicio, cliente y período del corte."),
     paso_matriz("core_ConsumoVoIP_Factura", 523, "core.ConsumoVoIP", _A, "ADNApp", "ZohoEngine_invoicevoip", "i",
                 depende=["core_Servicio", "core_Cliente"],
-                descripcion="Consumo VoIP facturado (invoicevoip). Servicio por circuito (ID-01) y cliente por cédula (ID-02)."),
+                descripcion="Consumo VoIP facturado (invoicevoip). Servicio por circuito (ID-01) y cliente por cédula (ID-02). "
+                            "La columna filepath trae la factura completa en HTML (no una ruta); se conserva tal cual en "
+                            "RutaArchivo por decisión de Josué Pérez (26/10/2026), por si se usa en el futuro."),
 ]
 
 

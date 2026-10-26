@@ -1,7 +1,7 @@
 USE ADN_Unificado;
 GO
 /* Paso 523 · core_ConsumoVoIP_Factura → core.ConsumoVoIP
-   Consumo VoIP facturado (invoicevoip). Servicio por circuito (ID-01) y cliente por cédula (ID-02).
+   Consumo VoIP facturado (invoicevoip). Servicio por circuito (ID-01) y cliente por cédula (ID-02). La columna filepath trae la factura completa en HTML (no una ruta); se conserva tal cual en RutaArchivo por decisión de Josué Pérez (26/10/2026), por si se usa en el futuro.
    Reglas: D5, ES-01, ES-04, ES-07, ID-01, ID-02, IN-01, IN-05
    GENERADO por adn_etl.generador: no editar a mano. */
 CREATE OR ALTER PROCEDURE etl.usp_core_ConsumoVoIP_Factura @LoteId int, @Desde date = NULL, @Hasta date = NULL

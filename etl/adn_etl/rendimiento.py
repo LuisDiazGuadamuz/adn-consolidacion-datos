@@ -5,7 +5,8 @@
   - Corrida completa: suma de los últimos lotes de cada paso que no exige período (lo que tarda ./etl.ps1 ejecutar --todos).
   - Pasos por período (llamadas, ubicaciones): tiempo por mes cargado y proyección a 24 meses (D7).
   - Validación: duración de la última reconciliación (ctl.Reconciliacion).
-Umbrales propuestos (a confirmar con José Hernández): corrida completa ≤ 2 h; un mes de llamadas ≤ 15 min por fuente.
+Umbrales aprobados por Josué Pérez (en ausencia de José Hernández) el 26/10/2026: corrida completa ≤ 2 h; un mes de
+llamadas ≤ 15 min por fuente. La empresa no tiene una ventana de mantenimiento definida.
 """
 import csv
 import datetime as dt
@@ -77,10 +78,10 @@ def ejecutar(cfg):
     ok_comp = t_dry / 60 <= UMBRAL_COMPLETA_MIN     # medido: la corrida completa en ensayo (todas las fases de cada paso, revertidas)
     ok_mes = peor_mes / 60 <= UMBRAL_MES_LLAMADAS_MIN
     print(f"Corrida completa medida (dry-run, {len(sin_per)} pasos sin período): {t_dry/60:.1f} min "
-          f"(umbral propuesto {UMBRAL_COMPLETA_MIN} min) → {'CUMPLE' if ok_comp else 'NO CUMPLE'}")
+          f"(umbral aprobado {UMBRAL_COMPLETA_MIN} min) → {'CUMPLE' if ok_comp else 'NO CUMPLE'}")
     print(f"Proyección en modo confirm (ensayo + carga de cada paso; no medida como corrida): ≈ {t_real/60:.0f} min")
     print(f"Llamadas (carga medida): peor mes {peor_mes/60:.1f} min, promedio {prom_mes/60:.1f} min por fuente y mes "
-          f"(umbral propuesto {UMBRAL_MES_LLAMADAS_MIN} min) → {'CUMPLE' if ok_mes else 'NO CUMPLE'}; 24 meses ≈ {proy_24/3600:.1f} h")
+          f"(umbral aprobado {UMBRAL_MES_LLAMADAS_MIN} min) → {'CUMPLE' if ok_mes else 'NO CUMPLE'}; 24 meses ≈ {proy_24/3600:.1f} h")
     if estimados:
         print("Ensayo estimado igual a la carga (sin duración medida): " + ", ".join(estimados))
     if rec:
@@ -105,14 +106,14 @@ def ejecutar(cfg):
     md = ["# Rendimiento de las cargas · ADN_Unificado", "",
           f"Ejecución: {ahora.strftime('%d/%m/%Y %H:%M')} (hora de Costa Rica) · entorno {ev.get('Marca ctl.Entorno', '')} "
           f"(Docker con 6 GB de memoria para SQL Server).", "",
-          "| Prueba | Medición | Umbral propuesto | Resultado |", "|---|---|---|---|",
+          "| Prueba | Medición | Umbral aprobado | Resultado |", "|---|---|---|---|",
           f"| R-1 Corrida completa medida (dry-run de los {len(sin_per)} pasos sin período) | {t_dry/60:.1f} min | ≤ {UMBRAL_COMPLETA_MIN} min | {'CUMPLE' if ok_comp else 'NO CUMPLE'} |",
           f"| R-2 Proyección en modo confirm (cada paso se ensaya y luego se carga) | ≈ {t_real/60:.0f} min (ensayo {t_dry/60:.0f} + carga {t_conf/60:.0f}; cargas de distintas fechas) | informativo | |",
           f"| R-3 Carga de un mes de llamadas por fuente (peor caso, medido) | {peor_mes/60:.1f} min | ≤ {UMBRAL_MES_LLAMADAS_MIN} min | {'CUMPLE' if ok_mes else 'NO CUMPLE'} |",
           f"| R-4 Proyección de 24 meses de llamadas, solo carga (D7) | {proy_24/3600:.1f} h | informativo | |"]
     if rec:
         md.append(f"| R-5 Reconciliación completa | {float(rec[0][1] or 0)/60:.1f} min ({rec[0][2]} tablas de origen) | informativo | |")
-    md += ["", "Los umbrales son una propuesta para una ventana nocturna de mantenimiento; deben confirmarse con José Hernández.", "",
+    md += ["", "Umbrales aprobados por Josué Pérez el 26/10/2026 (en ausencia de José Hernández); la empresa no tiene una ventana de mantenimiento definida.", "",
            "En modo confirm cada paso se ensaya primero (dry-run revertido) y luego se carga; por eso el tiempo real es la suma "
            "de las dos fases." + (f" Ensayo estimado igual a la carga en: {', '.join(estimados)}." if estimados else ""), "",
            "## Pasos más lentos (ensayo + carga)", "", "| Paso | Segundos | Filas leídas | Filas/s en la carga |", "|---|---:|---:|---:|"]
