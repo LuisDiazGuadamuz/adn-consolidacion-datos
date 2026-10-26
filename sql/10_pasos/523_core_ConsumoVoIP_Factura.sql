@@ -18,7 +18,7 @@ BEGIN
            q.[Llamadas],
            q.[Minutos],
            q.[Costo],
-           CAST(q.[RutaArchivo] AS nvarchar(1000)) COLLATE DATABASE_DEFAULT AS [RutaArchivo],
+           q.[RutaArchivo] COLLATE DATABASE_DEFAULT AS [RutaArchivo],
            q.[Procesado],
            q.[ClienteId],
            q.[ServicioId],
@@ -30,7 +30,7 @@ BEGIN
            HASHBYTES('SHA2_256', CONCAT_WS(N'|', ISNULL(CONVERT(nvarchar(max), q.[TipoServicioVoIP]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaInicio], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[FechaFin], 126), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Llamadas]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Minutos]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Costo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[RutaArchivo]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[Procesado]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ClienteId]), N'~'), ISNULL(CONVERT(nvarchar(max), q.[ServicioId]), N'~'), CAST(NULL AS nvarchar(1)))) AS HashContenido,
            q.[o_ClienteId],
            q.[o_ServicioId],
-           CONCAT_WS(N',', CASE WHEN LEN(q.[TipoServicioVoIP]) > 50 THEN N'TipoServicioVoIP' END, CASE WHEN LEN(q.[RutaArchivo]) > 1000 THEN N'RutaArchivo' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
+           CONCAT_WS(N',', CASE WHEN LEN(q.[TipoServicioVoIP]) > 50 THEN N'TipoServicioVoIP' END, CAST(NULL AS nvarchar(1))) AS _Recortadas
     INTO #src
     FROM (
         SELECT 'AppDataCR' AS FuenteSistema,

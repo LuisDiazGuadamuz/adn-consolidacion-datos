@@ -1809,7 +1809,7 @@ CREATE TABLE core.ConsumoVoIP (
     [TipoCambio] decimal(19,6) NULL,
     [Costo] decimal(19,4) NULL,
     [CostoCRC] decimal(19,4) NULL,
-    [RutaArchivo] nvarchar(1000) NULL,
+    [RutaArchivo] nvarchar(max) NULL,
     [Procesado] bit NULL,
     [FuenteSistema] varchar(20) NOT NULL,
     [FuenteBase] nvarchar(128) NOT NULL,
